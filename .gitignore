@@ -1,0 +1,6 @@
+
+*.pyc
+.concept/
+venv3/
+venv2.7/
+
