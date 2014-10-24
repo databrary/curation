@@ -4,6 +4,12 @@ import sys
 from pprint import pprint
 import json
 
+'''TODO: 
+        Make output validate specifically against ../../spec/volume.json
+        Reflect multirecords for participants in containers
+        Less hardcoded headers or reflect a standard based on JSON schema
+''' 
+
 
 try:
     _session_csv = sys.argv[1]
