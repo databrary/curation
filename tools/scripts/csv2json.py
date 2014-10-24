@@ -24,6 +24,34 @@ except:
     sys.exit()
 
 
+def getSessionMap(s_csvFile):
+    
+    f = open(s_csvFile, 'rb')
+    r = csv.reader(f)
+    rhead = r.next()
+
+    sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session 
+
+    for line in r:
+        
+        entries = {}
+        for it in range(len(rhead)):
+            entries[rhead[it]] = line[it]
+
+        sessionMap[line[0]].append(entries)
+
+    return sessionMap
+
+def makeOuterMostElements(csvReader):
+
+    emptydict = {}
+
+    for n in csvReader:
+        emptydict[n[0]] = []
+
+    return emptydict
+
+
 def getParticipantMap(p_csvFile):
     participantMap = {};
     f = open(p_csvFile, 'rb')
@@ -39,6 +67,7 @@ def getParticipantMap(p_csvFile):
         participantMap[rec[0]] = vals
 
     return participantMap              
+
 
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -90,7 +119,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
     j.write(res)
 
 if __name__ == "__main__":
-    parseCSV2JSON(_session_csv, _participant_csv)
+    #parseCSV2JSON(_session_csv, _participant_csv)
+
+    pprint(getSessionMap(_session_csv))
 
 
 
