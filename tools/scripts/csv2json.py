@@ -3,11 +3,13 @@ import os
 import sys
 from pprint import pprint
 import json
+import fields
 
 '''TODO: 
         Make output validate specifically against ../../spec/volume.json
         Reflect multirecords for participants in containers
         Less hardcoded headers or reflect a standard based on JSON schema
+        Probably just want to move to python 3 if nothing holding back in 2.7
 ''' 
 
 
@@ -35,11 +37,6 @@ def getParticipantMap(p_csvFile):
 
     return participantMap              
 
-    
-
-available_fields = ["SETTING", "COUNTRY", "STATE"]
-
-
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
 
@@ -54,27 +51,27 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         for row in s_reader:
             records = {}
             record = {}
-            record['RECORDS'] = {}
-            record['RECORDS']['PARTICIPANTS'] = []
+            record['records'] = {}
+            record['records']['participants'] = []
             
             for i in range(len(s_headers)):
 
                 header = s_headers[i].strip()
 
 
-                if header == "SUBID":
-                    record['RECORDS']['PARTICIPANTS'].append(p_map[row[3]])
+                if header == "participantID":
+                    record['records']['participants'].append(p_map[row[3]])
 
-                elif header == "TASK":
-                    record['RECORDS'][s_headers[i]] = []
+                elif header == "tasks":
+                    record['records'][s_headers[i]] = []
                     task_list = row[i].split(';')
 
                     for j in range(len(task_list)):
 
-                        record['RECORDS'][s_headers[i]].append(task_list[j].strip())
+                        record['records'][s_headers[i]].append(task_list[j].strip())
 
-                elif header in available_fields:
-                    record['RECORDS'][s_headers[i]] = row[i] 
+                elif header in fields.available_fields:
+                    record['records'][s_headers[i]] = row[i] 
 
 
                 else:
@@ -86,7 +83,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
     res = json.dumps(data, indent=4)
 
         
-    j = open('output.json', 'w')
+    j = open('../o/output.json', 'w')
     j.write(res)
 
 if __name__ == "__main__":
