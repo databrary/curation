@@ -1,0 +1,10 @@
+participantID,birthdate,gender,race,ethnicity,language_1,Laguage_2,disability,consent
+ident for participant,date of birth for participant,participant gender,participant race,participant ethnicity,participant's first language,participant's second language,participant disability,release level specified by participant
+fill in,yyyy-mm-dd,male,White,not Hispanic or Latino,English,English,typical,
+,,female,Asian,Hispanic or Latino,Spanish,Spanish,fill in,
+,,,Black,,Mandarin,Mandarin,,
+,,,Multiple,,Cantonese,Cantonese,,
+,,,Pacific Islander,,fill in,fill in,,
+,,,Native American,,,,,
+,,,Other,,,,,
+,,,Not Available,,,,,

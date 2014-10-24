@@ -14,10 +14,13 @@ import fields
 
 
 try:
-    _session_csv = sys.argv[1]
-    _participant_csv = sys.argv[2]
+    _session_csv = sys.argv[1]     #session metadata (csv format)
+    _participant_csv = sys.argv[2] #participant metadata (csv format)
+    _filepath_prefix = sys.argv[3] #filename on server where assets are kept
 except:
-    print 'To run this, please add paths to two csv files as arguments: e.g. `python csv2json.py session.csv participants.csv`'
+    print '''To run this, please add paths to two csv files and a name
+             for the file where the video data is kept as arguments:
+             e.g. `python csv2json.py session.csv participants.csv study1_files`'''
     sys.exit()
 
 
