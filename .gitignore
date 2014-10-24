@@ -1,6 +1,12 @@
 
+#python env stuff
 *.pyc
-.concept/
 venv3/
 venv2.7/
+
+#scratch and notes
+.concept/
+tools/i
+tools/o
+
 
