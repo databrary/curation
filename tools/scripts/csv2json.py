@@ -24,24 +24,31 @@ except:
     sys.exit()
 
 
+def giveMeCSV(file):
+    f = open(file, 'rb')
+    r = csv.reader(f)
+    return r
+
 def getSessionMap(s_csvFile):
 
-    f = open(s_csvFile, 'rb')
-    r = csv.reader(f)
+    r = giveMeCSV(s_csvFile)
     rhead = r.next()
-
 
     sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session
 
-
-    ff = open(s_csvFile, 'rb')
-    v = csv.reader(ff)
+    v = giveMeCSV(s_csvFile)
     vhead = v.next()
 
     for i in v:
+        segment = [i[7], i[8]]
+        if segment not in sessionMap[i[0]]['segments']:
+            sessionMap[i[0]]['segments'].append(segment)
 
-        if i[3] not in sessionMap[i[0]]:
-            sessionMap[i[0]].append(i[3])
+
+        if i[3] not in sessionMap[i[0]]['participants']:
+
+            sessionMap[i[0]]['participants'].append(i[3])
+            #TODO: Add segments as [start, finish] - one for each
 
 
     return sessionMap
@@ -51,7 +58,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = []
+        emptydict[n[0]] = {'participants':[], 'segments':[]}
 
 
     return emptydict
@@ -59,8 +66,7 @@ def makeOuterMostElements(csvReader):
 
 def getParticipantMap(p_csvFile):
     participantMap = {};
-    f = open(p_csvFile, 'rb')
-    p_reader = csv.reader(f)
+    p_reader = giveMeCSV(p_csvFile)
     p_headers = p_reader.next()
 
 
