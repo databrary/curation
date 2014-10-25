@@ -7,7 +7,6 @@ import fields
 
 '''TODO:
         Make output validate specifically against ../../spec/volume.json
-        Reflect multirecords for participants in containers
         Less hardcoded headers or reflect a standard based on JSON schema
         Probably just want to move to python 3 if nothing holding back in 2.7
 '''
@@ -53,7 +52,7 @@ def getSessionMap(s_csvFile):
     r = giveMeCSV(s_csvFile)
     rhead = r.next()
 
-    sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session
+    sessionMap = makeOuterMostElements(r) 
 
     vol = giveMeCSV(s_csvFile)
     vheaders = vol.next()
@@ -105,7 +104,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 elif header == "participantID":
                     for i in range(len(s_map[row[0]]['participants'])):
                         for k in s_map[row[0]]['participants'][i]:
-                            
+
                             s_map[row[0]]['participants'][i][k] = p_map[k]
 
                 else:
@@ -122,5 +121,3 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 if __name__ == "__main__":
     parseCSV2JSON(_session_csv, _participant_csv)
-
-    #pprint(getSessionMap(_session_csv))
