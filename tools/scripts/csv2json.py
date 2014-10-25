@@ -5,12 +5,12 @@ from pprint import pprint
 import json
 import fields
 
-'''TODO: 
+'''TODO:
         Make output validate specifically against ../../spec/volume.json
         Reflect multirecords for participants in containers
         Less hardcoded headers or reflect a standard based on JSON schema
         Probably just want to move to python 3 if nothing holding back in 2.7
-''' 
+'''
 
 
 try:
@@ -25,20 +25,24 @@ except:
 
 
 def getSessionMap(s_csvFile):
-    
+
     f = open(s_csvFile, 'rb')
     r = csv.reader(f)
     rhead = r.next()
 
-    sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session 
 
-    for line in r:
-        
-        entries = {}
-        for it in range(len(rhead)):
-            entries[rhead[it]] = line[it]
+    sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session
 
-        sessionMap[line[0]].append(entries)
+
+    ff = open(s_csvFile, 'rb')
+    v = csv.reader(ff)
+    vhead = v.next()
+
+    for i in v:
+
+        if i[3] not in sessionMap[i[0]]:
+            sessionMap[i[0]].append(i[3])
+
 
     return sessionMap
 
@@ -48,6 +52,7 @@ def makeOuterMostElements(csvReader):
 
     for n in csvReader:
         emptydict[n[0]] = []
+
 
     return emptydict
 
@@ -66,26 +71,26 @@ def getParticipantMap(p_csvFile):
 
         participantMap[rec[0]] = vals
 
-    return participantMap              
+    return participantMap
 
 
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
 
-    with open(s_csvFile, 'rb') as s_input: 
+    with open(s_csvFile, 'rb') as s_input:
         s_reader = csv.reader(s_input)
         s_headers = s_reader.next()
 
         data = []
-        
+
         p_map = getParticipantMap(p_csvFile)
-        
+
         for row in s_reader:
             records = {}
             record = {}
             record['records'] = {}
             record['records']['participants'] = []
-            
+
             for i in range(len(s_headers)):
 
                 header = s_headers[i].strip()
@@ -103,18 +108,18 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         record['records'][s_headers[i]].append(task_list[j].strip())
 
                 elif header in fields.available_fields:
-                    record['records'][s_headers[i]] = row[i] 
+                    record['records'][s_headers[i]] = row[i]
 
 
                 else:
                     record[s_headers[i]] = row[i]
-                
-                
+
+
             data.append(record)
 
     res = json.dumps(data, indent=4)
 
-        
+
     j = open('../o/output.json', 'w')
     j.write(res)
 
@@ -122,7 +127,3 @@ if __name__ == "__main__":
     #parseCSV2JSON(_session_csv, _participant_csv)
 
     pprint(getSessionMap(_session_csv))
-
-
-
-

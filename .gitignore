@@ -1,6 +1,7 @@
 
 #python env stuff
 *.pyc
+*.swp
 venv3/
 venv2.7/
 
