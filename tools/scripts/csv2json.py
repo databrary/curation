@@ -65,7 +65,7 @@ def getSessionMap(s_csvFile):
 
 
         if i[3] not in sessionMap[i[0]]['participants']:
-            sessionMap[i[0]]['participants'].append({ i[3]: {} }) #TODO make it that this doesnt duplicate
+            sessionMap[i[0]]['participants'].append({ i[3]: {} })
 
     return sessionMap
 
@@ -103,49 +103,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         s_map[row[0]]['tasks'].append(task_list[j].strip())
 
                 elif header == "participantID":
-                    #TODO: would like to replace list with dictionary - ID: {stuff...}, ID: {more stuff....}
                     for i in range(len(s_map[row[0]]['participants'])):
-                        s_map[row[0]]['participants'][i] = p_map[row[3]] #TODO no dice, currently
+                        for k in s_map[row[0]]['participants'][i]:
+                            
+                            s_map[row[0]]['participants'][i][k] = p_map[k]
 
                 else:
 
                     s_map[row[0]][s_headers[i]] = row[i]
 
         data.append(s_map)
-
-        '''
-        for row in s_reader:
-            records = {}
-            record = {}
-            record['records'] = {}
-            record['records']['participants'] = []
-
-            for i in range(len(s_headers)):
-
-                header = s_headers[i].strip()
-
-
-                if header == "participantID":
-                    record['records']['participants'].append(p_map[row[3]])
-
-                elif header == "tasks":
-                    record['records'][s_headers[i]] = []
-                    task_list = row[i].split(';')
-
-                    for j in range(len(task_list)):
-
-                        record['records'][s_headers[i]].append(task_list[j].strip())
-
-                elif header in fields.available_fields:
-                    record['records'][s_headers[i]] = row[i]
-
-
-                else:
-                    record[s_headers[i]] = row[i]
-
-
-            data.append(record)
-        '''
 
     res = json.dumps(data, indent=4)
 
