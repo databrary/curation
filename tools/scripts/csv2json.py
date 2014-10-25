@@ -29,42 +29,9 @@ def giveMeCSV(file):
     r = csv.reader(f)
     return r
 
-def getSessionMap(s_csvFile):
-
-    r = giveMeCSV(s_csvFile)
-    rhead = r.next()
-
-    sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session
-
-    v = giveMeCSV(s_csvFile)
-    vhead = v.next()
-
-    for i in v:
-        segment = [i[7], i[8]]
-        if segment not in sessionMap[i[0]]['segments']:
-            sessionMap[i[0]]['segments'].append(segment)
-
-
-        if i[3] not in sessionMap[i[0]]['participants']:
-
-            sessionMap[i[0]]['participants'].append(i[3])
-            #TODO: Add segments as [start, finish] - one for each
-
-
-    return sessionMap
-
-def makeOuterMostElements(csvReader):
-
-    emptydict = {}
-
-    for n in csvReader:
-        emptydict[n[0]] = {'participants':[], 'segments':[]}
-
-
-    return emptydict
-
-
 def getParticipantMap(p_csvFile):
+    '''This will give us back a dictionary with participant IDs as keys and
+        their records in the form of dictionaries as the values'''
     participantMap = {};
     p_reader = giveMeCSV(p_csvFile)
     p_headers = p_reader.next()
@@ -79,6 +46,42 @@ def getParticipantMap(p_csvFile):
 
     return participantMap
 
+def getSessionMap(s_csvFile):
+    '''This will give us back a dictionary where the unique session names (IDs) are associated with a dictionary of
+       values containing participant and segment arrays'''
+
+    r = giveMeCSV(s_csvFile)
+    rhead = r.next()
+
+    sessionMap = makeOuterMostElements(r) #make dictionary with empty lists for each unique session
+
+    vol = giveMeCSV(s_csvFile)
+    vheaders = vol.next()
+
+    for i in vol:
+        segment = [i[7], i[8]]
+        if segment not in sessionMap[i[0]]['segments']:
+            sessionMap[i[0]]['segments'].append(segment)
+
+
+        if i[3] not in sessionMap[i[0]]['participants']:
+            sessionMap[i[0]]['participants'].append(i[3])
+
+
+
+
+    return sessionMap
+
+def makeOuterMostElements(csvReader):
+    '''make an empty dictionary with the session id for keys'''
+    emptydict = {}
+
+    for n in csvReader:
+        emptydict[n[0]] = {'participants':[], 'segments':[], 'tasks':[]}
+
+
+    return emptydict
+
 
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -90,7 +93,30 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         data = []
 
         p_map = getParticipantMap(p_csvFile)
+        s_map = getSessionMap(s_csvFile)
 
+        for row in s_reader:
+            for i in range(len(s_headers)):
+                header = s_headers[i].strip()
+
+                if header == "tasks":
+                    task_list = row[i].split(';')
+
+                    for j in range(len(task_list)):
+                        s_map[row[0]]['tasks'].append(task_list[j].strip())
+
+                elif header == "participantID":
+                    #TODO: would like to replace list with dictionary - ID: {stuff...}, ID: {more stuff....}
+                    for i in range(len(s_map[row[0]]['participants'])):
+                        s_map[row[0]]['participants'][i] = p_map[i]
+
+                else:
+
+                    s_map[row[0]][s_headers[i]] = row[i]
+
+        data.append(s_map)
+
+        '''
         for row in s_reader:
             records = {}
             record = {}
@@ -122,6 +148,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
             data.append(record)
+        '''
 
     res = json.dumps(data, indent=4)
 
@@ -130,6 +157,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
     j.write(res)
 
 if __name__ == "__main__":
-    #parseCSV2JSON(_session_csv, _participant_csv)
+    parseCSV2JSON(_session_csv, _participant_csv)
 
-    pprint(getSessionMap(_session_csv))
+    #pprint(getSessionMap(_session_csv))
