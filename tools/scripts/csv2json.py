@@ -65,10 +65,7 @@ def getSessionMap(s_csvFile):
 
 
         if i[3] not in sessionMap[i[0]]['participants']:
-            sessionMap[i[0]]['participants'].append(i[3])
-
-
-
+            sessionMap[i[0]]['participants'].append({ i[3]: {} }) #TODO make it that this doesnt duplicate
 
     return sessionMap
 
@@ -108,7 +105,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 elif header == "participantID":
                     #TODO: would like to replace list with dictionary - ID: {stuff...}, ID: {more stuff....}
                     for i in range(len(s_map[row[0]]['participants'])):
-                        s_map[row[0]]['participants'][i] = p_map[i]
+                        s_map[row[0]]['participants'][i] = p_map[row[3]] #TODO no dice, currently
 
                 else:
 
