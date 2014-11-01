@@ -28,6 +28,11 @@ def giveMeCSV(file):
     r = csv.reader(f)
     return r
 
+def cleanVal(i):
+    i.strip()
+    return i
+
+
 def getParticipantMap(p_csvFile):
     '''This will give us back a dictionary with participant IDs as keys and
         their records in the form of dictionaries as the values'''
@@ -52,19 +57,21 @@ def getSessionMap(s_csvFile):
     r = giveMeCSV(s_csvFile)
     rhead = r.next()
 
-    sessionMap = makeOuterMostElements(r) 
+    sessionMap = makeOuterMostElements(r)
 
     vol = giveMeCSV(s_csvFile)
     vheaders = vol.next()
 
+    tmpList = [] #track unique participants below
     for i in vol:
-        segment = [i[7], i[8]]
+        segment = [i[7], i[8]] #assumes locations of segments as fixed on 7, 8 index
         if segment not in sessionMap[i[0]]['segments']:
             sessionMap[i[0]]['segments'].append(segment)
 
 
-        if i[3] not in sessionMap[i[0]]['participants']:
-            sessionMap[i[0]]['participants'].append({ i[3]: {} })
+        if i[3] not in tmpList:
+            tmpList.append(i[3])
+            sessionMap[i[0]]['participants'].append({ i[3]: {} }) #assume this to work to keep out duplicattes, but it does not
 
     return sessionMap
 
@@ -93,19 +100,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         for row in s_reader:
             for i in range(len(s_headers)):
-                header = s_headers[i].strip()
+                header = cleanVal(s_headers[i])
 
                 if header == "tasks":
                     task_list = row[i].split(';')
 
                     for j in range(len(task_list)):
-                        s_map[row[0]]['tasks'].append(task_list[j].strip())
+                        if cleanVal(task_list[j]) not in s_map[row[0]]['tasks']:
+                            s_map[row[0]]['tasks'].append(cleanVal(task_list[j]))
 
                 elif header == "participantID":
                     for i in range(len(s_map[row[0]]['participants'])):
-                        for k in s_map[row[0]]['participants'][i]:
-
-                            s_map[row[0]]['participants'][i][k] = p_map[k]
+                        for v in s_map[row[0]]['participants'][i]:
+                            s_map[row[0]]['participants'][i][v] = p_map[v] #duplicates
 
                 else:
 
