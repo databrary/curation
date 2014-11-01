@@ -29,7 +29,7 @@ def giveMeCSV(file):
     return r
 
 def cleanVal(i):
-    i.strip()
+    i = i.strip()
     return i
 
 
