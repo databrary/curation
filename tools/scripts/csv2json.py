@@ -7,6 +7,7 @@ import fields
 
 '''TODO:
         Make output validate specifically against ../../spec/volume.json
+         - ensure type casts for ingest
         Less hardcoded headers or reflect a standard based on JSON schema
         Probably just want to move to python 3 if nothing holding back in 2.7
 '''
@@ -65,13 +66,13 @@ def getSessionMap(s_csvFile):
     tmpList = [] #track unique participants below
     for i in vol:
         segment = [i[7], i[8]] #assumes locations of segments as fixed on 7, 8 index
-        if segment not in sessionMap[i[0]]['segments']:
-            sessionMap[i[0]]['segments'].append(segment)
+        if segment not in sessionMap[i[0]]['segment']:
+            sessionMap[i[0]]['segment'].append(segment)
 
 
         if i[3] not in tmpList:
             tmpList.append(i[3])
-            sessionMap[i[0]]['participants'].append({ i[3]: {} }) #assume this to work to keep out duplicattes, but it does not
+            sessionMap[i[0]]['participants'].append({ i[3]: {} })
 
     return sessionMap
 
@@ -80,7 +81,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {'participants':[], 'segments':[], 'tasks':[]}
+        emptydict[n[0]] = {'participants':[], 'segment':[], 'tasks':[]}
 
 
     return emptydict
@@ -112,7 +113,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 elif header == "participantID":
                     for i in range(len(s_map[row[0]]['participants'])):
                         for v in s_map[row[0]]['participants'][i]:
-                            s_map[row[0]]['participants'][i][v] = p_map[v] #duplicates
+                            s_map[row[0]]['participants'][i][v] = p_map[v]
 
                 else:
 
