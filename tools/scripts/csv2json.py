@@ -72,7 +72,7 @@ def getSessionMap(s_csvFile):
 
         if i[3] not in tmpList:
             tmpList.append(i[3])
-            sessionMap[i[0]]['participants'].append({ i[3]: {} })
+            sessionMap[i[0]]['records']['participants'].append({ i[3]: {} })
 
     return sessionMap
 
@@ -81,7 +81,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {'participants':[], 'segment':[], 'tasks':[]}
+        emptydict[n[0]] = {'segment':[], 'records':{'participants':[], 'tasks':[]}}
 
 
     return emptydict
@@ -107,13 +107,13 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     task_list = row[i].split(';')
 
                     for j in range(len(task_list)):
-                        if cleanVal(task_list[j]) not in s_map[row[0]]['tasks']:
-                            s_map[row[0]]['tasks'].append(cleanVal(task_list[j]))
+                        if cleanVal(task_list[j]) not in s_map[row[0]]['records']['tasks']:
+                            s_map[row[0]]['records']['tasks'].append(cleanVal(task_list[j]))
 
                 elif header == "participantID":
-                    for i in range(len(s_map[row[0]]['participants'])):
-                        for v in s_map[row[0]]['participants'][i]:
-                            s_map[row[0]]['participants'][i][v] = p_map[v]
+                    for i in range(len(s_map[row[0]]['records']['participants'])):
+                        for v in s_map[row[0]]['records']['participants'][i]:
+                            s_map[row[0]]['records']['participants'][i][v] = p_map[v]
 
                 else:
 
