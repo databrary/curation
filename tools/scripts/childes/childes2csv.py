@@ -12,14 +12,7 @@ output_path = '../../i/'
 
 p_file = output_path + file_input + '_p' + '.csv'
 s_file = output_path +  file_input + '_s' + '.csv'
-
-def makeCSV(filename, headers):
-    with open(filename, 'wb') as csvfile:
-        outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
-        outfile.writerow(headers)
-
-makeCSV(p_file, fields.participant_headers)
-makeCSV(s_file, fields.session_headers)
+        
 
 def getFilePath(directory):
     filepaths = []
@@ -46,9 +39,6 @@ def getSessions(f, directory, fpath):
         fpath_list.pop()
 
         asset_path = '/'.join(fpath_list)
-
-
-        print asset_path
 
         s_list[asset] = {}
 
@@ -110,19 +100,65 @@ def getParticipants(f, directory, fpath):
 
                     if line.startswith('@') and 'Birth of CHI' in line:
                         dob = line.split('\t')[1].strip()
-                        p_list[participant[1]]['birtdate'] = dob
+                        p_list[participant[1]]['birthdate'] = dob
 
 
     print 'got the participants'
     return p_list
 
+def makeParticipantCSV(csvfile, participant_dictionary, headers):
+    with open(csvfile, 'wb') as csvfile:
+        outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
+        outfile.writerow(headers)
+        
+        for k,v in participant_dictionary.items():
+            participantID = k
+            birthdate = v['birthdate']
+            gender = v['gender']
+            race = ''
+            ethnicity = ''
+            language_1 = v['language']
+            language_2 = ''
+            disability = ''
+            consent = ''
+
+            outfile.writerow([participantID,birthdate,gender,race,ethnicity,language_1,language_2,disability,consent])
 
 
-participant_dict = getParticipants(p_file, input_directory, getFilePath(input_directory))
-sessions_dict = getSessions(s_file, input_directory, getFilePath(input_directory))
+def makeSessionCSV(csvfile, session_dictionary, headers):
+    with open(csvfile, 'wb') as csvfile:
+        outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
+        outfile.writerow(headers)
+        
+        for k,v in session_dictionary.items():
+            name = k 
+            date = v['date'] 
+            top = ''
+            pilot = '' 
+            exclusion = '' 
+            classification = '' 
+            filename = v['path'] + '/' + v['file']
+            participantID = v['participant']
+            segment_in = ''
+            segment_out = ''
+            condition = ''
+            group = ''
+            language = v['language']
+            setting = ''
+            state = ''
+            country = ''
+            info = ''
 
-print participant_dict
-print sessions_dict
+            outfile.writerow([name, date, top, pilot, exclusion , classification, filename, participantID, segment_in, segment_out, condition, group, language, setting, state, country, info])
 
+
+
+if __name__ == "__main__":
+
+    participant_dict = getParticipants(p_file, input_directory, getFilePath(input_directory))
+    session_dict = getSessions(s_file, input_directory, getFilePath(input_directory))
+
+    makeParticipantCSV(p_file, participant_dict, fields.participant_headers)
+    makeSessionCSV(s_file, session_dict, fields.session_headers)
 
 
