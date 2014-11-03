@@ -1,6 +1,7 @@
 import csv
 import os
 import sys
+sys.path.append('./utils')
 from pprint import pprint
 import json
 import fields
