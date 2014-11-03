@@ -10,4 +10,5 @@ venv2.7/
 tools/i
 tools/o
 
-
+#data
+data/
