@@ -2,8 +2,10 @@ import csv
 import os
 import sys
 import glob
+import datetime
 sys.path.append('../utils')
 import fields
+
 
 input_directory = sys.argv[1] #provide the main directory where all the files are
 file_input = sys.argv[2] #give a namespace for this - ie: childes
@@ -12,6 +14,11 @@ output_path = '../../i/'
 
 p_file = output_path + file_input + '_p' + '.csv'
 s_file = output_path +  file_input + '_s' + '.csv'
+
+def dateFromString(datestring):
+    date_result = datetime.datetime.strptime(datestring, "%d-%b-%Y")
+    date_result = date_result.strftime("%Y-%m-%d")
+    return date_result
         
 
 def getFilePath(directory):
@@ -50,8 +57,8 @@ def getSessions(f, directory, fpath):
 
                 for line in data:
                     if line.startswith('@') and 'Date' in line:
-                        session_date = line.split('\t')[1]
-                        s_list[asset]['date'] = session_date.strip()
+                        session_date = line.split('\t')[1].strip()
+                        s_list[asset]['date'] = dateFromString(session_date)
 
                     if line.startswith('@') and 'Languages' in line:
                         language = line.split('\t')[1]
@@ -100,7 +107,7 @@ def getParticipants(f, directory, fpath):
 
                     if line.startswith('@') and 'Birth of CHI' in line:
                         dob = line.split('\t')[1].strip()
-                        p_list[participant[1]]['birthdate'] = dob
+                        p_list[participant[1]]['birthdate'] = dateFromString(dob)
 
 
     print 'got the participants'
