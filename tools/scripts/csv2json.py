@@ -66,12 +66,12 @@ def getSessionMap(s_csvFile):
 
     for i in vol:
         
-        segment = [i[7], i[8]] #assumes locations of segments as fixed on 7, 8 index
+        segment = [i[8], i[9]] #assumes locations of segments as fixed on 7, 8 index
         if segment not in sessionMap[i[0]]['segment']:
             sessionMap[i[0]]['segment'].append(segment)
    
         
-        sessionMap[i[0]]['records']['participants'].append({ i[3]: {} })
+        sessionMap[i[0]]['records']['participants'].append({ i[2]: {} })
         
     '''the following then deduplicates participants in any given containers participant record'''        
     for k, v in sessionMap.iteritems():
