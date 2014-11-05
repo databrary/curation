@@ -66,14 +66,9 @@ def getSessionMap(s_csvFile):
 
     for i in vol:
         
-        #clipArr = [i[8], i[9]] #assumes locations of clips as fixed index
+        participantID = i[2]
         
-        #for l in sessionMap[i[0]]['assets']:
-        #    if clipArr not in sessionMap[i[0]]['assets'][l]['clip']:
-        #        sessionMap[i[0]]['assets'][l]['clip'].append(clipArr)
-   
-        
-        sessionMap[i[0]]['records']['participants'].append({ i[2]: {} })
+        sessionMap[i[0]]['records']['participants'].append({ participantID: {} })
         
     '''the following then deduplicates participants in any given containers participant record'''  
     for k, v in sessionMap.iteritems():
@@ -109,6 +104,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
+            clipArr = [row[8], row[9]] if row[8] != '' else ['auto']
+            segment = [row[10]] if row[10] != '' else ['auto'] #row[10] is a placeholder for now
+            classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
+
             for i in range(len(s_headers)):
                 header = cleanVal(s_headers[i])
 
@@ -125,12 +124,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             s_map[row[0]]['records']['participants'][i][v] = p_map[v]
 
                 elif header == "filename":
-                    s_map[row[0]]['assets'].append({'file': row[i]})
+                    s_map[row[0]]['assets'].append({'file': row[i], 
+                                                    'clip': clipArr, 
+                                                    'segment': segment, 
+                                                    'classification': classification})
 
 
                 else:
 
                     s_map[row[0]][s_headers[i]] = row[i]
+
 
         data.append(s_map)
 
