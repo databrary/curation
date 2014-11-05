@@ -73,14 +73,13 @@ def getSessionMap(s_csvFile):
         
         sessionMap[i[0]]['records']['participants'].append({ i[2]: {} })
         
-    '''the following then deduplicates participants in any given containers participant record'''        
+    '''the following then deduplicates participants in any given containers participant record'''  
     for k, v in sessionMap.iteritems():
-        deduped_p = []
-        for x in sessionMap[k]['records']['participants']:
-            if x not in deduped_p:
-                deduped_p.append(x)
 
-        sessionMap[k]['records']['participants'] = deduped_p
+        new_entry = {d.keys()[0]:d[d.keys()[0]] for d in sessionMap[k]['records']['participants']}
+
+        sessionMap[k]['records']['participants'] = []
+        sessionMap[k]['records']['participants'].append(new_entry)
 
     return sessionMap
 
