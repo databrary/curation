@@ -81,7 +81,8 @@
     },
     "offset": {
       "description": "Point in time, used as endpoint for segment.  Null represents indeterminate value, usually representing +-Infinity as an endpoint.",
-      "type": ["number", "null"]
+      "type": ["number", "string", "null"],
+      "pattern": "^(\\d+:){0,2}\\d+(\\.\\d*)?$"
     },
     "segment": {
       "description": "Explicit range of time (within a container): an empty segment, a singleton point in time, or a start and end point.",
