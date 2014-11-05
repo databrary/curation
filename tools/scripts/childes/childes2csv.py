@@ -16,9 +16,19 @@ p_file = output_path + file_input + '_p' + '.csv'
 s_file = output_path +  file_input + '_s' + '.csv'
 
 def dateFromString(datestring):
+    '''This will take a date in the form of 04-DEC-2000 and change to a string of 2000-12-03'''
     date_result = datetime.datetime.strptime(datestring, "%d-%b-%Y")
     date_result = date_result.strftime("%Y-%m-%d")
     return date_result
+
+def getDaysFromDates(birthdate, sessiondate):
+    '''This will take two date strings like 2000-12-04 and create a date object for calculating days'''
+    d0 = datetime.datetime.strptime(birthdate, "%Y-%m-%d")
+    d1 = datetime.datetime.strptime(sessiondate, "%Y-%m-%d")
+
+    diff = d1 - d0
+
+    return diff.days
         
 
 def getFilePath(directory):
@@ -109,6 +119,10 @@ def getParticipants(f, directory, fpath):
                         dob = line.split('\t')[1].strip()
                         p_list[participant[1]]['birthdate'] = dateFromString(dob)
 
+                    if line.startswith('@') and 'Date' in line:
+                        session_date = line.split('\t')[1].strip()
+                        p_list[participant[1]]['date'] = dateFromString(session_date)
+
 
     print 'got the participants'
     return p_list
@@ -121,15 +135,17 @@ def makeParticipantCSV(csvfile, participant_dictionary, headers):
         for k,v in participant_dictionary.items():
             participantID = k
             birthdate = v['birthdate']
+            date = v['date']
+            age_days = getDaysFromDates(v['birthdate'], v['date'])
             gender = v['gender']
             race = ''
             ethnicity = ''
-            language_1 = v['language']
-            language_2 = ''
+            language = v['language']
             disability = ''
+            category = ''
             consent = ''
 
-            outfile.writerow([participantID,birthdate,gender,race,ethnicity,language_1,language_2,disability,consent])
+            outfile.writerow([participantID,birthdate,date,age_days,gender,race,ethnicity,language,disability,category,consent])
 
 
 def makeSessionCSV(csvfile, session_dictionary, headers):
@@ -156,7 +172,7 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             country = ''
             info = ''
 
-            outfile.writerow([name, date, top, pilot, exclusion , classification, filename, participantID, segment_in, segment_out, condition, group, language, setting, state, country, info])
+            outfile.writerow([name, date, top, participantID, pilot, exclusion , classification, filename, segment_in, segment_out, condition, group, language, setting, state, country, info])
 
 
 

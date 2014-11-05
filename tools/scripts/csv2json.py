@@ -50,6 +50,7 @@ def getParticipantMap(p_csvFile):
 
         participantMap[rec[0]] = vals
 
+    print participantMap
     return participantMap
 
 def getSessionMap(s_csvFile):
