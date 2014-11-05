@@ -54,7 +54,7 @@ def getParticipantMap(p_csvFile):
 
 def getSessionMap(s_csvFile):
     '''This will give us back a dictionary where the unique session names (IDs) are associated with a dictionary of
-       values containing participant and segment arrays'''
+       values containing participant'''
 
     r = giveMeCSV(s_csvFile)
     rhead = r.next()
@@ -66,9 +66,11 @@ def getSessionMap(s_csvFile):
 
     for i in vol:
         
-        segment = [i[8], i[9]] #assumes locations of segments as fixed on 7, 8 index
-        if segment not in sessionMap[i[0]]['segment']:
-            sessionMap[i[0]]['segment'].append(segment)
+        #clipArr = [i[8], i[9]] #assumes locations of clips as fixed index
+        
+        #for l in sessionMap[i[0]]['assets']:
+        #    if clipArr not in sessionMap[i[0]]['assets'][l]['clip']:
+        #        sessionMap[i[0]]['assets'][l]['clip'].append(clipArr)
    
         
         sessionMap[i[0]]['records']['participants'].append({ i[2]: {} })
@@ -88,7 +90,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {'segment':[], 'records':{'participants':[], 'tasks':[]}}
+        emptydict[n[0]] = {'assets':[], 'records':{'participants':[], 'tasks':[]}}
 
 
     return emptydict
@@ -121,6 +123,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for i in range(len(s_map[row[0]]['records']['participants'])):
                         for v in s_map[row[0]]['records']['participants'][i]:
                             s_map[row[0]]['records']['participants'][i][v] = p_map[v]
+
+                elif header == "filename":
+                    s_map[row[0]]['assets'].append({'file': row[i]})
+
 
                 else:
 
