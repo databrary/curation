@@ -50,7 +50,6 @@ def getParticipantMap(p_csvFile):
 
         participantMap[rec[0]] = vals
 
-    print participantMap
     return participantMap
 
 def getSessionMap(s_csvFile):
@@ -65,16 +64,23 @@ def getSessionMap(s_csvFile):
     vol = giveMeCSV(s_csvFile)
     vheaders = vol.next()
 
-    tmpList = [] #track unique participants below
     for i in vol:
+        
         segment = [i[7], i[8]] #assumes locations of segments as fixed on 7, 8 index
         if segment not in sessionMap[i[0]]['segment']:
             sessionMap[i[0]]['segment'].append(segment)
+   
+        
+        sessionMap[i[0]]['records']['participants'].append({ i[3]: {} })
+        
+    '''the following then deduplicates participants in any given containers participant record'''        
+    for k, v in sessionMap.iteritems():
+        deduped_p = []
+        for x in sessionMap[k]['records']['participants']:
+            if x not in deduped_p:
+                deduped_p.append(x)
 
-
-        if i[3] not in tmpList:
-            tmpList.append(i[3])
-            sessionMap[i[0]]['records']['participants'].append({ i[3]: {} })
+        sessionMap[k]['records']['participants'] = deduped_p
 
     return sessionMap
 
@@ -125,8 +131,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
     res = json.dumps(data, indent=4)
 
-
-    j = open('../o/output.json', 'w')
+    output_dest = '../o/' + _filepath_prefix + "_output.json"
+    j = open(output_dest, 'w')
     j.write(res)
 
 if __name__ == "__main__":
