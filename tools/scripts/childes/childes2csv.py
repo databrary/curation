@@ -7,8 +7,10 @@ sys.path.append('../utils')
 import fields
 
 
-input_directory = sys.argv[1] #provide the main directory where all the files are
+rel_path = sys.argv[1] #provide the main directory where all the files are
 file_input = sys.argv[2] #give a namespace for this - ie: childes
+fixed_path = '../../../data/'
+input_directory = fixed_path + rel_path
 output_path = '../../i/'
 
 
@@ -42,6 +44,37 @@ def getFilePath(directory):
 
     return filepaths
 
+def getAssets(directory):
+    '''currently not using this, but might come in handy to generalize in refactoring'''
+
+    assets0 = {}
+    for subdir, dirs, files in os.walk(directory):
+        for d in dirs:
+            for files in os.walk(directory + "/" + d):
+                assets0[d] = files[2]
+
+
+    assets_map = {}
+    all_assets = []
+    for k,v in assets0.iteritems():
+        assets_map[k] = {}
+        for i in range(len(v)):
+            currSesh = v[i].split('.')[0]
+            assets_map[k][currSesh] = []
+            all_assets.append(v[i])
+            
+            
+    for k,v in assets_map.iteritems():
+        for j in range(len(all_assets)):
+            for s in range(len(v.keys())):
+            
+                if v.keys()[s] in all_assets[j]:
+                    assets_map[k][v.keys()[s]].append(all_assets[j])
+
+            
+
+    return assets_map
+
 
 def getSessions(f, directory, fpath):
     s_list = {}
@@ -50,12 +83,11 @@ def getSessions(f, directory, fpath):
     for i in fpath:
 
         fpath_list = i.split('/')
-
         asset = fpath_list[-1].split('.')[0]
         
-        fpath_list.pop()
+        #fpath_list.pop()
 
-        asset_path = '/'.join(fpath_list)
+        #asset_path = '/'.join(fpath_list)
 
         s_list[asset] = {}
 
@@ -71,12 +103,14 @@ def getSessions(f, directory, fpath):
                         s_list[asset]['date'] = dateFromString(session_date)
 
                     if line.startswith('@') and 'Languages' in line:
-                        language = line.split('\t')[1]
-                        s_list[asset]['language'] = language.strip()
+                        language = line.split('\t')[1].strip()
+                        s_list[asset]['language'] = language
 
                     if line.startswith('@') and 'ID' in line and 'CHI' in line:
-                        participant = line.split('\t')[1].split('|')[1]
-                        s_list[asset]['participant'] = participant.strip()
+                        participant = line.split('\t')[1].split('|')[1].strip()
+                        s_list[asset]['participant'] = participant
+
+                    
 
                     if line.startswith('@') and 'Media' in line:
                         asset_val = line.split('\t')[1].split(',')
@@ -88,8 +122,9 @@ def getSessions(f, directory, fpath):
                             asset_file = asset_val[0] + '.mov'
                             s_list[asset]['file'] = asset_file.strip()
 
-                        
-                s_list[asset]['path'] = asset_path
+                        s_list[asset]['transcript'] = asset_val[0] + '.cha'
+
+                s_list[asset]['path'] = rel_path if rel_path.endswith('/') else rel_path + '/' 
                     
     print 'sessions got'
     return s_list
@@ -127,6 +162,8 @@ def getParticipants(f, directory, fpath):
     print 'got the participants'
     return p_list
 
+
+
 def makeParticipantCSV(csvfile, participant_dictionary, headers):
     with open(csvfile, 'wb') as csvfile:
         outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
@@ -159,11 +196,14 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             top = ''
             pilot = '' 
             exclusion = '' 
-            classification = '' 
-            filename = v['path'] + '/' + v['file']
+            classification = ''
+            path = v['path'] 
+            filename = v['file']
+            transcript = v['transcript']
             participantID = v['participant']
-            segment_in = ''
-            segment_out = ''
+            clip_in = ''
+            clip_out = ''
+            segment = ''
             condition = ''
             group = ''
             language = v['language']
@@ -172,7 +212,7 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             country = ''
             info = ''
 
-            outfile.writerow([name, date, top, participantID, pilot, exclusion , classification, filename, segment_in, segment_out, condition, group, language, setting, state, country, info])
+            outfile.writerow([name, date, top, participantID, pilot, exclusion , classification, clip_in, clip_out, segment, path, filename, transcript, condition, group, language, setting, state, country, info])
 
 
 
@@ -184,4 +224,5 @@ if __name__ == "__main__":
     makeParticipantCSV(p_file, participant_dict, fields.participant_headers)
     makeSessionCSV(s_file, session_dict, fields.session_headers)
 
+    
 

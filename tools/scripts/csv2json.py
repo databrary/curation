@@ -104,8 +104,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
-            clipArr = [row[8], row[9]] if row[8] != '' else ['auto']
-            segment = [row[10]] if row[10] != '' else ['auto'] #row[10] is a placeholder for now
+            clipArr = [row[7], row[8]] if row[7] != '' else ['auto']
+            segment = [row[9]] if row[9] != '' else ['auto'] #row[10] is a placeholder for now
             classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
 
             for i in range(len(s_headers)):
