@@ -106,6 +106,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             clipArr = [row[7], row[8]] if row[7] != '' else ['auto']
             segment = [row[9]] if row[9] != '' else ['auto'] #row[10] is a placeholder for now
             classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
+            top = row[3] if row[3] != '' else 'false'
 
             for i in range(len(s_headers)):
                 header = cleanVal(s_headers[i])
@@ -127,7 +128,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                                     'clip': clipArr, 
                                                     'segment': segment, 
                                                     'classification': classification,
-                                                    'path': path})
+                                                    'path': path,
+                                                    'top': top})
 
 
                 else:
@@ -135,7 +137,14 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     s_map[row[0]][s_headers[i]] = row[i]
 
 
-        data = s_map
+        
+
+        data = {
+
+            "name": _filepath_prefix,
+            "containers": s_map.values()
+        }
+
 
 
     res = json.dumps(data, indent=4)
