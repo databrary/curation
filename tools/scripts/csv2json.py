@@ -98,8 +98,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_reader = csv.reader(s_input)
         s_headers = s_reader.next()
 
-        data = []
-
         p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
 
@@ -137,7 +135,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     s_map[row[0]][s_headers[i]] = row[i]
 
 
-        data.append(s_map)
+        data = s_map
+
 
     res = json.dumps(data, indent=4)
 
