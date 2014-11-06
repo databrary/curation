@@ -104,6 +104,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
+            path = row[10]
             clipArr = [row[7], row[8]] if row[7] != '' else ['auto']
             segment = [row[9]] if row[9] != '' else ['auto'] #row[10] is a placeholder for now
             classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
@@ -123,11 +124,12 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         for v in s_map[row[0]]['records']['participants'][i]:
                             s_map[row[0]]['records']['participants'][i][v] = p_map[v]
 
-                elif header == "filename":
+                elif 'file_' in header:
                     s_map[row[0]]['assets'].append({'file': row[i], 
                                                     'clip': clipArr, 
                                                     'segment': segment, 
-                                                    'classification': classification})
+                                                    'classification': classification,
+                                                    'path': path})
 
 
                 else:
