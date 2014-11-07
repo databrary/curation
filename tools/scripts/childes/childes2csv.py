@@ -210,9 +210,9 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             setting = ''
             state = ''
             country = ''
-            info = ''
 
-            outfile.writerow([name, date, participantID, top, pilot, exclusion , classification, clip_in, clip_out, segment, path, filename, transcript, condition, group, language, setting, state, country, info])
+
+            outfile.writerow([name, date, participantID, top, pilot, exclusion , classification, clip_in, clip_out, segment, path, filename, transcript, condition, group, language, setting, state, country])
 
 
 

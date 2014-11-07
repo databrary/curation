@@ -76,7 +76,6 @@ def getSessionMap(s_csvFile):
         sessionMap[k]['records'] = deduped
 
 
-    print sessionMap
     return sessionMap
 
 def makeOuterMostElements(csvReader):
@@ -101,11 +100,23 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
+            name=row[0]
+            s_curr = s_map[name]
+            date=row[1]
+
             path = row[10]
             clipArr = [row[7], row[8]] if row[7] != '' else ['auto']
             segment = [row[9]] if row[9] != '' else ['auto'] #row[10] is a placeholder for now
             classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
-            top = row[3] if row[3] != '' else 'false'
+            top = True if row[3] != '' else False
+            pilot = row[4]
+            exclusion = row[5]
+            condition = row[13]
+            group = row[14]
+            setting = row[16]
+            state = row[17]
+            country = row[18]
+
 
             for i in range(len(s_headers)):
                 header = cleanVal(s_headers[i])
@@ -121,32 +132,58 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 
 
                 if header == "participantID":
-                    for i in range(len(s_map[row[0]]['records'])):
-                        target = s_map[row[0]]['records'][i]
+                    for i in range(len(s_curr['records'])):
+                        target = s_curr['records'][i]
                         '''missing: date and age, in days.'''
-                        target['category'] = p_map[target['pID']]['category']
-                        target['birthdate'] = p_map[target['pID']]['birthdate']
-                        target['ethnicity'] = p_map[target['pID']]['ethnicity']
-                        target['race'] = p_map[target['pID']]['race']
-                        target['language'] = p_map[target['pID']]['language']
-                        target['disability'] = p_map[target['pID']]['disability']
-                        target['gender'] = p_map[target['pID']]['gender']
+                        if 'pID' in target:
+                            target['category'] = p_map[target['pID']]['category']
+                            target['birthdate'] = p_map[target['pID']]['birthdate']
+                            target['ethnicity'] = p_map[target['pID']]['ethnicity']
+                            target['race'] = p_map[target['pID']]['race']
+                            target['language'] = p_map[target['pID']]['language']
+                            target['disability'] = p_map[target['pID']]['disability']
+                            target['gender'] = p_map[target['pID']]['gender']
 
 
                 elif 'file_' in header:
-                    s_map[row[0]]['assets'].append({'file': row[i], 
-                                                    'clip': clipArr, 
-                                                    'segment': segment, 
-                                                    'classification': classification,
-                                                    'path': path,
-                                                    'top': top})
+                    s_curr['assets'].append({'file': row[i], 
+                                             'clip': clipArr, 
+                                             'segment': segment, 
+                                             'classification': classification
+                                             })
+                
+                elif header == 'pilot':
+                    s_curr['records'].append({'category': 'pilot',
+                                              'ident': pilot})
+
+                elif header == 'exlcusion':
+                    s_curr['records'].append({'category': 'exclusion',
+                                              'reason': exclusion})
+
+                elif header == 'condition':
+                    s_curr['records'].append({'category': 'condition',
+                                              'ident': condition})
+
+                elif header == 'setting':
+                    s_curr['records'].append({'category': 'context',
+                                              'setting': setting,
+                                              'state': state,
+                                              'country': country})
+
+                elif header == 'name':
+
+                    s_curr[s_headers[i]] = name
+
+                elif header == 'date':
+
+                    s_curr[s_headers[i]] = date
 
 
-                else:
+                elif header == 'top':
 
-                    s_map[row[0]][s_headers[i]] = row[i]
+                    s_curr[s_headers[i]] = top
 
-
+                
         
 
         data = {
