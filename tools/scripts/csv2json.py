@@ -102,11 +102,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         for row in s_reader:
             name=row[0]
             s_curr = s_map[name]
-            date=row[1]
+            date = row[1] if row[1] != '' else '1900-01-01' #default to not real date, but should be a date
 
             path = row[10]
-            clipArr = [row[7], row[8]] if row[7] != '' else ['auto']
-            segment = [row[9]] if row[9] != '' else ['auto'] #row[10] is a placeholder for now
+            clipArr = [row[7], row[8]] if row[7] != '' else ['0:00', '0:00']
+            segment = [row[9]] if row[9] != '' else 'auto' #row[10] is a placeholder for now
             classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
             top = True if row[3] != '' else False
             pilot = row[4]
@@ -137,7 +137,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         '''missing: date and age, in days.'''
                         if 'pID' in target:
                             target['category'] = p_map[target['pID']]['category']
-                            target['birthdate'] = p_map[target['pID']]['birthdate']
+                            target['birthdate'] = p_map[target['pID']]['birthdate'] if p_map[target['pID']]['birthdate'] != '' else '1900-01-01'
                             target['ethnicity'] = p_map[target['pID']]['ethnicity']
                             target['race'] = p_map[target['pID']]['race']
                             target['language'] = p_map[target['pID']]['language']
