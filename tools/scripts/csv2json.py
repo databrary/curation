@@ -68,16 +68,15 @@ def getSessionMap(s_csvFile):
         
         participantID = i[2]
         
-        sessionMap[i[0]]['records']['participants'].append({ participantID: {} })
+        sessionMap[i[0]]['records'].append({'pID': participantID})
         
     '''the following then deduplicates participants in any given containers participant record'''  
     for k, v in sessionMap.iteritems():
+        deduped = {d['pID']:d for d in sessionMap[k]['records']}.values()
+        sessionMap[k]['records'] = deduped
 
-        new_entry = {d.keys()[0]:d[d.keys()[0]] for d in sessionMap[k]['records']['participants']}
 
-        sessionMap[k]['records']['participants'] = []
-        sessionMap[k]['records']['participants'].append(new_entry)
-
+    print sessionMap
     return sessionMap
 
 def makeOuterMostElements(csvReader):
@@ -85,7 +84,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {'assets':[], 'records':{'participants':[], 'tasks':[]}}
+        emptydict[n[0]] = {'assets':[], 'records':[]}
 
 
     return emptydict
@@ -111,17 +110,28 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             for i in range(len(s_headers)):
                 header = cleanVal(s_headers[i])
 
-                if header == "tasks":
-                    task_list = row[i].split(';')
+                '''not in schema, need to pull in?'''
+                #if header == "tasks":
+                #    task_list = row[i].split(';')
 
-                    for j in range(len(task_list)):
-                        if cleanVal(task_list[j]) not in s_map[row[0]]['records']['tasks']:
-                            s_map[row[0]]['records']['tasks'].append(cleanVal(task_list[j]))
+                #    for j in range(len(task_list)):
+                #        if cleanVal(task_list[j]) not in s_map[row[0]]['records']['tasks']:
+                #            s_map[row[0]]['records']['tasks'].append(cleanVal(task_list[j]))
 
-                elif header == "participantID":
-                    for i in range(len(s_map[row[0]]['records']['participants'])):
-                        for v in s_map[row[0]]['records']['participants'][i]:
-                            s_map[row[0]]['records']['participants'][i][v] = p_map[v]
+                
+
+                if header == "participantID":
+                    for i in range(len(s_map[row[0]]['records'])):
+                        target = s_map[row[0]]['records'][i]
+                        '''missing: date and age, in days.'''
+                        target['category'] = p_map[target['pID']]['category']
+                        target['birthdate'] = p_map[target['pID']]['birthdate']
+                        target['ethnicity'] = p_map[target['pID']]['ethnicity']
+                        target['race'] = p_map[target['pID']]['race']
+                        target['language'] = p_map[target['pID']]['language']
+                        target['disability'] = p_map[target['pID']]['disability']
+                        target['gender'] = p_map[target['pID']]['gender']
+
 
                 elif 'file_' in header:
                     s_map[row[0]]['assets'].append({'file': row[i], 
