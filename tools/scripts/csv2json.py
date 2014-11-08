@@ -68,11 +68,11 @@ def getSessionMap(s_csvFile):
         
         participantID = i[2]
         
-        sessionMap[i[0]]['records'].append({'pID': participantID})
+        sessionMap[i[0]]['records'].append({'ident': participantID})
         
     '''the following then deduplicates participants in any given containers participant record'''  
     for k, v in sessionMap.iteritems():
-        deduped = {d['pID']:d for d in sessionMap[k]['records']}.values()
+        deduped = {d['ident']:d for d in sessionMap[k]['records']}.values()
         sessionMap[k]['records'] = deduped
 
 
@@ -136,13 +136,13 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for i in range(len(s_curr['records'])):
                         target = s_curr['records'][i]
                         '''missing: date and age, in days.'''
-                        if 'pID' in target:
+                        if 'ident' in target:
 
-                            p_target = p_map[target['pID']]
+                            p_target = p_map[target['ident']]
 
                             if p_target['category'] != '':
                                 target['category'] = p_target['category']
-                            if p_map[target['pID']]['birthdate'] != '':
+                            if p_map[target['ident']]['birthdate'] != '':
                                 target['birthdate'] = p_target['birthdate']
                             if p_target['ethnicity'] != '': 
                                 target['ethnicity'] = p_target['ethnicity']
