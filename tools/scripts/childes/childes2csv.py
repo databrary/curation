@@ -85,10 +85,6 @@ def getSessions(f, directory, fpath):
         fpath_list = i.split('/')
         asset = fpath_list[-1].split('.')[0]
         
-        #fpath_list.pop()
-
-        #asset_path = '/'.join(fpath_list)
-
         s_list[asset] = {}
 
         if os.path.isfile(i):
@@ -108,9 +104,7 @@ def getSessions(f, directory, fpath):
 
                     if line.startswith('@') and 'ID' in line and 'CHI' in line:
                         participant = line.split('\t')[1].split('|')[1].strip()
-                        s_list[asset]['participant'] = participant
-
-                    
+                        s_list[asset]['participant'] = participant              
 
                     if line.startswith('@') and 'Media' in line:
                         asset_val = line.split('\t')[1].split(',')
@@ -128,8 +122,6 @@ def getSessions(f, directory, fpath):
                     
     print 'sessions got'
     return s_list
-
-
                     
 def getParticipants(f, directory, fpath):
 
@@ -203,16 +195,17 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             participantID = v['participant']
             clip_in = ''
             clip_out = ''
-            segment = ''
+            position = ''
             condition = ''
             group = ''
             language = v['language']
             setting = ''
             state = ''
             country = ''
+            consent = ''
 
 
-            outfile.writerow([name, date, participantID, top, pilot, exclusion , classification, clip_in, clip_out, segment, path, filename, transcript, condition, group, language, setting, state, country])
+            outfile.writerow([name, date, participantID, top, pilot, exclusion , classification, clip_in, clip_out, position, path, filename, transcript, condition, group, language, setting, state, country, consent])
 
 
 
