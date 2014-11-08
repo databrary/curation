@@ -182,8 +182,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                               'country': country})
 
                 elif header == 'consent':
-                    s_curr['consent'].append({'consent':consent,
-                                              'position': position})
+                    s_curr['consent'].append({'consent':consent})
 
                 elif header == 'name':
 
