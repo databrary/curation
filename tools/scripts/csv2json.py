@@ -106,7 +106,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
             path = row[10]
             clipArr = [row[7], row[8]] if row[7] != '' else ['0:00', '0:00']
-            position = [row[9]] if row[9] != '' else '0:00' #row[10] is a placeholder for now
+            position = [row[9]] if row[9] != '' else ['0:00'] #row[10] is a placeholder for now
             classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
             top = True if row[3] != '' else False
             pilot = row[4]
@@ -153,7 +153,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             if p_target['disability'] != '': 
                                 target['disability'] = p_target['disability'] 
                             if p_target['gender'] != '':
-                                target['gender'] = p_target['gender']
+                                target['gender'] = p_target['gender'].title()
 
 
                 elif 'file_' in header:
