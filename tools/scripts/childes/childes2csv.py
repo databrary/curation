@@ -106,19 +106,26 @@ def getSessions(f, directory, fpath):
                         participant = line.split('\t')[1].split('|')[1].strip()
                         s_list[asset]['participant'] = participant              
 
+                        rel_path_full = rel_path + '/' + participant + '/'
+                        s_list[asset]['path'] = rel_path_full
+
                     if line.startswith('@') and 'Media' in line:
                         asset_val = line.split('\t')[1].split(',')
+                        asset_type = asset_val[1].strip()
+                        asset_name = asset_val[0].strip()
 
-                        if asset_val[1].strip() == 'audio':
-                            asset_file = asset_val[0] + '.mp3'
-                            s_list[asset]['file'] = asset_file.strip()
-                        if asset_val[1].strip() == 'video':
-                            asset_file = asset_val[0] + '.mov'
-                            s_list[asset]['file'] = asset_file.strip()
+
+                        if asset_type == 'audio':
+                            asset_file = asset_name + '.mp3'
+                            s_list[asset]['file'] = asset_file
+                        if asset_type == 'video':
+                            asset_file = asset_name + '.mov'
+                            s_list[asset]['file'] = asset_file
 
                         s_list[asset]['transcript'] = asset_val[0] + '.cha'
 
-                s_list[asset]['path'] = rel_path if rel_path.endswith('/') else rel_path + '/' 
+                    
+                    
                     
     print('sessions got')
     return s_list

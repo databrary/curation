@@ -5,10 +5,6 @@ from pprint import pprint
 import json
 
 
-'''TODO:
-        Probably just want to move to python 3 if nothing holding back in 2.7
-'''
-
 
 try:
     _session_csv = sys.argv[1]     #session metadata (csv format)
@@ -155,7 +151,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif 'file_' in header:
 
-                    asset_entry = {"file": row[i], "position": position, "clip": clipArr, "classification": classification}
+                    asset_entry = {"file": path+row[i], "position": position, "clip": clipArr, "classification": classification}
 
                     if clipArr == "":
                         del asset_entry['clip']
