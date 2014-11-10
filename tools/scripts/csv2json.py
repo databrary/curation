@@ -7,9 +7,6 @@ import json
 import fields
 
 '''TODO:
-        Make output validate specifically against ../../spec/volume.json
-         - ensure type casts for ingest
-        Less hardcoded headers or reflect a standard based on JSON schema
         Probably just want to move to python 3 if nothing holding back in 2.7
 '''
 
@@ -26,7 +23,7 @@ except:
 
 
 def giveMeCSV(file):
-    f = open(file, 'rb')
+    f = open(file, 'rt')
     r = csv.reader(f)
     return r
 
@@ -40,7 +37,8 @@ def getParticipantMap(p_csvFile):
         their records in the form of dictionaries as the values'''
     participantMap = {};
     p_reader = giveMeCSV(p_csvFile)
-    p_headers = p_reader.next()
+    #p_headers = p_reader.next()
+    p_headers = next(p_reader)
 
 
     for rec in p_reader:
@@ -57,23 +55,25 @@ def getSessionMap(s_csvFile):
        values containing participant'''
 
     r = giveMeCSV(s_csvFile)
-    rhead = r.next()
+    #rhead = r.next()
+    rhead = next(r)
 
     sessionMap = makeOuterMostElements(r)
 
     vol = giveMeCSV(s_csvFile)
-    vheaders = vol.next()
+    #vheaders = vol.next()
+    vheaders = next(vol)
 
     for i in vol:
         
         participantID = i[2]
         
-        sessionMap[i[0]]['records'].append({'ident': participantID})
+        sessionMap[i[0]]["records"].append({"ident": participantID})
         
     '''the following then deduplicates participants in any given containers participant record'''  
-    for k, v in sessionMap.iteritems():
-        deduped = {d['ident']:d for d in sessionMap[k]['records']}.values()
-        sessionMap[k]['records'] = deduped
+    for k, v in sessionMap.items():
+        deduped = {d["ident"]:d for d in sessionMap[k]["records"]}.values()
+        sessionMap[k]["records"] = deduped
 
 
     return sessionMap
@@ -83,7 +83,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {'assets':[], 'records':[], 'consent':[]}
+        emptydict[n[0]] = {"assets":[], "records":[], "consent":[]}
 
 
     return emptydict
@@ -92,9 +92,10 @@ def makeOuterMostElements(csvReader):
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
 
-    with open(s_csvFile, 'rb') as s_input:
+    with open(s_csvFile, 'rt') as s_input:
         s_reader = csv.reader(s_input)
-        s_headers = s_reader.next()
+        #s_headers = s_reader.next()
+        s_headers = next(s_reader)
 
         p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
@@ -102,13 +103,13 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         for row in s_reader:
             name=row[0]
             s_curr = s_map[name]
-            date = row[1] if row[1] != '' else '1900-01-01' #default to not real date, but should be a date
+            date = row[1] if row[1] != "" else "1900-01-01" #default to not real date, but should be a date
 
             path = row[10]
-            clipArr = [row[7], row[8]] if row[7] != '' else ['0:00', '0:00']
-            position = [row[9]] if row[9] != '' else ['0:00'] #row[10] is a placeholder for now
-            classification = row[6].upper() if row[6] != '' else 'RESTRICTED'
-            top = True if row[3] != '' else False
+            clipArr = [row[7], row[8]] if row[7] != "" else ["0:00", "0:00"]
+            position = [row[9]] if row[9] != "" else ["0:00"] #row[10] is a placeholder for now
+            classification = row[6].upper() if row[6] != "" else "RESTRICTED"
+            top = True if row[3] != "" else False
             pilot = row[4]
             exclusion = row[5]
             condition = row[13]
@@ -116,7 +117,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             setting = row[16]
             state = row[17]
             country = row[18]
-            consent = row[19] if row[19] != '' else 'PRIVATE'
+            consent = row[19] if row[19] != "" else "PRIVATE"
 
 
             for i in range(len(s_headers)):
@@ -133,56 +134,56 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 
 
                 if header == "participantID":
-                    for i in range(len(s_curr['records'])):
-                        target = s_curr['records'][i]
+                    for i in range(len(s_curr["records"])):
+                        target = list(s_curr["records"])[i]
                         '''missing: date and age, in days.'''
-                        if 'ident' in target:
+                        if "ident" in target:
 
-                            p_target = p_map[target['ident']]
+                            p_target = p_map[target["ident"]]
 
-                            if p_target['category'] != '':
-                                target['category'] = p_target['category']
-                            if p_map[target['ident']]['birthdate'] != '':
-                                target['birthdate'] = p_target['birthdate']
-                            if p_target['ethnicity'] != '': 
-                                target['ethnicity'] = p_target['ethnicity']
-                            if p_target['race'] != '':  
-                                target['race'] = p_target['race']
-                            if p_target['language'] != '':
-                                target['language'] = p_target['language'] 
-                            if p_target['disability'] != '': 
-                                target['disability'] = p_target['disability'] 
-                            if p_target['gender'] != '':
-                                target['gender'] = p_target['gender'].title()
+                            if p_target["category"] != '':
+                                target["category"] = p_target["category"]
+                            if p_map[target['ident']]["birthdate"] != '':
+                                target["birthdate"] = p_target["birthdate"]
+                            if p_target["ethnicity"] != '': 
+                                target["ethnicity"] = p_target["ethnicity"]
+                            if p_target["race"] != '':  
+                                target["race"] = p_target["race"]
+                            if p_target["language"] != '':
+                                target["language"] = p_target["language"] 
+                            if p_target["disability"] != '': 
+                                target["disability"] = p_target["disability"] 
+                            if p_target["gender"] != '':
+                                target["gender"] = p_target["gender"].title()
 
 
                 elif 'file_' in header:
-                    s_curr['assets'].append({'file': row[i], 
-                                             'clip': clipArr, 
-                                             'position': position, 
-                                             'classification': classification
+                    s_curr["assets"].append({"file": row[i], 
+                                             "clip": clipArr, 
+                                             "position": position, 
+                                             "classification": classification
                                              })
                 
                 elif header == 'pilot' and pilot != '':
-                    s_curr['records'].append({'category': 'pilot',
-                                              'ident': pilot})
+                    s_curr["records"].append({"category": "pilot",
+                                              "ident": pilot})
 
                 elif header == 'exlcusion' and exclusion != '':
-                    s_curr['records'].append({'category': 'exclusion',
-                                              'reason': exclusion})
+                    s_curr["records"].append({"category": "exclusion",
+                                              "reason": exclusion})
 
                 elif header == 'condition' and condition != '':
-                    s_curr['records'].append({'category': 'condition',
+                    s_curr["records"].append({"category": "condition",
                                               'ident': condition})
 
                 elif header == 'setting' and setting != '':
-                    s_curr['records'].append({'category': 'context',
-                                              'setting': setting,
-                                              'state': state,
-                                              'country': country})
+                    s_curr["records"].append({"category": "context",
+                                              "setting": setting,
+                                              "state": state,
+                                              "country": country})
 
-                elif header == 'consent':
-                    s_curr['consent'].append({'consent':consent})
+                elif header == "consent":
+                    s_curr["consent"].append({"consent":consent})
 
                 elif header == 'name':
 
@@ -207,16 +208,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         data = {
 
             "name": _filepath_prefix,
-            "containers": s_map.values()
+            "containers": list(s_map.values())
         }
 
+    print(data)
+    
+    #res = json.dumps(data, indent=4)
 
-
-    res = json.dumps(data, indent=4)
-
-    output_dest = '../o/' + _filepath_prefix + "_output.json"
-    j = open(output_dest, 'w')
-    j.write(res)
+    #output_dest = '../o/' + _filepath_prefix + "_output.json"
+    #j = open(output_dest, 'wt')
+    #j.write(res)
 
 if __name__ == "__main__":
     parseCSV2JSON(_session_csv, _participant_csv)
