@@ -5,6 +5,7 @@ import glob
 import datetime
 sys.path.append('../utils')
 import fields
+from fields import Childes
 
 
 rel_path = sys.argv[1] #provide the main directory where all the files are
@@ -35,7 +36,7 @@ def getDaysFromDates(birthdate, sessiondate):
 
 def getFilePath(directory):
     filepaths = []
-    print 'getting filepaths...'
+    print('getting filepaths...')
     for subdir, dirs, files in os.walk(directory):
         for filename in files:
             filepath = glob.glob(os.path.join(subdir, '*.cha'))
@@ -56,7 +57,7 @@ def getAssets(directory):
 
     assets_map = {}
     all_assets = []
-    for k,v in assets0.iteritems():
+    for k,v in assets0.items():
         assets_map[k] = {}
         for i in range(len(v)):
             currSesh = v[i].split('.')[0]
@@ -64,7 +65,7 @@ def getAssets(directory):
             all_assets.append(v[i])
             
             
-    for k,v in assets_map.iteritems():
+    for k,v in assets_map.items():
         for j in range(len(all_assets)):
             for s in range(len(v.keys())):
             
@@ -79,7 +80,7 @@ def getAssets(directory):
 def getSessions(f, directory, fpath):
     s_list = {}
 
-    print 'getting out the sessions'
+    print('getting out the sessions')
     for i in fpath:
 
         fpath_list = i.split('/')
@@ -89,7 +90,7 @@ def getSessions(f, directory, fpath):
 
         if os.path.isfile(i):
 
-            with open(i, 'rb') as chafile:
+            with open(i, 'rt') as chafile:
 
                 data = chafile.readlines()
 
@@ -99,7 +100,7 @@ def getSessions(f, directory, fpath):
                         s_list[asset]['date'] = dateFromString(session_date)
 
                     if line.startswith('@') and 'Languages' in line:
-                        language = line.split('\t')[1].strip()
+                        language = Childes.language_map[line.split('\t')[1].strip()]
                         s_list[asset]['language'] = language
 
                     if line.startswith('@') and 'ID' in line and 'CHI' in line:
@@ -120,27 +121,29 @@ def getSessions(f, directory, fpath):
 
                 s_list[asset]['path'] = rel_path if rel_path.endswith('/') else rel_path + '/' 
                     
-    print 'sessions got'
+    print('sessions got')
     return s_list
                     
 def getParticipants(f, directory, fpath):
 
     p_list = {}
 
-    print 'getting out the participants'
+    print('getting out the participants')
     for i in fpath:
 
         if os.path.isfile(i):
 
-            with open(i, 'rb') as chafile:
+            with open(i, 'rt') as chafile:
 
                 data = chafile.readlines()
 
                 for line in data:
                     if line.startswith('@') and 'ID' in line and 'CHI' in line:
                         participant = line.split('\t')[1].split('|')
+                        language = Childes.language_map[participant[0]]
+                        gender = participant[4]
 
-                        p_list[participant[1]] = {'language': participant[0], 'gender': participant[4]}
+                        p_list[participant[1]] = {'language': language, 'gender': gender}
 
                     if line.startswith('@') and 'Birth of CHI' in line:
                         dob = line.split('\t')[1].strip()
@@ -151,13 +154,13 @@ def getParticipants(f, directory, fpath):
                         p_list[participant[1]]['date'] = dateFromString(session_date)
 
 
-    print 'got the participants'
+    print('got the participants')
     return p_list
 
 
 
 def makeParticipantCSV(csvfile, participant_dictionary, headers):
-    with open(csvfile, 'wb') as csvfile:
+    with open(csvfile, 'wt') as csvfile:
         outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
         outfile.writerow(headers)
         
@@ -178,7 +181,7 @@ def makeParticipantCSV(csvfile, participant_dictionary, headers):
 
 
 def makeSessionCSV(csvfile, session_dictionary, headers):
-    with open(csvfile, 'wb') as csvfile:
+    with open(csvfile, 'wt') as csvfile:
         outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
         outfile.writerow(headers)
         

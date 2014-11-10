@@ -4,7 +4,7 @@
 *.swp
 venv3/
 venv2.7/
-utils/__pychache__
+utils/__pycache__
 
 #scratch and notes
 .concept/
