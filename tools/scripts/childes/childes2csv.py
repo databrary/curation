@@ -4,8 +4,7 @@ import sys
 import glob
 import datetime
 sys.path.append('../utils')
-import fields
-from fields import Childes
+from fields import Childes, General
 
 
 rel_path = sys.argv[1] #provide the main directory where all the files are
@@ -217,8 +216,8 @@ if __name__ == "__main__":
     participant_dict = getParticipants(p_file, input_directory, getFilePath(input_directory))
     session_dict = getSessions(s_file, input_directory, getFilePath(input_directory))
 
-    makeParticipantCSV(p_file, participant_dict, fields.participant_headers)
-    makeSessionCSV(s_file, session_dict, fields.session_headers)
+    makeParticipantCSV(p_file, participant_dict, General.participant_headers)
+    makeSessionCSV(s_file, session_dict, General.session_headers)
 
     
 

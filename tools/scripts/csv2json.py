@@ -1,10 +1,9 @@
 import csv
 import os
 import sys
-sys.path.append('./utils')
 from pprint import pprint
 import json
-import fields
+
 
 '''TODO:
         Probably just want to move to python 3 if nothing holding back in 2.7

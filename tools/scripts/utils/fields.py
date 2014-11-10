@@ -1,15 +1,42 @@
-available_fields = ["setting", "country", "state", "language", "info", "category"]
 
-participant_headers = ["participantID", "birthdate", "date", "age_days", "gender", "race", "ethnicity", "language", "disability", 
-"category", "consent"]
-session_headers = ["name", "date", "participantID", "top", "pilot", "exclusion" , "classification", "clip_in", "clip_out", "position", "filepath", "file_media", "file_transcript", "condition", "group", "language", "setting", "state", "country", "consent"]
+class General(object):
 
+    '''a general set of headers for all possible datasets'''
+    participant_headers = ["participantID", 
+                           "birthdate", 
+                           "date", 
+                           "age_days", 
+                           "gender", 
+                           "race", 
+                           "ethnicity", 
+                           "language", 
+                           "disability", 
+                           "category", 
+                           "consent"]
 
-record_map = {}
-category_map = {}
+    session_headers = ["name", 
+                       "date", 
+                       "participantID", 
+                       "top", 
+                       "pilot", 
+                       "exclusion" , 
+                       "classification", 
+                       "clip_in", 
+                       "clip_out", 
+                       "position", 
+                       "filepath", 
+                       "file_media", 
+                       "file_transcript", 
+                       "condition", 
+                       "group", 
+                       "language", 
+                       "setting", 
+                       "state", 
+                       "country", 
+                       "consent"]
 
 
 class Childes(object):
-
+    '''childes specific data'''
     '''TODO: add all abbreviated languages to this'''
     language_map = {"eng": "English"}
