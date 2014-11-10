@@ -97,12 +97,13 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
+            
             name=row[0]
             s_curr = s_map[name]
-            date = row[1] if row[1] != "" else "1900-01-01" #default to not real date, but should be a date
+            date = row[1] #default to not real date, but should be a date
 
             path = row[10]
-            clipArr = [row[7], row[8]] if row[7] != "" else ["0:00", "0:00"]
+            clipArr = [row[7], row[8]] if row[7] != "" else ""
             position = [row[9]] if row[9] != "" else ["0:00"]  
             classification = row[6].upper() if row[6] != "" else "RESTRICTED"
             top = True if row[3] != "" else False
@@ -154,11 +155,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
                 elif 'file_' in header:
-                    s_curr["assets"].append({"file": row[i], 
-                                             "clip": clipArr, 
-                                             "position": position, 
-                                             "classification": classification
-                                             })
+
+                    asset_entry = {"file": row[i], "position": position, "clip": clipArr, "classification": classification}
+
+                    if clipArr == "":
+                        del asset_entry['clip']
+
+
+                    s_curr["assets"].append(asset_entry)
+
+
                 
                 elif header == 'pilot' and pilot != '':
                     s_curr["records"].append({"category": "pilot",
