@@ -37,7 +37,6 @@ def getParticipantMap(p_csvFile):
         their records in the form of dictionaries as the values'''
     participantMap = {};
     p_reader = giveMeCSV(p_csvFile)
-    #p_headers = p_reader.next()
     p_headers = next(p_reader)
 
 
@@ -55,13 +54,11 @@ def getSessionMap(s_csvFile):
        values containing participant'''
 
     r = giveMeCSV(s_csvFile)
-    #rhead = r.next()
     rhead = next(r)
 
     sessionMap = makeOuterMostElements(r)
 
     vol = giveMeCSV(s_csvFile)
-    #vheaders = vol.next()
     vheaders = next(vol)
 
     for i in vol:
@@ -72,7 +69,7 @@ def getSessionMap(s_csvFile):
         
     '''the following then deduplicates participants in any given containers participant record'''  
     for k, v in sessionMap.items():
-        deduped = {d["ident"]:d for d in sessionMap[k]["records"]}.values()
+        deduped = list({d["ident"]:d for d in sessionMap[k]["records"]}.values())
         sessionMap[k]["records"] = deduped
 
 
@@ -94,7 +91,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
     with open(s_csvFile, 'rt') as s_input:
         s_reader = csv.reader(s_input)
-        #s_headers = s_reader.next()
         s_headers = next(s_reader)
 
         p_map = getParticipantMap(p_csvFile)
@@ -107,7 +103,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
             path = row[10]
             clipArr = [row[7], row[8]] if row[7] != "" else ["0:00", "0:00"]
-            position = [row[9]] if row[9] != "" else ["0:00"] #row[10] is a placeholder for now
+            position = [row[9]] if row[9] != "" else ["0:00"]  
             classification = row[6].upper() if row[6] != "" else "RESTRICTED"
             top = True if row[3] != "" else False
             pilot = row[4]
@@ -133,11 +129,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 
 
-                if header == "participantID":
+                if header == 'participantID':
                     for i in range(len(s_curr["records"])):
                         target = list(s_curr["records"])[i]
                         '''missing: date and age, in days.'''
-                        if "ident" in target:
+                        if 'ident' in target:
 
                             p_target = p_map[target["ident"]]
 
@@ -198,11 +194,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     s_curr[s_headers[i]] = top
 
-                
-
-
-
-                
+                           
         
 
         data = {
@@ -210,14 +202,12 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             "name": _filepath_prefix,
             "containers": list(s_map.values())
         }
-
-    print(data)
     
-    #res = json.dumps(data, indent=4)
+    res = json.dumps(data, indent=4)
 
-    #output_dest = '../o/' + _filepath_prefix + "_output.json"
-    #j = open(output_dest, 'wt')
-    #j.write(res)
+    output_dest = '../o/' + _filepath_prefix + "_output.json"
+    j = open(output_dest, 'wt')
+    j.write(res)
 
 if __name__ == "__main__":
     parseCSV2JSON(_session_csv, _participant_csv)
