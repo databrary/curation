@@ -33,6 +33,7 @@
       "description": "Organizational unit within volume containing related files (with common annotations), often corresponding to an individual data session (single visit/acquisition/participant/group/day).",
       "type": "object",
       "properties": {
+        "key": {"type": "string"},
         "name": {"type": "string"},
         "date": {"$ref": "#/definitions/date"},
         "top": {"type": "boolean",
@@ -68,6 +69,7 @@
           "items": {"$ref": "#/definitions/asset"}
         }
       },
+      "required": ["key"],
       "additionalProperties": false
     },
     "consent": {
@@ -99,6 +101,7 @@
       "description": "Sets of metadata measurements organized into or applying to a single cohesive unit. These are assumed to be unique within a volume, such that two identical records are considered the same object.",
       "type": "object",
       "properties": {
+        "key": {"type": "string"},
         "category": {
           "description": "Types of records that are relevant for data organization.",
           "enum": [null, "pilot", "exclusion", "participant", "condition", "group", "context"]
@@ -134,7 +137,7 @@
         "info": {"type": "string"},
         "gestational age (weeks)": {"type": "number"}
       },
-      "required": ["category"]
+      "required": ["key", "category"]
     },
     "asset": {
       "title": "file",
