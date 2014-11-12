@@ -97,19 +97,20 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             s_curr = s_map[name]
             date = row[1] #default to not real date, but should be a date
 
-            path = row[10]
-            clipArr = [row[7], row[8]] if row[7] != "" else ""
-            position = [row[9]] if row[9] != "" else ["0:00"]
+            path = row[18]
+            clipArr = [row[15], row[16]] if row[15] != "" else ""
+            position = [row[17]] if row[17] != "" else ["0:00"]
             classification = row[6].upper() if row[6] != "" else "RESTRICTED"
             top = True if row[3] != "" else False
             pilot = row[4]
             exclusion = row[5]
-            condition = row[13]
-            group = row[14]
-            setting = row[16]
-            state = row[17]
-            country = row[18]
-            consent = row[19] if row[19] != "" else "PRIVATE"
+            condition = row[12]
+            group = row[13]
+            setting = row[7]
+            state = row[9]
+            country = row[8]
+            consent = row[11] if row[11] != "" else "PRIVATE"
+            language = row[10] 
 
 
 

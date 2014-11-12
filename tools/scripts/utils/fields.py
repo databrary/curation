@@ -20,20 +20,22 @@ class General(object):
                        "top", 
                        "pilot", 
                        "exclusion" , 
-                       "classification", 
+                       "classification",
+                       "setting",  
+                       "country",
+                       "state",
+                       "language", 
+                       "consent",
+                       "condition", 
+                       "group",
+                       "tasks",  
                        "clip_in", 
                        "clip_out", 
                        "position", 
                        "filepath", 
                        "file_media", 
-                       "file_transcript", 
-                       "condition", 
-                       "group", 
-                       "language", 
-                       "setting", 
-                       "state", 
-                       "country", 
-                       "consent"]
+                       "file_transcript"
+                       ]
 
 
 class Childes(object):

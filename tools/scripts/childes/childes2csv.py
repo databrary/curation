@@ -212,9 +212,10 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             state = ''
             country = ''
             consent = ''
+            tasks = ''
 
 
-            outfile.writerow([name, date, participantID, top, pilot, exclusion , classification, clip_in, clip_out, position, path, filename, transcript, condition, group, language, setting, state, country, consent])
+            outfile.writerow([name, date, participantID, top, pilot, exclusion, classification, setting, country, state, language, consent, condition, group, tasks, clip_in, clip_out, position, path, filename, transcript ])
 
 
 
