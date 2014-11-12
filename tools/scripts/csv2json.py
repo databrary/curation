@@ -60,7 +60,7 @@ def getSessionMap(s_csvFile):
 
         participantID = i[2]
 
-        sessionMap[i[0]]["records"].append({"ident": participantID})
+        sessionMap[i[0]]["records"].append({"ident": participantID, "key": participantID})
 
     '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
@@ -110,6 +110,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             state = row[17]
             country = row[18]
             consent = row[19] if row[19] != "" else "PRIVATE"
+
 
 
             for i in range(len(s_headers)):
@@ -164,21 +165,27 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif header == 'pilot' and pilot != '':
                     s_curr["records"].append({"category": "pilot",
-                                              "ident": pilot})
+                                              "ident": pilot,
+                                              "key": pilot})
 
                 elif header == 'exlcusion' and exclusion != '':
                     s_curr["records"].append({"category": "exclusion",
-                                              "reason": exclusion})
+                                              "reason": exclusion,
+                                              "key": exclusion})
 
                 elif header == 'condition' and condition != '':
                     s_curr["records"].append({"category": "condition",
-                                              "ident": condition})
+                                              "ident": condition, 
+                                              "key": condition})
 
+                #TODO: need to handle this for a wider number of cases
                 elif header == 'setting' and setting != '':
                     s_curr["records"].append({"category": "context",
+                                              "key": "context",
                                               "setting": setting,
                                               "state": state,
-                                              "country": country})
+                                              "country": country
+                                              })
 
                 elif header == "consent":
                     s_curr["consent"].append({"consent":consent})
