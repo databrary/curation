@@ -57,12 +57,12 @@ def getSessionMap(s_csvFile):
     vheaders = next(vol)
 
     for i in vol:
-        
+
         participantID = i[2]
-        
+
         sessionMap[i[0]]["records"].append({"ident": participantID})
-        
-    '''the following then deduplicates participants in any given containers participant record'''  
+
+    '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
         deduped = list({d["ident"]:d for d in sessionMap[k]["records"]}.values())
         sessionMap[k]["records"] = deduped
@@ -92,14 +92,14 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
-            
+
             name=row[0]
             s_curr = s_map[name]
             date = row[1] #default to not real date, but should be a date
 
             path = row[10]
             clipArr = [row[7], row[8]] if row[7] != "" else ""
-            position = [row[9]] if row[9] != "" else ["0:00"]  
+            position = [row[9]] if row[9] != "" else ["0:00"]
             classification = row[6].upper() if row[6] != "" else "RESTRICTED"
             top = True if row[3] != "" else False
             pilot = row[4]
@@ -123,7 +123,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 #        if cleanVal(task_list[j]) not in s_map[row[0]]['records']['tasks']:
                 #            s_map[row[0]]['records']['tasks'].append(cleanVal(task_list[j]))
 
-                
+
 
                 if header == 'participantID':
                     for i in range(len(s_curr["records"])):
@@ -133,18 +133,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             p_target = p_map[target["ident"]]
 
+                        
                             if p_target["category"] != '':
                                 target["category"] = p_target["category"]
                             if p_map[target['ident']]["birthdate"] != '':
                                 target["birthdate"] = p_target["birthdate"]
-                            if p_target["ethnicity"] != '': 
+                            if p_target["ethnicity"] != '':
                                 target["ethnicity"] = p_target["ethnicity"]
-                            if p_target["race"] != '':  
+                            if p_target["race"] != '':
                                 target["race"] = p_target["race"]
                             if p_target["language"] != '':
-                                target["language"] = p_target["language"] 
-                            if p_target["disability"] != '': 
-                                target["disability"] = p_target["disability"] 
+                                target["language"] = p_target["language"]
+                            if p_target["disability"] != '':
+                                target["disability"] = p_target["disability"]
                             if p_target["gender"] != '':
                                 target["gender"] = p_target["gender"].title()
 
@@ -160,7 +161,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     s_curr["assets"].append(asset_entry)
 
 
-                
+
                 elif header == 'pilot' and pilot != '':
                     s_curr["records"].append({"category": "pilot",
                                               "ident": pilot})
@@ -171,7 +172,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif header == 'condition' and condition != '':
                     s_curr["records"].append({"category": "condition",
-                                              'ident': condition})
+                                              "ident": condition})
 
                 elif header == 'setting' and setting != '':
                     s_curr["records"].append({"category": "context",
@@ -184,7 +185,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif header == 'name':
 
-                    s_curr[s_headers[i]] = name
+                    s_curr[s_headers[i]] = s_curr['key'] = name
 
                 elif header == 'date' and date != '':
 
@@ -195,15 +196,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     s_curr[s_headers[i]] = top
 
-                           
-        
+
+
 
         data = {
 
             "name": _filepath_prefix,
             "containers": list(s_map.values())
         }
-    
+
     res = json.dumps(data, indent=4)
 
     output_dest = '../o/' + _filepath_prefix + "_output.json"
