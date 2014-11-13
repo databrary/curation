@@ -83,7 +83,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {"assets":[], "records":[], "consent":[]}
+        emptydict[n[0]] = {"assets":[], "records":[]}
 
 
     return emptydict
@@ -200,24 +200,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                               "ident": condition,
                                               "key": condition})
 
-                elif header == 'setting' and len(context) > 2:
+                elif len(context) > 2:
                     s_curr["records"].append(context)
 
-                elif header == "consent":
-                    s_curr["consent"].append({"consent":consent})
 
-                elif header == 'name':
-
-                    s_curr[s_headers[i]] = s_curr['key'] = name
-
-                elif header == 'date' and date != '':
-
-                    s_curr[s_headers[i]] = date
+                s_curr['date'] = date
+                s_curr['top'] = top
+                s_curr['name'] = s_curr['key'] = name
+                s_curr["consent"] = consent
 
 
-                elif header == 'top' and top != '':
-
-                    s_curr[s_headers[i]] = top
 
 
 
