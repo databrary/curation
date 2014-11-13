@@ -68,12 +68,12 @@ def getSessionMap(s_csvFile):
 
         participantID = i[vHIdx['participantID']]
 
-        sessionMap[i[0]]["records"].append({"ident": participantID, "key": participantID, 'category': 'participant'})
+        sessionMap[i[0]]['records'].append({'ident': participantID, 'key': participantID, 'category': 'participant'})
 
     '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
-        deduped = list({d["ident"]:d for d in sessionMap[k]["records"]}.values())
-        sessionMap[k]["records"] = deduped
+        deduped = list({d['ident']:d for d in sessionMap[k]['records']}.values())
+        sessionMap[k]['records'] = deduped
 
 
     return sessionMap
@@ -83,7 +83,7 @@ def makeOuterMostElements(csvReader):
     emptydict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {"assets":[], "records":[]}
+        emptydict[n[0]] = {'assets':[], 'records':[]}
 
 
     return emptydict
@@ -93,7 +93,7 @@ def makeTasks(tasklist):
 
     
     for i in range(len(tasklist)):
-        taskObj = {"category":"task", "ident":tasklist[i]}
+        taskObj = {'category':'task', 'ident':tasklist[i]}
         if not any(taskObj == d for d in taskObjs):
             taskObjs.append(taskObj)
 
@@ -120,10 +120,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             date = row[headerIndex['date']] #default to not real date, but should be a date
 
             path = row[headerIndex['filepath']]
-            clipArr = [row[headerIndex['clip_in']], row[headerIndex['clip_out']]] if row[headerIndex['clip_in']] != "" else ""
-            position = [row[headerIndex['position']]] if row[headerIndex['position']] != "" else ["0:00"]
-            classification = row[headerIndex['classification']].upper() if row[headerIndex['classification']] != "" else "RESTRICTED"
-            top = True if row[headerIndex['top']] != "" else False
+            clipArr = [row[headerIndex['clip_in']], row[headerIndex['clip_out']]] if row[headerIndex['clip_in']] != '' else ''
+            position = [row[headerIndex['position']]] if row[headerIndex['position']] != '' else ['0:00']
+            classification = row[headerIndex['classification']].upper() if row[headerIndex['classification']] != '' else 'RESTRICTED'
+            top = True if row[headerIndex['top']] != '' else False
             pilot = row[headerIndex['pilot']]
             exclusion = row[headerIndex['exclusion']]
             condition = row[headerIndex['condition']]
@@ -131,7 +131,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             setting = row[headerIndex['setting']]
             state = row[headerIndex['state']]
             country = row[headerIndex['country']]
-            consent = row[headerIndex['consent']] if row[headerIndex['consent']] != "" else None
+            consent = row[headerIndex['consent']] if row[headerIndex['consent']] != '' else None
             language = row[headerIndex['language']] 
             tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
 
@@ -152,71 +152,71 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
                 if header == 'participantID':
-                    for i in range(len(s_curr["records"])):
-                        target = list(s_curr["records"])[i]
+                    for i in range(len(s_curr['records'])):
+                        target = list(s_curr['records'])[i]
                         '''missing: date and age, in days.'''
                         if 'category' in target and target['category'] == 'participant':
 
-                            p_target = p_map[target["ident"]]
+                            p_target = p_map[target['ident']]
 
                 
-                            if p_map[target['ident']]["birthdate"] != '':
-                                target["birthdate"] = p_target["birthdate"]
-                            if p_target["ethnicity"] != '':
-                                target["ethnicity"] = p_target["ethnicity"]
-                            if p_target["race"] != '':
-                                target["race"] = p_target["race"]
-                            if p_target["language"] != '':
-                                target["language"] = p_target["language"]
-                            if p_target["disability"] != '':
-                                target["disability"] = p_target["disability"]
-                            if p_target["gender"] != '':
-                                target["gender"] = p_target["gender"].title()
+                            if p_map[target['ident']]['birthdate'] != '':
+                                target['birthdate'] = p_target['birthdate']
+                            if p_target['ethnicity'] != '':
+                                target['ethnicity'] = p_target['ethnicity']
+                            if p_target['race'] != '':
+                                target['race'] = p_target['race']
+                            if p_target['language'] != '':
+                                target['language'] = p_target['language']
+                            if p_target['disability'] != '':
+                                target['disability'] = p_target['disability']
+                            if p_target['gender'] != '':
+                                target['gender'] = p_target['gender'].title()
 
                             
 
 
                 elif 'file_' in header:
 
-                    asset_entry = {"file": path+row[i], "position": position, "clip": clipArr, "classification": classification}
+                    asset_entry = {'file': path+row[i], 'position': position, 'clip': clipArr, 'classification': classification}
 
-                    if clipArr == "":
+                    if clipArr == '':
                         del asset_entry['clip']
 
 
-                    s_curr["assets"].append(asset_entry)
+                    s_curr['assets'].append(asset_entry)
 
 
 
                 elif header == 'pilot' and pilot != '':
-                    s_curr["records"].append({"category": "pilot",
-                                              "ident": pilot,
-                                              "key": pilot})
+                    s_curr['records'].append({'category': 'pilot',
+                                              'ident': pilot,
+                                              'key': pilot})
 
                 elif header == 'exlcusion' and exclusion != '':
-                    s_curr["records"].append({"category": "exclusion",
-                                              "reason": exclusion,
-                                              "key": exclusion})
+                    s_curr['records'].append({'category': 'exclusion',
+                                              'reason': exclusion,
+                                              'key': exclusion})
 
                 elif header == 'condition' and condition != '':
-                    s_curr["records"].append({"category": "condition",
-                                              "ident": condition,
-                                              "key": condition})
+                    s_curr['records'].append({'category': 'condition',
+                                              'ident': condition,
+                                              'key': condition})
 
                 elif header == 'setting' and len(context) > 2 and not any(context == d for d in s_curr['records']):
-                    s_curr["records"].append(context)
+                    s_curr['records'].append(context)
 
                 elif header == 'tasks' and tasks != '':
                     for task in tasks:
                         if not any(task == f for f in s_curr['records']):
-                            s_curr["records"].append(task)
+                            s_curr['records'].append(task)
 
 
 
-                s_curr["date"] = date
-                s_curr["top"] = top
-                s_curr["name"] = s_curr["key"] = name
-                s_curr["consent"] = consent
+                s_curr['date'] = date
+                s_curr['top'] = top
+                s_curr['name'] = s_curr['key'] = name
+                s_curr['consent'] = consent
 
 
 
@@ -225,15 +225,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         data = {
 
-            "name": _filepath_prefix,
-            "containers": list(s_map.values())
+            'name': _filepath_prefix,
+            'containers': list(s_map.values())
         }
 
     res = json.dumps(data, indent=4)
 
-    output_dest = '../o/' + _filepath_prefix + "_output.json"
+    output_dest = '../o/' + _filepath_prefix + '_output.json'
     j = open(output_dest, 'wt')
     j.write(res)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parseCSV2JSON(_session_csv, _participant_csv)
