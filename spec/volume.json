@@ -28,6 +28,19 @@
       "required": ["head"],
       "additionalProperties": false
     },
+    "link": {
+      "description": "Link to externals resources/references.",
+      "type": "object",
+      "properties": {
+        "head": {"type": "string"},
+        "url": {"type": "string",
+          "title": "URL or DOI",
+          "format": "uri"
+        }
+      },
+      "required": ["head", "url"],
+      "additionalProperties": false
+    },
     "container": {
       "title": "session or materials",
       "description": "Organizational unit within volume containing related files (with common annotations), often corresponding to an individual data session (single visit/acquisition/participant/group/day).",
@@ -178,6 +191,9 @@
       "description": "Short, internal, code name for this volume, for contributors to reference their own data."
     },
     "citation": {"$ref": "#/definitions/citation"},
+    "links": {"type": "array",
+      "items": {"$ref": "#/definitions/link"}
+    },
     "containers": {"type": "array",
       "items": {"$ref": "#/definitions/container"},
       "description": "The first container is required and must have 'top' set.",
