@@ -112,13 +112,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             consent = row[11] if row[11] != "" else "PRIVATE"
             language = row[10]
 
-            context = []
+            context = {}
+            context['category'] = 'context'
+            context['key'] = 'context'
             if setting != '':
-                context.append(setting)
+                context['setting'] = setting
             if state != '':
-                context.append(state)
+                context['state'] = state
             if country != '':
-                context.append(country)
+                context['country'] = country
 
 
 
@@ -187,13 +189,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                               "ident": condition,
                                               "key": condition})
 
-                elif header == 'setting' and len(context) > 0:
-                    s_curr["records"].append({"category": "context",
-                                              "key": "context",
-                                              "setting": setting,
-                                              "state": state,
-                                              "country": country
-                                              })
+                elif header == 'setting' and len(context) > 2:
+                    s_curr["records"].append(context)
 
                 elif header == "consent":
                     s_curr["consent"].append({"consent":consent})
