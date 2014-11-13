@@ -105,6 +105,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
             name=row[headerIndex['name']]
             s_curr = s_map[name]
+
             date = row[headerIndex['date']] #default to not real date, but should be a date
 
             path = row[headerIndex['filepath']]
@@ -121,6 +122,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             country = row[headerIndex['country']]
             consent = row[headerIndex['consent']] if row[headerIndex['consent']] != "" else None
             language = row[headerIndex['language']] 
+
+            context = {}
+            context['category'] = 'context'
+            context['key'] = 'context'
+            if setting != '':
+                context['setting'] = setting
+            if state != '':
+                context['state'] = state
+            if country != '':
+                context['country'] = country
 
 
 
@@ -145,7 +156,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             p_target = p_map[target["ident"]]
 
-                        
+
                             if p_target["category"] != '':
                                 target["category"] = p_target["category"]
                             if p_map[target['ident']]["birthdate"] != '':
@@ -186,17 +197,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif header == 'condition' and condition != '':
                     s_curr["records"].append({"category": "condition",
-                                              "ident": condition, 
+                                              "ident": condition,
                                               "key": condition})
 
-                #TODO: need to handle this for a wider number of cases
-                elif header == 'setting' and setting != '':
-                    s_curr["records"].append({"category": "context",
-                                              "key": "context",
-                                              "setting": setting,
-                                              "state": state,
-                                              "country": country
-                                              })
+                elif header == 'setting' and len(context) > 2:
+                    s_curr["records"].append(context)
 
                 elif header == "consent":
                     s_curr["consent"].append({"consent":consent})
