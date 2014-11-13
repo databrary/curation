@@ -68,7 +68,7 @@ def getSessionMap(s_csvFile):
 
         participantID = i[vHIdx['participantID']]
 
-        sessionMap[i[0]]["records"].append({"ident": participantID, "key": participantID})
+        sessionMap[i[0]]["records"].append({"ident": participantID, "key": participantID, 'category': 'participant'})
 
     '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
@@ -87,6 +87,17 @@ def makeOuterMostElements(csvReader):
 
 
     return emptydict
+
+def makeTasks(tasklist):
+    taskObjs = []
+
+    
+    for i in range(len(tasklist)):
+        taskObj = {"category":"task", "ident":tasklist[i]}
+        if not any(taskObj == d for d in taskObjs):
+            taskObjs.append(taskObj)
+
+    return taskObjs
 
 
 
@@ -122,6 +133,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             country = row[headerIndex['country']]
             consent = row[headerIndex['consent']] if row[headerIndex['consent']] != "" else None
             language = row[headerIndex['language']] 
+            tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
 
             context = {}
             context['category'] = 'context'
@@ -138,27 +150,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             for i in range(len(s_headers)):
                 header = cleanVal(s_headers[i])
 
-                '''not in schema, need to pull in?'''
-                #if header == "tasks":
-                #    task_list = row[i].split(';')
-
-                #    for j in range(len(task_list)):
-                #        if cleanVal(task_list[j]) not in s_map[row[0]]['records']['tasks']:
-                #            s_map[row[0]]['records']['tasks'].append(cleanVal(task_list[j]))
-
-
 
                 if header == 'participantID':
                     for i in range(len(s_curr["records"])):
                         target = list(s_curr["records"])[i]
                         '''missing: date and age, in days.'''
-                        if 'ident' in target:
+                        if 'category' in target and target['category'] == 'participant':
 
                             p_target = p_map[target["ident"]]
 
-
-                            if p_target["category"] != '':
-                                target["category"] = p_target["category"]
+                
                             if p_map[target['ident']]["birthdate"] != '':
                                 target["birthdate"] = p_target["birthdate"]
                             if p_target["ethnicity"] != '':
@@ -171,6 +172,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                 target["disability"] = p_target["disability"]
                             if p_target["gender"] != '':
                                 target["gender"] = p_target["gender"].title()
+
+                            
 
 
                 elif 'file_' in header:
@@ -200,13 +203,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                               "ident": condition,
                                               "key": condition})
 
-                elif header == 'setting' and len(context) > 2 and not any(list(context.values()) == list(d.values()) for d in s_curr['records']):
+                elif header == 'setting' and len(context) > 2 and not any(context == d for d in s_curr['records']):
                     s_curr["records"].append(context)
 
+                elif header == 'tasks' and tasks != '':
+                    for task in tasks:
+                        if not any(task == f for f in s_curr['records']):
+                            s_curr["records"].append(task)
 
-                s_curr['date'] = date
-                s_curr['top'] = top
-                s_curr['name'] = s_curr['key'] = name
+
+
+                s_curr["date"] = date
+                s_curr["top"] = top
+                s_curr["name"] = s_curr["key"] = name
                 s_curr["consent"] = consent
 
 
