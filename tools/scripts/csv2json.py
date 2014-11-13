@@ -200,7 +200,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                               "ident": condition,
                                               "key": condition})
 
-                elif len(context) > 2:
+                elif header == 'setting' and len(context) > 2 and not any(list(context.values()) == list(d.values()) for d in s_curr['records']):
                     s_curr["records"].append(context)
 
 
