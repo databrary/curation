@@ -110,7 +110,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             state = row[9]
             country = row[8]
             consent = row[11] if row[11] != "" else "PRIVATE"
-            language = row[10] 
+            language = row[10]
+
+            context = []
+            if setting != '':
+                context.append(setting)
+            if state != '':
+                context.append(state)
+            if country != '':
+                context.append(country)
 
 
 
@@ -135,7 +143,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             p_target = p_map[target["ident"]]
 
-                        
+
                             if p_target["category"] != '':
                                 target["category"] = p_target["category"]
                             if p_map[target['ident']]["birthdate"] != '':
@@ -176,11 +184,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif header == 'condition' and condition != '':
                     s_curr["records"].append({"category": "condition",
-                                              "ident": condition, 
+                                              "ident": condition,
                                               "key": condition})
 
-                #TODO: need to handle this for a wider number of cases
-                elif header == 'setting' and setting != '':
+                elif header == 'setting' and len(context) > 0:
                     s_curr["records"].append({"category": "context",
                                               "key": "context",
                                               "setting": setting,
