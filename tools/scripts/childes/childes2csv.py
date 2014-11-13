@@ -225,7 +225,7 @@ if __name__ == "__main__":
     session_dict = getSessions(s_file, input_directory, getFilePath(input_directory))
 
     makeParticipantCSV(p_file, participant_dict, General.participant_headers)
-    makeSessionCSV(s_file, session_dict, General.session_headers)
+    makeSessionCSV(s_file, session_dict, Childes.session_headers)
 
     
 

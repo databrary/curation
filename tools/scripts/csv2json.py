@@ -26,6 +26,13 @@ def cleanVal(i):
     i = i.strip()
     return i
 
+def getHeaderIndex(headerlist):
+    headerIndex = {}
+    for i in range(len(headerlist)):
+        headerIndex[headerlist[i]] = i
+
+    return headerIndex
+
 
 def getParticipantMap(p_csvFile):
     '''This will give us back a dictionary with participant IDs as keys and
@@ -55,10 +62,11 @@ def getSessionMap(s_csvFile):
 
     vol = giveMeCSV(s_csvFile)
     vheaders = next(vol)
+    vHIdx = getHeaderIndex(vheaders)
 
     for i in vol:
 
-        participantID = i[2]
+        participantID = i[vHIdx['participantID']]
 
         sessionMap[i[0]]["records"].append({"ident": participantID, "key": participantID})
 
@@ -88,29 +96,31 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_reader = csv.reader(s_input)
         s_headers = next(s_reader)
 
+        headerIndex = getHeaderIndex(s_headers)
+
         p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
 
-            name=row[0]
+            name=row[headerIndex['name']]
             s_curr = s_map[name]
-            date = row[1] #default to not real date, but should be a date
+            date = row[headerIndex['date']] #default to not real date, but should be a date
 
-            path = row[18]
-            clipArr = [row[15], row[16]] if row[15] != "" else ""
-            position = [row[17]] if row[17] != "" else ["0:00"]
-            classification = row[6].upper() if row[6] != "" else "RESTRICTED"
-            top = True if row[3] != "" else False
-            pilot = row[4]
-            exclusion = row[5]
-            condition = row[12]
-            group = row[13]
-            setting = row[7]
-            state = row[9]
-            country = row[8]
-            consent = row[11] if row[11] != "" else "PRIVATE"
-            language = row[10] 
+            path = row[headerIndex['filepath']]
+            clipArr = [row[headerIndex['clip_in']], row[headerIndex['clip_out']]] if row[headerIndex['clip_in']] != "" else ""
+            position = [row[headerIndex['position']]] if row[headerIndex['position']] != "" else ["0:00"]
+            classification = row[headerIndex['classification']].upper() if row[headerIndex['classification']] != "" else "RESTRICTED"
+            top = True if row[headerIndex['top']] != "" else False
+            pilot = row[headerIndex['pilot']]
+            exclusion = row[headerIndex['exclusion']]
+            condition = row[headerIndex['condition']]
+            group = row[headerIndex['group']]
+            setting = row[headerIndex['setting']]
+            state = row[headerIndex['state']]
+            country = row[headerIndex['country']]
+            consent = row[headerIndex['consent']] if row[headerIndex['consent']] != "" else None
+            language = row[headerIndex['language']] 
 
 
 

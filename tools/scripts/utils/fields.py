@@ -33,8 +33,8 @@ class General(object):
                        "clip_out", 
                        "position", 
                        "filepath", 
-                       "file_media", 
-                       "file_transcript"
+                       "file_media", #these will change in general
+                       "file_transcript" # ditto
                        ]
 
 
@@ -42,3 +42,26 @@ class Childes(object):
     '''childes specific data'''
     '''TODO: add all abbreviated languages to this'''
     language_map = {"eng": "English"}
+
+    session_headers = ["name", 
+                       "date", 
+                       "participantID", 
+                       "top", 
+                       "pilot", 
+                       "exclusion" , 
+                       "classification",
+                       "setting",  
+                       "country",
+                       "state",
+                       "language", 
+                       "consent",
+                       "condition", 
+                       "group",
+                       "tasks",  
+                       "clip_in", 
+                       "clip_out", 
+                       "position", 
+                       "filepath", 
+                       "file_media", 
+                       "file_transcript"
+                       ]
