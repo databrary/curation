@@ -2,8 +2,7 @@
 #python env stuff
 *.pyc
 *.swp
-venv3/
-venv2.7/
+venv*/
 utils/__pycache__
 
 #scratch and notes
