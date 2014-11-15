@@ -170,7 +170,7 @@
           }
         ]},
         "file": {"type": "string",
-          "description": "Relative path to file under '/nyu/stage/'."
+          "description": "Relative path to file under '/nyu/stage/$directory'."
         },
         "clip": {"$ref": "#/definitions/segment",
           "description": "Portion of source file to extract as this asset. Note that segment is relative to clip start."
@@ -198,6 +198,11 @@
       "items": {"$ref": "#/definitions/container"},
       "description": "The first container is required and must have 'top' set.",
       "minItems": 1
+    },
+    "directory": {"type": "string",
+      "title": "Asset base directory",
+      "description": "Staging directory (normally within /nyu/stage) within which to find all asset files.",
+      "default": ""
     }
   },
   "required": ["name", "containers"],
