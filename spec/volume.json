@@ -176,7 +176,7 @@
           "description": "Portion of source file to extract as this asset. Note that segment is relative to clip start."
         }
       },
-      "required": ["classification"],
+      "required": ["classification", "file"],
       "additionalProperties": false
     }
   },
