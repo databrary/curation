@@ -1,9 +1,9 @@
 
 #python env stuff
-*.pyc
+*.py[cod]
 *.swp
 venv*/
-utils/__pycache__
+__pycache__/
 
 #scratch and notes
 .concept/
