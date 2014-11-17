@@ -109,6 +109,7 @@ def getSessions(f, directory, fpath):
                         rel_path_full = rel_path + '/' + participant + '/'
                         s_list[asset]['path'] = rel_path_full
 
+                    #TODO handle more than one file per ID and DATE if this becomes more common
                     if line.startswith('@') and 'Media' in line:
                         asset_val = line.split('\t')[1].split(',')
                         asset_type = asset_val[1].strip()
