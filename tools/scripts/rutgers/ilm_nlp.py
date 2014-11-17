@@ -9,8 +9,8 @@ import json
 
 input_file = sys.argv[1] #csv file
 
-'''try with penn pos tagger'''
-_POS_TAGGER = 'taggers/maxent_treebank_pos_tagger/english.pickle'
+'''try with hidden markov models pos tagger'''
+_POS_TAGGER = 'taggers/hmm_treebank_pos_tagger/treebank.tagger.pickle'
 
 def makeSentenceDict(inputf):
     texts = {}
@@ -51,7 +51,7 @@ def tagText(textobj):
 
         proper_nouns = [w for w, pos in tagged if pos == 'NNP']
 
-        names_in_texts[key] = {'text': text, 'proper_nouns': tagged}
+        names_in_texts[key] = {'text': text, 'proper_nouns': proper_nouns}
 
     return names_in_texts
 
