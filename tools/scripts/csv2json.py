@@ -121,7 +121,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
             path = row[headerIndex['filepath']]
             clipArr = [row[headerIndex['clip_in']], row[headerIndex['clip_out']]] if row[headerIndex['clip_in']] != '' else ''
-            position = [row[headerIndex['position']]] if row[headerIndex['position']] != '' else ['0:00']
+            position = [row[headerIndex['position']]] if row[headerIndex['position']] != '' else ['auto']
             classification = row[headerIndex['classification']].upper() if row[headerIndex['classification']] != '' else 'RESTRICTED'
             top = True if row[headerIndex['top']] != '' else False
             pilot = row[headerIndex['pilot']]
@@ -176,7 +176,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             
 
 
-                elif 'file_' in header:
+                elif 'file_' in header and row[i] != '':
 
                     asset_entry = {'file': path+row[i], 'position': position, 'clip': clipArr, 'classification': classification}
 
