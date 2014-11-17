@@ -9,6 +9,8 @@ import json
 
 input_file = sys.argv[1] #csv file
 
+'''try with penn pos tagger'''
+_POS_TAGGER = 'taggers/maxent_treebank_pos_tagger/english.pickle'
 
 def makeSentenceDict(inputf):
     texts = {}
@@ -42,15 +44,14 @@ def tagText(textobj):
         key = k
         text = v
 
-        sentences = nltk.sent_tokenize(text)
+        #sentences = nltk.sent_tokenize(text)
+        #tokenized_sent = [nltk.word_tokenize(sent) for sent in sentences]
 
-        tokenized_sent = [nltk.word_tokenize(sent) for sent in sentences]
+        tagged = nltk.pos_tag(text.split())
 
-        tagged = [nltk.pos_tag(t_sent) for t_sent in tokenized_sent]
+        proper_nouns = [w for w, pos in tagged if pos == 'NNP']
 
-        proper_nouns = [w for w, pos in tagged[0] if pos == 'NNP']
-
-        names_in_texts[key] = {'text': text, 'proper_names': proper_nouns}
+        names_in_texts[key] = {'text': text, 'proper_nouns': tagged}
 
     return names_in_texts
 
