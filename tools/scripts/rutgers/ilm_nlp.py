@@ -3,14 +3,15 @@ import nltk
 import csv
 import os
 import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
+if sys.version_info < (3, 0):    
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
 import json
 
 input_file = sys.argv[1] #csv file
 
 '''try with hidden markov models pos tagger'''
-_POS_TAGGER = 'taggers/hmm_treebank_pos_tagger/treebank.tagger.pickle'
+#_NEW_TAGGER = 'taggers/hmm_treebank_pos_tagger/treebank.tagger.pickle'
 
 def makeSentenceDict(inputf):
     texts = {}
@@ -30,7 +31,6 @@ def makeSentenceDict(inputf):
                     if k in content_text:
                         content_text = content_text.replace(k, v)
 
-
                 texts[reel_id] = content_text
 
     return texts
@@ -46,7 +46,6 @@ def tagText(textobj):
 
         #sentences = nltk.sent_tokenize(text)
         #tokenized_sent = [nltk.word_tokenize(sent) for sent in sentences]
-
         tagged = nltk.pos_tag(text.split())
 
         proper_nouns = [w for w, pos in tagged if pos == 'NNP']
