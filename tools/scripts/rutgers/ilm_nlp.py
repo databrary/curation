@@ -1,9 +1,10 @@
 #!/usr/bin/python3
-
-from nltk.tag import pos_tag
+import nltk
 import csv
 import os
 import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 import json
 
 input_file = sys.argv[1] #csv file
@@ -11,6 +12,7 @@ input_file = sys.argv[1] #csv file
 
 def makeSentenceDict(inputf):
     texts = {}
+    removables = {'\n': ' ', ':': '', '\t': ' ', '.': ''}
 
     with open(inputf, 'rt') as csvfile:
         f = csv.reader(csvfile)
@@ -18,9 +20,15 @@ def makeSentenceDict(inputf):
 
         for row in f:
             reel_id = row[0].strip()
-            content_text = row[2].strip()
 
-            if content_text != '':
+            if row[2].strip() != '':
+                content_text = row[2].strip()
+
+                for k, v in removables.items():
+                    if k in content_text:
+                        content_text = content_text.replace(k, v)
+
+
                 texts[reel_id] = content_text
 
     return texts
@@ -34,9 +42,13 @@ def tagText(textobj):
         key = k
         text = v
 
-        tagged = pos_tag(text.split())
+        sentences = nltk.sent_tokenize(text)
 
-        proper_nouns = [w for w, pos in tagged if pos == 'NNP']
+        tokenized_sent = [nltk.word_tokenize(sent) for sent in sentences]
+
+        tagged = [nltk.pos_tag(t_sent) for t_sent in tokenized_sent]
+
+        proper_nouns = [w for w, pos in tagged[0] if pos == 'NNP']
 
         names_in_texts[key] = {'text': text, 'proper_names': proper_nouns}
 
@@ -49,5 +61,3 @@ def tagText(textobj):
 json_output = json.dumps(tagText(makeSentenceDict(input_file)), indent=4)
 
 print(json_output)
-
-            
