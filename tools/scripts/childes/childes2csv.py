@@ -9,9 +9,11 @@ from fields import Childes, General
 
 rel_path = sys.argv[1] #provide the main directory where all the files are
 file_input = sys.argv[2] #give a namespace for this - ie: childes
+transcode_options = sys.argv[3] if sys.argv[3] != '' else '' #pass a quoted string of arguments to give to ffmpeg during transcode, if necessary (e.g. "-vf crop=320:240:0:0")
 fixed_path = '../../../data/'
 input_directory = fixed_path + rel_path
 output_path = '../../i/'
+
 
 
 p_file = output_path + file_input + '_p' + '.csv'
@@ -216,7 +218,7 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             tasks = ''
 
 
-            outfile.writerow([name, date, participantID, top, pilot, exclusion, classification, setting, country, state, language, consent, condition, group, tasks, clip_in, clip_out, position, path, filename, transcript ])
+            outfile.writerow([name, date, participantID, top, pilot, exclusion, classification, setting, country, state, language, consent, condition, group, tasks, clip_in, clip_out, position, transcode_options, path, filename, transcript ])
 
 
 

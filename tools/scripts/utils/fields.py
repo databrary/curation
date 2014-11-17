@@ -60,7 +60,8 @@ class Childes(object):
                        "tasks",  
                        "clip_in", 
                        "clip_out", 
-                       "position", 
+                       "position",
+                       "transcode_options", 
                        "filepath", 
                        "file_media", 
                        "file_transcript"

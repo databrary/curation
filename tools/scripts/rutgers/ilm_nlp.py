@@ -11,9 +11,6 @@ from pprint import pprint
 
 input_file = sys.argv[1] #csv file
 
-'''try with hidden markov models pos tagger'''
-#_NEW_TAGGER = 'taggers/hmm_treebank_pos_tagger/treebank.tagger.pickle'
-
 def hasNum(s):
 
     '''check if string has a number'''
@@ -82,7 +79,7 @@ def tagText(textobj):
 
 
 def allUniqNNP(taggedobj):
-
+    '''currently creates a count frequency dictionary of all identified pronouns'''
 
     all_uniq_nnp = {}
 

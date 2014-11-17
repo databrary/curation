@@ -133,7 +133,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             country = row[headerIndex['country']]
             consent = row[headerIndex['consent']] if row[headerIndex['consent']] != '' else None
             language = row[headerIndex['language']] 
+            t_options = row[headerIndex['transcode_options']].split(' ')
             tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
+
 
             context = {}
             context['category'] = 'context'
@@ -178,10 +180,12 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif 'file_' in header and row[i] != '':
 
-                    asset_entry = {'file': path+row[i], 'position': position, 'clip': clipArr, 'classification': classification}
+                    asset_entry = {'file': path+row[i], 'position': position, 'clip': clipArr, 'classification': classification, 'options': t_options}
 
                     if clipArr == '':
                         del asset_entry['clip']
+                    if t_options == '':
+                        del asset_entry['options']
 
 
                     s_curr['assets'].append(asset_entry)
