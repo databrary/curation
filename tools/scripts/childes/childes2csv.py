@@ -9,7 +9,10 @@ from fields import Childes, General
 
 rel_path = sys.argv[1] #provide the main directory where all the files are
 file_input = sys.argv[2] #give a namespace for this - ie: childes
-transcode_options = sys.argv[3] if sys.argv[3] != '' else '' #pass a quoted string of arguments to give to ffmpeg during transcode, if necessary (e.g. "-vf crop=320:240:0:0")
+try:
+    transcode_options = sys.argv[3] # optional - pass a quoted string of arguments to give to ffmpeg during transcode, if necessary (e.g. "-vf crop=320:240:0:0")
+except:
+    transcode_options = ''
 fixed_path = '../../../data/'
 input_directory = fixed_path + rel_path
 output_path = '../../i/'
@@ -33,7 +36,7 @@ def getDaysFromDates(birthdate, sessiondate):
     diff = d1 - d0
 
     return diff.days
-        
+
 
 def getFilePath(directory):
     filepaths = []
@@ -64,16 +67,16 @@ def getAssets(directory):
             currSesh = v[i].split('.')[0]
             assets_map[k][currSesh] = []
             all_assets.append(v[i])
-            
-            
+
+
     for k,v in assets_map.items():
         for j in range(len(all_assets)):
             for s in range(len(v.keys())):
-            
+
                 if v.keys()[s] in all_assets[j]:
                     assets_map[k][v.keys()[s]].append(all_assets[j])
 
-            
+
 
     return assets_map
 
@@ -86,7 +89,7 @@ def getSessions(f, directory, fpath):
 
         fpath_list = i.split('/')
         asset = fpath_list[-1].split('.')[0]
-        
+
         s_list[asset] = {}
 
         if os.path.isfile(i):
@@ -106,7 +109,7 @@ def getSessions(f, directory, fpath):
 
                     if line.startswith('@') and 'ID' in line and 'CHI' in line:
                         participant = line.split('\t')[1].split('|')[1].strip()
-                        s_list[asset]['participant'] = participant              
+                        s_list[asset]['participant'] = participant
 
                         rel_path_full = rel_path + '/' + participant + '/'
                         s_list[asset]['path'] = rel_path_full
@@ -127,12 +130,12 @@ def getSessions(f, directory, fpath):
 
                         s_list[asset]['transcript'] = asset_val[0] + '.cha'
 
-                    
-                    
-                    
+
+
+
     print('sessions got')
     return s_list
-                    
+
 def getParticipants(f, directory, fpath):
 
     p_list = {}
@@ -172,7 +175,7 @@ def makeParticipantCSV(csvfile, participant_dictionary, headers):
     with open(csvfile, 'wt') as csvfile:
         outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
         outfile.writerow(headers)
-        
+
         for k,v in participant_dictionary.items():
             participantID = k
             birthdate = v['birthdate']
@@ -193,15 +196,15 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
     with open(csvfile, 'wt') as csvfile:
         outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
         outfile.writerow(headers)
-        
+
         for k,v in session_dictionary.items():
-            name = k 
-            date = v['date'] 
+            name = k
+            date = v['date']
             top = ''
-            pilot = '' 
-            exclusion = '' 
+            pilot = ''
+            exclusion = ''
             classification = ''
-            path = v['path'] 
+            path = v['path']
             filename = v['file']
             transcript = v['transcript']
             participantID = v['participant']
@@ -229,6 +232,3 @@ if __name__ == "__main__":
 
     makeParticipantCSV(p_file, participant_dict, General.participant_headers)
     makeSessionCSV(s_file, session_dict, Childes.session_headers)
-
-    
-

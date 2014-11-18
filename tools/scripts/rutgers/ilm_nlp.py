@@ -3,7 +3,7 @@ import nltk
 import csv
 import os
 import sys
-if sys.version_info < (3, 0):    
+if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding("utf-8")
 import json
@@ -20,14 +20,14 @@ def hasNum(s):
 def makeSentenceDict(inputf):
     texts = {}
     removables = {'\n': ' ',
-                  '\t': ' ', 
+                  '\t': ' ',
                   ':': ' ',
-                  ';': ' ',     
-                  '.': '', 
-                  '/': ' ', 
-                  '(': ' ', 
+                  ';': ' ',
+                  '.': '',
+                  '/': ' ',
+                  '(': ' ',
                   ')': ' ',
-                  '*': '', 
+                  '*': '',
                   '=': '',
                   '-': ' ',
                   '"': '',
@@ -71,15 +71,15 @@ def tagText(textobj):
 
         names_in_texts[key] = {'text': text, 'proper_nouns': proper_nouns}
 
-        
-    
+
+
 
     return names_in_texts
 
 
 
 def allUniqNNP(taggedobj):
-    '''currently creates a count frequency dictionary of all identified pronouns'''
+    '''currently creates a count frequency dictionary of all identified proper nouns'''
 
     all_uniq_nnp = {}
 
@@ -93,7 +93,7 @@ def allUniqNNP(taggedobj):
             else:
                 all_uniq_nnp[nnp] = 1
 
-                
+
     return all_uniq_nnp
 
 tagged_texts = tagText(makeSentenceDict(input_file))
