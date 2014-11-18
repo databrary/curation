@@ -5,7 +5,8 @@ class General(object):
     participant_headers = ["participantID", 
                            "birthdate", 
                            "date", 
-                           "age_days", 
+                           "age_days",
+                           "gestational_age", 
                            "gender", 
                            "race", 
                            "ethnicity", 
@@ -31,7 +32,8 @@ class General(object):
                        "tasks",  
                        "clip_in", 
                        "clip_out", 
-                       "position", 
+                       "position",
+                       "transcode_options", 
                        "filepath", 
                        "file_media", #these will change in general
                        "file_transcript" # ditto
