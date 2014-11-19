@@ -52,8 +52,16 @@ def xlsxWriter(path):
         if curr_sheet == 'sessions':    
             wsheet.data_validation(1, headerIdx['exclusion'], 1000, headerIdx['exclusion'], {'validate': 'list', 'source': record_field_values['reason']['enum']})
             wsheet.data_validation(1, headerIdx['classification'], 1000, headerIdx['classification'], {'validate': 'list', 'source': volume_field_values['classification']['enum']})
+            wsheet.data_validation(1, headerIdx['setting'], 1000, headerIdx['setting'], {'validate': 'list', 'source': record_field_values['setting']['enum']})
+            wsheet.data_validation(1, headerIdx['state'], 1000, headerIdx['state'], {'validate': 'list', 'source': record_field_values['state']['enum']})
+            wsheet.data_validation(1, headerIdx['consent'], 1000, headerIdx['consent'], {'validate': 'list', 'source': volume_field_values['consent']['enum']})
 
-        if curr_sheet =='participants'
+        if curr_sheet =='participants':
+            wsheet.data_validation(1, headerIdx['race'], 1000, headerIdx['race'], {'validate': 'list', 'source': record_field_values['race']['enum']})
+            wsheet.data_validation(1, headerIdx['gender'], 1000, headerIdx['gender'], {'validate': 'list', 'source': record_field_values['gender']['enum']})
+            wsheet.data_validation(1, headerIdx['ethnicity'], 1000, headerIdx['ethnicity'], {'validate': 'list', 'source': record_field_values['ethnicity']['enum']})
+            wsheet.data_validation(1, headerIdx['disability'], 1000, headerIdx['disability'], {'validate': 'list', 'source': record_field_values['disability']['enum']})
+
 
 
     wbook.close()

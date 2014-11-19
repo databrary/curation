@@ -12,7 +12,6 @@ class General(object):
                            "ethnicity", 
                            "language", 
                            "disability", 
-                           "category", 
                            "consent"]
 
     session_headers = ["name", 
