@@ -186,10 +186,9 @@ def makeParticipantCSV(csvfile, participant_dictionary, headers):
             ethnicity = ''
             language = v['language']
             disability = ''
-            category = 'participant'
             consent = ''
 
-            outfile.writerow([participantID,birthdate,date,age_days,gender,race,ethnicity,language,disability,category,consent])
+            outfile.writerow([participantID,birthdate,date,age_days,gender,race,ethnicity,language,disability,consent])
 
 
 def makeSessionCSV(csvfile, session_dictionary, headers):
