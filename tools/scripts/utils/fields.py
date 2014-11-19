@@ -38,9 +38,6 @@ class General(object):
                        "file_transcript" # ditto
                        ]
 
-    participant_values = {}
-    session_values = {}
-
 
 class Childes(object):
     '''childes specific data'''

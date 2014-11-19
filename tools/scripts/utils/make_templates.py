@@ -60,8 +60,7 @@ def xlsxWriter(path):
             wsheet.data_validation(1, headerIdx['race'], 1000, headerIdx['race'], {'validate': 'list', 'source': record_field_values['race']['enum']})
             wsheet.data_validation(1, headerIdx['gender'], 1000, headerIdx['gender'], {'validate': 'list', 'source': record_field_values['gender']['enum']})
             wsheet.data_validation(1, headerIdx['ethnicity'], 1000, headerIdx['ethnicity'], {'validate': 'list', 'source': record_field_values['ethnicity']['enum']})
-            wsheet.data_validation(1, headerIdx['disability'], 1000, headerIdx['disability'], {'validate': 'list', 'source': record_field_values['disability']['enum']})
-
+            
 
 
     wbook.close()
