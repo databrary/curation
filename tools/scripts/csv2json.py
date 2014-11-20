@@ -3,6 +3,7 @@ import os
 import sys
 from pprint import pprint
 import json
+import collections
 
 
 
@@ -91,7 +92,7 @@ def makeOuterMostElements(csvReader):
 def makeTasks(tasklist):
     taskObjs = []
 
-    
+
     for i in range(len(tasklist)):
         taskObj = {'category':'task', 'ident':tasklist[i]}
         if not any(taskObj == d for d in taskObjs):
@@ -132,7 +133,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             state = row[headerIndex['state']]
             country = row[headerIndex['country']]
             consent = row[headerIndex['consent']] if row[headerIndex['consent']] != '' else None
-            language = row[headerIndex['language']] 
+            language = row[headerIndex['language']]
             t_options = row[headerIndex['transcode_options']].split(' ')
             tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
 
@@ -161,7 +162,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             p_target = p_map[target['ident']]
 
-                
+
                             if p_map[target['ident']]['birthdate'] != '':
                                 target['birthdate'] = p_target['birthdate']
                             if p_target['ethnicity'] != '':
@@ -175,7 +176,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             if p_target['gender'] != '':
                                 target['gender'] = p_target['gender'].title()
 
-                            
+
 
 
                 elif 'file_' in header and row[i] != '':
@@ -230,8 +231,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         data = {
 
             'name': _filepath_prefix,
-            'containers': list(s_map.values())
+            'containers': sorted(list(s_map.values()), key=lambda k: k['key'])
         }
+
 
     res = json.dumps(data, indent=4)
 
