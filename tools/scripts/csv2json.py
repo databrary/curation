@@ -94,7 +94,7 @@ def makeTasks(tasklist):
 
 
     for i in range(len(tasklist)):
-        taskObj = {'category':'task', 'ident':tasklist[i]}
+        taskObj = {'category':'task', 'ident':tasklist[i], 'key':tasklist[i]}
         if not any(taskObj == d for d in taskObjs):
             taskObjs.append(taskObj)
 
@@ -142,7 +142,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             context['category'] = 'context'
             context['key'] = 'context'
             if setting != '':
-                context['setting'] = setting
+                context['setting'] = setting.title()
             if state != '':
                 context['state'] = state
             if country != '':
