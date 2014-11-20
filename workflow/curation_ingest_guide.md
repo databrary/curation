@@ -35,9 +35,7 @@ This guide outlines the procedures for taking in complete datasets that site mem
 * Document responses to above.
 
 ## <a name="interpret_priority">Interpreting Priority and Data Preparedness</a>
-Based on the above criteria, priority and preparedness will be used to determine the approximate estimate for when a dataset will be fully ingested and available in Databrary. Incomplete datasets or datasets organized using non-standard or unfamiliar standards will require more time to ingest or might not be ready at the moment for ingestion. Though depending on other criteria, these datasets might take higher priority over those that might be more ready for ingestion from a technical standpoint.
-
-While we will do our best to set out a formal process for determining the priority a dataset takes for the curation and ingestion process, in many situations estimations for inclusion databrary will have to happen on a case by case basis.
+Based on the above criteria, priority and preparedness will be used to determine the approximate estimate for when a dataset will be fully ingested and available in Databrary. Incomplete datasets or datasets organized using non-standard methodologies may require more time to ingest or might not be ready at the moment for ingestion. Though depending on other criteria, these datasets might take higher priority over those that might be more ready for ingestion from a technical standpoint. In many situations estimations for inclusion Databrary will have to happen on a case by case basis.
 
 ## <a name="gather_assess">Gather and Assess Data</a>
 
@@ -45,14 +43,12 @@ While we will do our best to set out a formal process for determining the priori
 * Review and explore data, assess further for ingest readiness
 * Additional criteria for estimating priority and time to full ingestion will be based on the following (in addition to information gathered from [initial request](#initial_request)):
 
-    - Does dataset consist entirely or mostly of file formats and metadata we already support or can easily support --or-- will system require additional features to accomodate data and metadata?
+    - Does dataset consist entirely or mostly of file formats and metadata we already support or can easily support --or-- will system require additional features to accommodate data and metadata?
     - Are data release levels already determined and cleared by institutions grantors and/or IRB --or-- will additional IRB engagement and release level auditing need to take place by the dataset provider?
     - How much Databrary staff time will be required to package data for ingestion?
-    -
 
 * Follow up with data provider, where possible and appropriate, to request additional information and provide an approximate idea of when their data will be included in Databrary referencing assessment criteria above.
 
-*
 
 ## <a name="process_data">Processing and Load Data</a>
 
@@ -60,16 +56,16 @@ Once a dataset has been approved for starting the ingestion process, Databrary s
 
 * Review video materials for content that will require creation of additional metadata as well as sensitive information not to be released
 * Determine and enter data into spreadsheet based on video file and time ranges that comprise a "session"
-* Enter and/or shape participant metadata into the establish spreadsheet template (*TBD*)
+* Enter and/or shape participant metadata into the established spreadsheet template ([current copy is here](https://github.com/databrary/curation/blob/master/spec/templates/ingest_template.xlsx))
 * Ensure that participant metadata is assigned accurately with session metadata
 * Flag any metadata that might need special attention for the ingest process (i.e. needs additional processing or could benefit from automated transformation)
-* Arrange assets (videos and other materials) on the server in as per asset directory template (*PENDING*)
+* Arrange assets (videos and other materials) on the server as per asset directory template ([located here](https://github.com/databrary/curation/blob/master/spec/templates/asset_directory_template.md))
 * Ensure that files are named according to file naming conventions (*PENDING*)
 
 Once a dataset has been prepared:
 
-* Transform spreadsheet metadata into ingestable JSON format via script and validate against [JSON schema](http://github.com/databrary/curation/spec/volume.json).
-* Ingest and transcode metadata and asset data via server scripts.
+* Transform spreadsheet metadata into ingestible JSON format via script and validate against [JSON schema](http://github.com/databrary/curation/spec/volume.json).
+* Ingest and transcode metadata and asset data via server scripts ([located here](https://github.com/databrary/curation/tree/master/tools/scripts)).
 * Staff will then review materials as they appear on the site and correct any errors that occurred during the ingest process.
 *Ensure that data has correct permissions applied to them.
 
