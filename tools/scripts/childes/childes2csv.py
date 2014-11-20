@@ -220,7 +220,7 @@ def makeSessionCSV(csvfile, session_dictionary, headers):
             tasks = ''
 
 
-            outfile.writerow([name, date, participantID, top, pilot, exclusion, classification, setting, country, state, language, consent, condition, group, tasks, clip_in, clip_out, position, transcode_options, path, filename, transcript ])
+            outfile.writerow([name, date, participantID, top, pilot, exclusion, classification, setting, country, state, language, consent, condition, group, tasks, clip_in, clip_out, position, transcode_options, path, transcript, filename  ])
 
 
 

@@ -34,8 +34,8 @@ class General(object):
                        "position",
                        "transcode_options", 
                        "filepath", 
-                       "file_media", #these will change in general
-                       "file_transcript" # ditto
+                       "file_document", #these will change in general 
+                       "file_media" # ditto
                        ]
 
 
@@ -63,7 +63,7 @@ class Childes(object):
                        "clip_out", 
                        "position",
                        "transcode_options", 
-                       "filepath", 
-                       "file_media", 
-                       "file_transcript"
+                       "filepath",
+                       "file_transcript", 
+                       "file_media"     
                        ]

@@ -19,6 +19,7 @@ def hasNum(s):
 
 def makeSentenceDict(inputf):
     texts = {}
+    
     removables = {'\n': ' ',
                   '\t': ' ',
                   ':': ' ',
@@ -29,10 +30,11 @@ def makeSentenceDict(inputf):
                   ')': ' ',
                   '*': '',
                   '=': '',
-                  '-': ' ',
                   '"': '',
                   ',': ' ',
-                  "'s": ''}
+                  "'s": '',
+                  "'": ''}
+    
 
     with open(inputf, 'rt') as csvfile:
         f = csv.reader(csvfile)
@@ -44,10 +46,11 @@ def makeSentenceDict(inputf):
             if row[2].strip() != '':
                 content_text = row[2].strip()
 
+                
                 for k, v in removables.items():
                     if k in content_text:
                         content_text = content_text.replace(k, v)
-
+                
                 texts[reel_id] = content_text
 
     return texts
@@ -63,8 +66,6 @@ def tagText(textobj):
         key = k
         text = v
 
-        #sentences = nltk.sent_tokenize(text)
-        #tokenized_sent = [nltk.word_tokenize(sent) for sent in sentences]
         tagged = nltk.pos_tag(text.split())
 
         proper_nouns = [w for w, pos in tagged if pos == 'NNP']
