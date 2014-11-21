@@ -8,6 +8,7 @@ if sys.version_info < (3, 0):
     sys.setdefaultencoding("utf-8")
 import json
 from pprint import pprint
+import re
 
 input_file = sys.argv[1] #csv file
 
@@ -59,6 +60,8 @@ def makeSentenceDict(inputf):
 
 def tagText(textobj):
 
+    stop_words = ['Camera', 'Cameras', 'Table', 'Tables', 'Cohort', 'Interview', 'Roving' 'Group', 'Tape', 'Schoolopoly', 'Pizza', 'Students', 'My', 'Guess', 'Rule', 'Explorer'] #lets not use so many if we can get a better tagger/chunker through training
+    re_pattern = re.compile(r'[A-Z]\d?\b') #matches something like 'A', 'B', 'C2', 'B3' etc...
     names_in_texts = {}
 
 
@@ -66,11 +69,22 @@ def tagText(textobj):
         key = k
         text = v
 
-        tagged = nltk.pos_tag(text.split())
+        #tagged = nltk.pos_tag(text.split())
+        tagged = nltk.pos_tag(nltk.word_tokenize(text))
 
-        proper_nouns = [w for w, pos in tagged if pos == 'NNP']
+        chunked = nltk.ne_chunk(tagged)
 
-        names_in_texts[key] = {'text': text, 'proper_nouns': proper_nouns}
+        names = []
+
+        for c in chunked:
+            if type(c) is nltk.Tree and c.label() == 'PERSON':
+                for i in range(len(c)):
+                    name = c[i][0].strip()
+                    if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
+                        names.append(name)
+        
+
+        names_in_texts[key] = {'text': text, 'names': names}
 
 
 
@@ -101,7 +115,7 @@ tagged_texts = tagText(makeSentenceDict(input_file))
 
 json_output = json.dumps(tagged_texts, indent=4)
 
-all_nnp = allUniqNNP(tagged_texts)
-
-print(len(all_nnp))
-pprint(all_nnp)
+print(json_output)
+#all_nnp = allUniqNNP(tagged_texts)
+#print(len(all_nnp))
+#pprint(all_nnp)
