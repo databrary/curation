@@ -56,9 +56,63 @@ def makeSentenceDict(inputf):
 
     return texts
 
+def nameFromTree(tree):
+
+    name_from_tree = ' '.join([i[0] for i in tree])
+
+    
+    return name_from_tree
+
+def parseSentTree(ch_tree):
+
+    names = []
+
+    if type(ch_tree) is nltk.Tree:
+        if ch_tree.label() == 'PERSON':
 
 
-def tagText(textobj):
+            names.append(nameFromTree(ch_tree))
+        else:
+            for i in ch_tree:
+                names.extend(parseSentTree(i))
+
+    return names
+
+
+def chunkTextSentences(textobj):
+
+    '''not much an improvement over word tokenization'''
+
+    names_in_sents = {}
+
+
+    for k,v in textobj.items():
+        key = k
+        text = v
+
+        sents = nltk.sent_tokenize(text)
+        tokens = [nltk.word_tokenize(sent) for sent in sents]
+        tags = [nltk.pos_tag(s) for s in tokens]
+        chunked_s = nltk.ne_chunk_sents(tags)
+
+
+        named_ents = []
+
+        for ch in chunked_s:
+            ents = sorted(list(set([word for tree in ch for word in parseSentTree(tree)])))
+
+            for e in ents:
+                if e not in named_ents:
+                    named_ents.append(e)
+
+
+        names_in_sents[key] = {'text': text, 'names': named_ents}
+        
+    return names_in_sents
+
+def chunkTextWords(textobj):
+
+    '''this is ok but still leaves a bit of a mess to clean up around the names'''
 
     stop_words = ['Camera', 'Cameras', 'Table', 'Tables', 'Cohort', 'Interview', 'Roving' 'Group', 'Tape', 'Schoolopoly', 'Pizza', 'Students', 'My', 'Guess', 'Rule', 'Explorer'] #lets not use so many if we can get a better tagger/chunker through training
     re_pattern = re.compile(r'[A-Z]\d?\b') #matches something like 'A', 'B', 'C2', 'B3' etc...
@@ -78,11 +132,13 @@ def tagText(textobj):
 
         for c in chunked:
             if type(c) is nltk.Tree and c.label() == 'PERSON':
-                for i in range(len(c)):
-                    name = c[i][0].strip()
-                    if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
-                        names.append(name)
-        
+                #for i in range(len(c)): #this might give back a more workable set than below
+                #    name = c[i][0].strip()
+                
+                name = ' '.join(i[0] for i in c.leaves())
+                if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
+                    names.append(name)
+                    
 
         names_in_texts[key] = {'text': text, 'names': names}
 
@@ -111,11 +167,15 @@ def allUniqNNP(taggedobj):
 
     return all_uniq_nnp
 
-tagged_texts = tagText(makeSentenceDict(input_file))
+text_store = makeSentenceDict(input_file)
 
-json_output = json.dumps(tagged_texts, indent=4)
+#tagged_texts_w = chunkTextWords(text_store)
+tagged_texts_s = chunkTextSentences(text_store)
 
+
+json_output = json.dumps(tagged_texts_s, indent=4)
 print(json_output)
+
 #all_nnp = allUniqNNP(tagged_texts)
 #print(len(all_nnp))
 #pprint(all_nnp)
