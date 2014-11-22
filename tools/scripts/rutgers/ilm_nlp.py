@@ -12,6 +12,7 @@ import re
 
 input_file = sys.argv[1] #csv file
 
+
 def hasNum(s):
 
     '''check if string has a number'''
@@ -59,8 +60,7 @@ def makeSentenceDict(inputf):
 def nameFromTree(tree):
 
     name_from_tree = ' '.join([i[0] for i in tree])
-
-    
+  
     return name_from_tree
 
 def parseSentTree(ch_tree):
@@ -120,7 +120,7 @@ def chunkTextWords(textobj):
 
 
     for k,v in textobj.items():
-        key = k
+        key = str(k)
         text = v
 
         #tagged = nltk.pos_tag(text.split())
@@ -132,21 +132,39 @@ def chunkTextWords(textobj):
 
         for c in chunked:
             if type(c) is nltk.Tree and c.label() == 'PERSON':
-                #for i in range(len(c)): #this might give back a more workable set than below
-                #    name = c[i][0].strip()
+                for i in range(len(c)): #this might give back a more workable set than below
+                    name = c[i][0].strip()
+                    if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
+                        names.append(name)
                 
-                name = ' '.join(i[0] for i in c.leaves())
-                if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
-                    names.append(name)
+                #name = ' '.join(nameFromTree(c.leaves()))
+                #if name not in names:
+                #    names.append(name)
+                
                     
 
         names_in_texts[key] = {'text': text, 'names': names}
 
 
-
-
     return names_in_texts
 
+def addNamesToOrig(inputf, results_dict):
+
+    out_name = inputf.split('/')[-1].split('.')[0] + '_classified.csv'
+
+    with open(inputf, 'rt') as in_csv:
+        r = csv.reader(in_csv)
+        w = csv.writer(open(out_name, 'wt'))
+        header = next(r)
+        header.extend(['participant_names'])
+        w.writerow(header)
+
+        for row in r:
+            try:
+                row.extend([results_dict[row[0]]['names']])
+                w.writerow(row)
+            except:
+                pass #we will come back for this issue later, just want to see some results
 
 
 def allUniqNNP(taggedobj):
@@ -169,13 +187,15 @@ def allUniqNNP(taggedobj):
 
 text_store = makeSentenceDict(input_file)
 
-#tagged_texts_w = chunkTextWords(text_store)
-tagged_texts_s = chunkTextSentences(text_store)
+tagged_texts_w = chunkTextWords(text_store)
+#tagged_texts_s = chunkTextSentences(text_store)
 
 
-json_output = json.dumps(tagged_texts_s, indent=4)
-print(json_output)
+#json_output = json.dumps(tagged_texts_w, indent=4)
+#print(json_output)
 
 #all_nnp = allUniqNNP(tagged_texts)
 #print(len(all_nnp))
 #pprint(all_nnp)
+
+addNamesToOrig(input_file, tagged_texts_w)

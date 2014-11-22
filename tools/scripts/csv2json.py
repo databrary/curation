@@ -134,7 +134,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             country = row[headerIndex['country']]
             consent = row[headerIndex['consent']] if row[headerIndex['consent']] != '' else None
             language = row[headerIndex['language']]
-            t_options = row[headerIndex['transcode_options']].split(' ')
+            t_options = row[headerIndex['transcode_options']].split(' ') if row[headerIndex['transcode_options']] != '' else ''
             tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
 
 
