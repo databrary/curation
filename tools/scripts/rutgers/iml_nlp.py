@@ -137,6 +137,8 @@ def chunkTextWords(textobj):
                     if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
                         names.append(name)
                 
+                
+
                 #name = ' '.join(nameFromTree(c.leaves()))
                 #if name not in names:
                 #    names.append(name)
@@ -164,7 +166,8 @@ def addNamesToOrig(inputf, results_dict):
                 row.extend([results_dict[row[0]]['names']])
                 w.writerow(row)
             except:
-                pass #we will come back for this issue later, just want to see some results
+                print('passing over %s, because it must have been blank in the original' % (row))
+                pass #there was one blank record in the data.
 
 
 def allUniqNNP(taggedobj):
@@ -187,15 +190,19 @@ def allUniqNNP(taggedobj):
 
 text_store = makeSentenceDict(input_file)
 
+'''tagging and chunking options'''
 tagged_texts_w = chunkTextWords(text_store)
 #tagged_texts_s = chunkTextSentences(text_store)
 
+'''output as json if you'd like'''
+json_output = json.dumps(tagged_texts_w, indent=4)
+print(json_output)
 
-#json_output = json.dumps(tagged_texts_w, indent=4)
-#print(json_output)
 
+'''trigger getting the frequency list of proper nouns'''
 #all_nnp = allUniqNNP(tagged_texts)
 #print(len(all_nnp))
 #pprint(all_nnp)
 
-addNamesToOrig(input_file, tagged_texts_w)
+'''take in the CSV data and extract names from the free text box, spit out a modified copy with the names attached'''
+#addNamesToOrig(input_file, tagged_texts_w)
