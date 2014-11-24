@@ -15,9 +15,9 @@ record_field_values = volume_schema['definitions']['record']['properties']
 
 
 def headerIndices(headers):
-    hIndex = {}
-    for i in range(len(headers)):
-        hIndex[headers[i]] = i
+    
+    hIndex = {headers[i]: i for i in range(len(headers))}
+
     return hIndex
 
 

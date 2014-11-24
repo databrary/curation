@@ -28,9 +28,8 @@ def cleanVal(i):
     return i
 
 def getHeaderIndex(headerlist):
-    headerIndex = {}
-    for i in range(len(headerlist)):
-        headerIndex[headerlist[i]] = i
+
+    headerIndex = {headerlist[i]: i for i in range(len(headerlist))}
 
     return headerIndex
 
@@ -44,9 +43,8 @@ def getParticipantMap(p_csvFile):
 
 
     for rec in p_reader:
-        vals = {}
-        for z in range(len(p_headers)):
-            vals[p_headers[z]] = rec[z]
+        
+        vals = {p_headers[z]: rec[z] for z in range(len(p_headers))}
 
         participantMap[rec[0]] = vals
 
