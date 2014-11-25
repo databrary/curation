@@ -12,3 +12,6 @@ tools/o
 
 #data
 data/
+
+#third party utilities we dont need to push
+third_party/
