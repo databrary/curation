@@ -116,7 +116,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             name=row[headerIndex['name']]
             s_curr = s_map[name]
 
-            date = row[headerIndex['date']] #default to not real date, but should be a date
+            date = row[headerIndex['date']]
 
             path = row[headerIndex['filepath']]
             clipArr = [row[headerIndex['clip_in']], row[headerIndex['clip_out']]] if row[headerIndex['clip_in']] != '' else ''

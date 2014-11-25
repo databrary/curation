@@ -9,6 +9,7 @@ if sys.version_info < (3, 0):
 import json
 from pprint import pprint
 import re
+import string
 
 input_file = sys.argv[1] #csv file
 
@@ -22,21 +23,7 @@ def hasNum(s):
 def makeSentenceDict(inputf):
     texts = {}
     
-    removables = {'\n': ' ',
-                  '\t': ' ',
-                  ':': ' ',
-                  ';': ' ',
-                  '.': '',
-                  '/': ' ',
-                  '(': ' ',
-                  ')': ' ',
-                  '*': '',
-                  '=': '',
-                  '"': '',
-                  ',': ' ',
-                  "'s": '',
-                  "'": ''}
-    
+    punctuation = list(string.punctuation)
 
     with open(inputf, 'rt') as csvfile:
         f = csv.reader(csvfile)
@@ -48,74 +35,35 @@ def makeSentenceDict(inputf):
             if row[2].strip() != '':
                 content_text = row[2].strip()
 
-                
-                for k, v in removables.items():
-                    if k in content_text:
-                        content_text = content_text.replace(k, v)
+                content_text = ''.join(char for char in content_text if char not in punctuation)
                 
                 texts[reel_id] = content_text
 
     return texts
 
-def nameFromTree(tree):
+def parseTreeNames(chunk, label):
 
-    name_from_tree = ' '.join([i[0] for i in tree])
-  
-    return name_from_tree
+    stop_words = ['Camera', 'Cameras', 'Table', 'Tables', 'Cohort', 'Interview', 'Roving' 'Group', 'Tape', 'Schoolopoly', 'Pizza', 'Students', 'My', 'Guess', 'Rule', 'Explorer'] #lets not use so many if we can get a better tagger/chunker through training
+    re_pattern = re.compile(r'[A-Z]\d?\b') #matches something like 'A', 'B', 'C2', 'B3' etc...
 
-def parseSentTree(ch_tree):
+    entities = []
 
-    names = []
-
-    if type(ch_tree) is nltk.Tree:
-        if ch_tree.label() == 'PERSON':
-
-
-            names.append(nameFromTree(ch_tree))
-        else:
-            for i in ch_tree:
-                names.extend(parseSentTree(i))
-
-    return names
-
-
-def chunkTextSentences(textobj):
-
-    '''not much an improvement over word tokenization'''
-
-    names_in_sents = {}
-
-
-    for k,v in textobj.items():
-        key = k
-        text = v
-
-        sents = nltk.sent_tokenize(text)
-        tokens = [nltk.word_tokenize(sent) for sent in sents]
-        tags = [nltk.pos_tag(s) for s in tokens]
-        chunked_s = nltk.ne_chunk_sents(tags)
-
-
-        named_ents = []
-
-        for ch in chunked_s:
-            ents = sorted(list(set([word for tree in ch for word in parseSentTree(tree)])))
-
-            for e in ents:
-                if e not in named_ents:
-                    named_ents.append(e)
-
-
-        names_in_sents[key] = {'text': text, 'names': named_ents}
+    for c in chunk: #might like to recurse if trees in trees
+        if type(c) is nltk.Tree and c.label() == label:
+            for i in range(len(c)): #clunky but gives a more workable set
+                entity = c[i][0].strip()
+                if entity not in entities and entity not in stop_words and re.match(re_pattern, entity) is None:
+                    entities.append(entity)
         
-    return names_in_sents
+
+    return entities
+
+
 
 def chunkTextWords(textobj):
 
     '''this is ok but still leaves a bit of a mess to clean up around the names'''
-
-    stop_words = ['Camera', 'Cameras', 'Table', 'Tables', 'Cohort', 'Interview', 'Roving' 'Group', 'Tape', 'Schoolopoly', 'Pizza', 'Students', 'My', 'Guess', 'Rule', 'Explorer'] #lets not use so many if we can get a better tagger/chunker through training
-    re_pattern = re.compile(r'[A-Z]\d?\b') #matches something like 'A', 'B', 'C2', 'B3' etc...
+    
     names_in_texts = {}
 
 
@@ -128,23 +76,8 @@ def chunkTextWords(textobj):
 
         chunked = nltk.ne_chunk(tagged)
 
-        names = []
-
-        for c in chunked:
-            if type(c) is nltk.Tree and c.label() == 'PERSON':
-                for i in range(len(c)): #this might give back a more workable set than below
-                    name = c[i][0].strip()
-                    if name not in names and name not in stop_words and re.match(re_pattern, name) is None:
-                        names.append(name)
+        names = parseTreeNames(chunked, 'PERSON')
                 
-                
-
-                #name = ' '.join(nameFromTree(c.leaves()))
-                #if name not in names:
-                #    names.append(name)
-                
-                    
-
         names_in_texts[key] = {'text': text, 'names': names}
 
 
@@ -190,9 +123,8 @@ def allUniqNNP(taggedobj):
 
 text_store = makeSentenceDict(input_file)
 
-'''tagging and chunking options'''
+'''tagging and chunking'''
 tagged_texts_w = chunkTextWords(text_store)
-#tagged_texts_s = chunkTextSentences(text_store)
 
 '''output as json if you'd like'''
 json_output = json.dumps(tagged_texts_w, indent=4)
