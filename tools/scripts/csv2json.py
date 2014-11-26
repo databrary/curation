@@ -98,6 +98,11 @@ def makeTasks(tasklist):
 
     return taskObjs
 
+def recordAppend(obj, val, cat):
+    obj['records'].append({'category': cat,
+                           'ident': val,
+                           'key': val
+                           })
 
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -192,19 +197,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
                 elif header == 'pilot' and pilot != '':
-                    s_curr['records'].append({'category': 'pilot',
-                                              'ident': pilot,
-                                              'key': pilot})
+                    recordAppend(s_curr, pilot, 'pilot')
+                    
 
                 elif header == 'exlcusion' and exclusion != '':
-                    s_curr['records'].append({'category': 'exclusion',
-                                              'reason': exclusion,
-                                              'key': exclusion})
+                    recordAppend(s_curr, exclusion, 'exclusion')
+                    
 
                 elif header == 'condition' and condition != '':
-                    s_curr['records'].append({'category': 'condition',
-                                              'ident': condition,
-                                              'key': condition})
+                    recordAppend(s_curr, condition, 'condition')
+
+                elif header == 'group' and group != '':
+                    recordAppend(s_curr, group, 'group')
+
 
                 elif header == 'setting' and len(context) > 2 and not any(context == d for d in s_curr['records']):
                     s_curr['records'].append(context)
