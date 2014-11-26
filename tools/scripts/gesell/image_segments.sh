@@ -1,60 +1,41 @@
 #!/bin/bash
 
-DIR=$1
-PIXEL_FILE="$DIR$2"
-IMAGE_FILE="$DIR$3"
-SHADOW_FILE="$DIR$4"
-START_POINT=()
-FIRST_PIXEL=false
-do_not_collect=false
+#convert meat.jpg -threshold 98% -morphology Dilate Octagon meat_0.png
+#convert meat_0.png text: | grep -m 1 black | cut -d':' -f 1
 
 
 ##
-#loop through the text converted pixel output and pick out starting pixels for the each image
+#Input files
 ##
 
+DIR=$1                          #./data/
+IMAGE_FILE="$DIR$2"             #1.png
+
+##
+# Create first reference image
+##
+
+IMG_PREFIX="$(cut -d'.' -f 1 <<< $2)"            #1
+IMG_REF="$(echo $DIR${IMG_PREFIX}_0.png)"        #1_0.png
+convert "$IMAGE_FILE" -threshold 98% -morphology Dilate Square "$IMG_REF"
 
 i=0
-while read line; do
-    if [[ $line == *000000* ]]
-    then
-        if [[ $do_not_collect == false ]]
-        then
-            echo "adding line"
-            START_POINT[i]="$( cut -d':' -f 1 <<< "$line")"
-            i=$(($i + 1))
-            do_not_collect=true
-        else 
-            echo "not gonna add this"
-        fi
-    else
-        do_not_collect=false
-    fi
-done < $PIXEL_FILE
 
-
-##
-#for each pixel point, we can run the extraction procedure
-##
-
-for e in "${!START_POINT[@]}"
+for n in {1..100}
 do
-    index="$e"
-    pixel_val="${START_POINT[$e]}"
-    red_single="red_$index_$3"
-    sep_single="card_$index_$3"
-    mask="mask_$index_$3"
-    res_image="card_$index.png"
+    pixel_val="$(convert $IMG_REF text: | grep -m 1 000000 | cut -d':' -f 1)"
+    IMG_RED="$(echo $DIR${IMG_PREFIX}_${i}_red.png)"
+    IMG_MASK="$(echo $DIR${IMG_PREFIX}_${i}_mask.png)"
+    IMG_SOLO="$(echo $DIR${IMG_PREFIX}_${i}_card.png)"
+    convert "$IMG_REF" -fill red -bordercolor white -draw "color $pixel_val filltoborder" "$IMG_RED"
+    i=$(($i + 1))
+    IMG_REF=$(echo $DIR${IMG_PREFIX}_${i}.png)
+    convert "$IMG_RED" -channel R -separate "$IMG_REF"
+    convert "$IMG_RED" "$IMG_REF" -compose subtract -threshold 50% -composite -morphology Dilate Square -negate "$IMG_MASK"
+    convert "$IMG_MASK" "$IMAGE_FILE" -compose Screen -composite -trim "$IMG_SOLO"
 
-
-    echo "creating red outline for index: $index, $pixel_val"
-    convert "$SHADOW_FILE" -fill red -bordercolor white -draw "color $pixel_val filltoborder" "$red_single"
-    echo "separating that one out"
-    convert "$red_single" -channel R -separate "$sep_single"
-    echo "creating image mask"
-    convert "$red_single" "$sep_single" -compose subtract -threshold 50% -composite -morphology Dilate Square -negate "$mask"
-    echo "applying mask"
-    convert "$mask" "$IMAGE_FILE" -compose Screen -composite -trim "$res_image"
 done
+
+
 
 
