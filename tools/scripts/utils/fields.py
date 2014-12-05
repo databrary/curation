@@ -29,13 +29,19 @@ class General(object):
                        "condition", 
                        "group",
                        "tasks",  
-                       "clip_in", 
-                       "clip_out", 
                        "position",
                        "transcode_options", 
                        "filepath", 
-                       "file_document", #these will change in general 
-                       "file_media" # ditto
+                       "file_1", 
+                       "clip_out_start_1", 
+                       "clip_out_end_1",
+                       "clip_in_start_1", 
+                       "clip_in_end_1",  
+                       "file_2",
+                       "clip_out_start_2", 
+                       "clip_out_end_2",
+                       "clip_in_start_2", 
+                       "clip_in_end_2"
                        ]
 
 
@@ -59,8 +65,6 @@ class Childes(object):
                        "condition", 
                        "group",
                        "tasks",  
-                       "clip_in", 
-                       "clip_out", 
                        "position",
                        "transcode_options", 
                        "filepath",

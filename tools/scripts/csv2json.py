@@ -104,6 +104,10 @@ def recordAppend(obj, val, cat):
                            'key': val
                            })
 
+def checkClipsStatus(pos_start, pos_end, neg_start, neg_end):
+
+    '''Here determine how to handle the creation of assets'''
+
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
 
@@ -124,7 +128,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             date = row[headerIndex['date']]
 
             path = row[headerIndex['filepath']]
-            clipArr = [row[headerIndex['clip_in']], row[headerIndex['clip_out']]] if row[headerIndex['clip_in']] != '' else ''
             position = [row[headerIndex['position']]] if row[headerIndex['position']] != '' else 'auto'
             classification = row[headerIndex['classification']].upper() if row[headerIndex['classification']] != '' else 'RESTRICTED'
             top = True if row[headerIndex['top']] != '' else False
@@ -150,7 +153,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 context['state'] = state
             if country != '':
                 context['country'] = country
-
 
 
             for i in range(len(s_headers)):
@@ -183,6 +185,21 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
                 elif 'file_' in header and row[i] != '':
+
+                    asset_no = header.split()[1]
+                    pos_clip_start_prefix = "clip_in_start_"
+                    pos_clip_end_prefix = "clip_in_end_"
+                    neg_clip_start_prefix = "clip_out_start_"
+                    neg_clip_start_prefix = "clip_out_end_"
+
+                    pos_clip_start = row[headerIndex[pos_clip_start_prefix+asset_no]] 
+                    pos_clip_end = row[headerIndex[pos_clip_end_prefix+asset_no]]
+                    neg_clip_start = row[headerIndex[neg_clip_start_prefix+asset_no]]
+                    neg_clip_end = row[headerIndex[neg_clip_end_prefix+asset_no]]
+                    
+                    checkClipsStatus(pos_clip_start, pos_clip_end, neg_clip_start, neg_clip_end)
+
+                    clipArr = [row[headerIndex[pos_clip_start_prefix+asset_no]], row[headerIndex[pos_clip_end_prefix+asset_no]]] if row[headerIndex[pos_clip_start_prefix+asset_no]] != '' else ''
 
                     asset_entry = {'file': path+row[i], 'position': position, 'clip': clipArr, 'classification': classification, 'options': t_options}
 
