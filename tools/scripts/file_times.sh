@@ -5,15 +5,15 @@
 ##
 
 target="$1"
-file_dot="."
 echo "FILE,TIMEIN,TIMEOUT"
 for file in "$target"/*
 do
-    if [[ "$(basename $file)" =~ "$file_dot" ]]; then
-      TIMEIN=$(ffprobe -loglevel warning -show_format -of flat -i $file | grep 'format.tags.creation_time' | cut -d'=' -f 2)
-      TIMEOUT=$(stat $file | grep "Modify: " | cut -d'.' -f 1 | sed "s/^Modify: //")
+    base=`basename "$file"`
+    if [[ -f $file && $base = *.* ]]; then
+      TIMEIN=$(ffprobe -loglevel warning -show_format -of flat -i "$file" | grep '^format\.tags\.creation_time=')
+      TIMEOUT=$(stat -c "%y" "$file")
       
-      echo "\"$(basename $file)\",$TIMEIN,\"$TIMEOUT\""
+      echo "\"$base\",${TIMEIN#*=},\"${TIMEOUT%.*}\""
       
     fi
   
