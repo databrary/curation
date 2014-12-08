@@ -104,9 +104,44 @@ def recordAppend(obj, val, cat):
                            'key': val
                            })
 
-def checkClipsStatus(pos_start, pos_end, neg_start, neg_end):
+def checkClipsStatus(file_path, pos_start, pos_end, neg_start, neg_end):
+
 
     '''Here determine how to handle the creation of assets'''
+    entries = []
+
+    if pos_start is not "":
+        clipArr = [(pos_start, pos_end)]
+
+    elif neg_start == '0:00':
+        cliparr = [(neg_end, "")]
+
+    elif neg_start is not "" and neg_end == "END":
+        cliparr = [("0:00", neg_start)]
+
+    elif neg_start is not "" and neg_end is not "END":
+        cliparr = [("0:00", neg_start), (neg_end, "")]
+
+    else:
+        cliparr = ""
+
+
+    if cliparr is not "":
+        for i in cliparr:
+            entries.append({'file': file_path, 
+                                'position': "", 
+                                'clip': [i[0], i[1]], 
+                                'classification': "", 
+                                'options': ""})
+
+    else: 
+        entries.append({'file': file_path, 
+                                'position': "", 
+                                'classification': "", 
+                                'options': ""})
+
+
+    return entries
 
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -186,6 +221,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif 'file_' in header and row[i] != '':
 
+                    fpath = path+row[i]
+
                     asset_no = header.split()[1]
                     pos_clip_start_prefix = "clip_in_start_"
                     pos_clip_end_prefix = "clip_in_end_"
@@ -197,20 +234,20 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     neg_clip_start = row[headerIndex[neg_clip_start_prefix+asset_no]]
                     neg_clip_end = row[headerIndex[neg_clip_end_prefix+asset_no]]
                     
-                    checkClipsStatus(pos_clip_start, pos_clip_end, neg_clip_start, neg_clip_end)
+                    asset_entry = checkClipsStatus(fpath, 
+                                                   pos_clip_start, 
+                                                   pos_clip_end, 
+                                                   neg_clip_start, 
+                                                   neg_clip_end)
 
-                    clipArr = [row[headerIndex[pos_clip_start_prefix+asset_no]], row[headerIndex[pos_clip_end_prefix+asset_no]]] if row[headerIndex[pos_clip_start_prefix+asset_no]] != '' else ''
+                    
+                    for i in asset_entry:
+                        asset_entry['classifcation'] = classifcation
+                        asset_entry['options'] = t_options
+                        if t_options == '':
+                            del asset_entry['options']
 
-                    asset_entry = {'file': path+row[i], 'position': position, 'clip': clipArr, 'classification': classification, 'options': t_options}
-
-                    if clipArr == '':
-                        del asset_entry['clip']
-                    if t_options == '':
-                        del asset_entry['options']
-
-
-                    s_curr['assets'].append(asset_entry)
-
+                    s_curr['assets'] = asset_entry
 
 
                 elif header == 'pilot' and pilot != '':
@@ -242,10 +279,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 s_curr['top'] = top
                 s_curr['name'] = s_curr['key'] = name
                 s_curr['consent'] = consent
-
-
-
-
 
 
         data = {
