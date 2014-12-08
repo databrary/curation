@@ -114,20 +114,20 @@ def checkClipsStatus(file_path, pos_start, pos_end, neg_start, neg_end):
         clipArr = [(pos_start, pos_end)]
 
     elif neg_start == '0:00':
-        cliparr = [(neg_end, "")]
+        clipArr = [(neg_end, "")]
 
     elif neg_start is not "" and neg_end == "END":
-        cliparr = [("0:00", neg_start)]
+        clipArr = [("0:00", neg_start)]
 
     elif neg_start is not "" and neg_end is not "END":
-        cliparr = [("0:00", neg_start), (neg_end, "")]
+        clipArr = [("0:00", neg_start), (neg_end, "")]
 
     else:
-        cliparr = ""
+        clipArr = ""
 
 
-    if cliparr is not "":
-        for i in cliparr:
+    if clipArr is not "":
+        for i in clipArr:
             entries.append({'file': file_path, 
                                 'position': "", 
                                 'clip': [i[0], i[1]], 
@@ -223,11 +223,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     fpath = path+row[i]
 
-                    asset_no = header.split()[1]
+                    asset_no = header.split("_")[1]
                     pos_clip_start_prefix = "clip_in_start_"
                     pos_clip_end_prefix = "clip_in_end_"
                     neg_clip_start_prefix = "clip_out_start_"
-                    neg_clip_start_prefix = "clip_out_end_"
+                    neg_clip_end_prefix = "clip_out_end_"
 
                     pos_clip_start = row[headerIndex[pos_clip_start_prefix+asset_no]] 
                     pos_clip_end = row[headerIndex[pos_clip_end_prefix+asset_no]]
@@ -242,10 +242,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     
                     for i in asset_entry:
-                        asset_entry['classifcation'] = classifcation
-                        asset_entry['options'] = t_options
+                        i['classification'] = classification
+                        i['options'] = t_options
                         if t_options == '':
-                            del asset_entry['options']
+                            del i['options']
 
                     s_curr['assets'] = asset_entry
 
