@@ -173,7 +173,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             setting = row[headerIndex['setting']]
             state = row[headerIndex['state']]
             country = row[headerIndex['country']]
-            consent = row[headerIndex['consent']] if row[headerIndex['consent']] != '' else None
+            consent = row[headerIndex['consent']] if row[headerIndex['consent']].upper() != '' else None
             language = row[headerIndex['language']]
             t_options = row[headerIndex['transcode_options']].split(' ') if row[headerIndex['transcode_options']] != '' else ''
             tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
@@ -244,6 +244,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for i in asset_entry:
                         i['classification'] = classification
                         i['options'] = t_options
+                        i['position'] = position
                         if t_options == '':
                             del i['options']
 
