@@ -6,7 +6,7 @@ import json
 import collections
 
 
-
+################### COMMAND LINE ARGUMENT HANDLING #####################################
 try:
     _session_csv = sys.argv[1]     #session metadata (csv format)
     _participant_csv = sys.argv[2] #participant metadata (csv format)
@@ -18,22 +18,24 @@ except:
     sys.exit()
 
 
+################### QUICK OPERATIONS FOR REDUNDANT TASKS ###############################
 def giveMeCSV(file):
-    f = open(file, 'rt')
-    r = csv.reader(f)
-    return r
+    f = open(file, 'rt') 
+    return csv.reader(f)
 
 def cleanVal(i):
-    i = i.strip()
-    return i
+    return i.strip()
 
 def getHeaderIndex(headerlist):
+    return {headerlist[i]: i for i in range(len(headerlist))}
 
-    headerIndex = {headerlist[i]: i for i in range(len(headerlist))}
+def assignIfThere(k, index, row):
+    '''all purpose check for key in header index so we know to assign a value for the row or not
+        so we do not need empty columns in the spreadsheet'''
+    return row[index[k]] if k in index else None
 
-    return headerIndex
 
-
+################## DATA STRUCTURE PREP AND MANIPULATION #########################
 def getParticipantMap(p_csvFile):
     '''This will give us back a dictionary with participant IDs as keys and
         their records in the form of dictionaries as the values'''
@@ -104,23 +106,30 @@ def recordAppend(obj, val, cat):
                            'key': val
                            })
 
-def checkClipsStatus(file_path, pos_start, pos_end, neg_start, neg_end):
+def checkClipsStatus(file_path, *args):
 
 
-    '''Here determine how to handle the creation of assets'''
+    '''Here determine how to handle the creation of assets:
+        pos_start, pos_end, neg_start, neg_end'''
+
+    pos_in = args[0]
+    pos_out = args[1]
+    neg_in = args[2]
+    neg_out = args[3]
+
     entries = []
 
-    if pos_start is not "":
-        clipArr = [(pos_start, pos_end)]
+    if pos_in is not None and pos_out is not None:
+        clipArr = [(pos_in, pos_out)]
 
-    elif neg_start == '0:00':
+    elif neg_in == '0:00':
         clipArr = [(neg_end, "")]
 
-    elif neg_start is not "" and neg_end == "END":
-        clipArr = [("0:00", neg_start)]
+    elif neg_in is not "" and neg_out == "$":
+        clipArr = [("0:00", neg_in)]
 
-    elif neg_start is not "" and neg_end is not "END":
-        clipArr = [("0:00", neg_start), (neg_end, "")]
+    elif neg_in is not "" and neg_out is not "$":
+        clipArr = [("0:00", neg_in), (neg_out, "")]
 
     else:
         clipArr = ""
@@ -143,6 +152,7 @@ def checkClipsStatus(file_path, pos_start, pos_end, neg_start, neg_end):
 
     return entries
 
+############################### MAIN ####################################
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
 
@@ -224,21 +234,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     fpath = path+row[i]
 
                     asset_no = header.split("_")[1]
-                    pos_clip_start_prefix = "clip_in_start_"
-                    pos_clip_end_prefix = "clip_in_end_"
-                    neg_clip_start_prefix = "clip_out_start_"
-                    neg_clip_end_prefix = "clip_out_end_"
 
-                    pos_clip_start = row[headerIndex[pos_clip_start_prefix+asset_no]] 
-                    pos_clip_end = row[headerIndex[pos_clip_end_prefix+asset_no]]
-                    neg_clip_start = row[headerIndex[neg_clip_start_prefix+asset_no]]
-                    neg_clip_end = row[headerIndex[neg_clip_end_prefix+asset_no]]
+                    pos_start = "clip_in_start_" 
+                    pos_end = "clip_in_end_" 
+                    neg_start = "clip_out_start_" 
+                    neg_end = "clip_out_end_"
+
+                    prefixes = (pos_start, pos_end, neg_start, neg_end)
+
+                    clip_options = tuple(assignIfThere(i+asset_no, headerIndex, row) for i in prefixes)
+
+                    print(clip_options)
                     
-                    asset_entry = checkClipsStatus(fpath, 
-                                                   pos_clip_start, 
-                                                   pos_clip_end, 
-                                                   neg_clip_start, 
-                                                   neg_clip_end)
+                    asset_entry = checkClipsStatus(fpath,*clip_options)
 
                     
                     for i in asset_entry:
