@@ -122,14 +122,16 @@ def checkClipsStatus(file_path, *args):
     if pos_in is not None and pos_out is not None:
         clipArr = [(pos_in, pos_out)]
 
-    elif neg_in == '0:00':
-        clipArr = [(neg_end, "")]
+    
+    elif neg_in is not None and neg_out is not None:
+        if neg_in == '0:00':
+            clipArr = [(neg_end, "")]
 
-    elif neg_in is not "" and neg_out == "$":
-        clipArr = [("0:00", neg_in)]
+        elif neg_in is not "" and neg_out == "$":
+            clipArr = [("0:00", neg_in)]
 
-    elif neg_in is not "" and neg_out is not "$":
-        clipArr = [("0:00", neg_in), (neg_out, "")]
+        elif neg_in is not "" and neg_out is not "$":
+            clipArr = [("0:00", neg_in), (neg_out, "")]
 
     else:
         clipArr = ""
