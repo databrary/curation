@@ -1,7 +1,6 @@
 import csv
 import os
 import sys
-from pprint import pprint
 import json
 import collections
 
@@ -245,8 +244,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     prefixes = (pos_start, pos_end, neg_start, neg_end)
 
                     clip_options = tuple(assignIfThere(i+asset_no, headerIndex, row) for i in prefixes)
-
-                    print(clip_options)
                     
                     asset_entry = checkClipsStatus(fpath,*clip_options)
 
