@@ -5,15 +5,15 @@
 ##
 
 target="$1"
-echo "FILE,TIMEIN,TIMEOUT"
+echo "FILE,FFPROBE_CREATED,STATTIME"
 for file in "$target"/*
 do
     base=`basename "$file"`
     if [[ -f $file && $base = *.* ]]; then
-      TIMEIN=$(ffprobe -loglevel warning -show_format -of flat -i "$file" | grep '^format\.tags\.creation_time=')
-      TIMEOUT=$(stat -c "%y" "$file")
+      FFPROBE=$(ffprobe -loglevel warning -show_format -of flat -i "$file" | grep '^format\.tags\.creation_time=')
+      STAT=$(stat -c "%y" "$file")
       
-      echo "\"$base\",${TIMEIN#*=},\"${TIMEOUT%.*}\""
+      echo "\"$base\",${FFPROBE#*=},\"${STAT%.*}\""
       
     fi
   
