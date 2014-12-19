@@ -1,1 +1,1 @@
-name,date,participantID,top,pilot,exclusion,classification,setting,country,state,language,consent,condition,group,tasks,clip_in,clip_out,position,transcode_options,filepath,file_media,file_transcript
+name,date,participantID,top,pilot,exclusion,classification,setting,country,state,language,consent,condition,group,tasks,position,transcode_options,filepath,file_1,clip_out_start_1,clip_out_end_1,clip_in_start_1,clip_in_end_1,file_2,clip_out_start_2,clip_out_end_2,clip_in_start_2,clip_in_end_2
