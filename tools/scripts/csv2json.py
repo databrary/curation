@@ -28,10 +28,10 @@ def cleanVal(i):
 def getHeaderIndex(headerlist):
     return {headerlist[i]: i for i in range(len(headerlist))}
 
-def assignIfThere(k, index, row):
+def assignIfThere(k, index, row, assignthis):
     '''all purpose check for key in header index so we know to assign a value for the row or not
         so we do not need empty columns in the spreadsheet'''
-    return row[index[k]] if k in index else None
+    return row[index[k]] if k in index and row[index[k]] != '' else assignthis
 
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
@@ -118,19 +118,22 @@ def checkClipsStatus(file_path, *args):
 
     entries = []
 
-    if pos_in is not None and pos_out is not None:
+    if pos_in is not None and pos_in != "" and pos_out is not None and pos_in != "":
         clipArr = [(pos_in, pos_out)]
 
     
-    elif neg_in is not None and neg_out is not None:
+    elif neg_in is not None and neg_in != "" and neg_out is not None and neg_out != "":
         if neg_in == '0:00':
-            clipArr = [(neg_end, "")]
+            clipArr = [(neg_out, None)]
 
-        elif neg_in is not "" and neg_out == "$":
+        elif neg_in != "" and neg_out == "$":
             clipArr = [("0:00", neg_in)]
 
-        elif neg_in is not "" and neg_out is not "$":
-            clipArr = [("0:00", neg_in), (neg_out, "")]
+        elif neg_in != "" and neg_out is not "$":
+            clipArr = [("0:00", neg_in), (neg_out, None)]
+
+        else:
+            clipArr = ""
 
     else:
         clipArr = ""
@@ -168,15 +171,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         for row in s_reader:
 
-            name=row[headerIndex['name']]
-            s_curr = s_map[name]
+            name = row[headerIndex['name']] if 'name' in headerIndex else None
+            key = row[headerIndex['key']] if 'key' in headerIndex else name 
+            s_curr = s_map[key]
 
             date = row[headerIndex['date']]
 
             path = row[headerIndex['filepath']]
-            position = [row[headerIndex['position']]] if row[headerIndex['position']] != '' else 'auto'
-            classification = row[headerIndex['classification']].upper() if row[headerIndex['classification']] != '' else 'RESTRICTED'
-            top = True if row[headerIndex['top']] != '' else False
+            position = assignIfThere('position', headerIndex, row, 'auto')
+            classification = assignIfThere('classification', headerIndex, row, 'RESTRICTED').upper()
+            top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
             pilot = row[headerIndex['pilot']]
             exclusion = row[headerIndex['exclusion']]
             condition = row[headerIndex['condition']]
@@ -184,10 +188,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             setting = row[headerIndex['setting']]
             state = row[headerIndex['state']]
             country = row[headerIndex['country']]
-            consent = row[headerIndex['consent']] if row[headerIndex['consent']].upper() != '' else None
+            consent = assignIfThere('consent', headerIndex, row, None).upper()
             language = row[headerIndex['language']]
-            t_options = row[headerIndex['transcode_options']].split(' ') if row[headerIndex['transcode_options']] != '' else ''
-            tasks = makeTasks(row[headerIndex['tasks']].split(';')) if row[headerIndex['tasks']] != '' else ''
+            t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
+            tasks = makeTasks(row[headerIndex['tasks']].split(';')) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
 
 
             context = {}
@@ -216,15 +220,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             if p_map[target['ident']]['birthdate'] != '':
                                 target['birthdate'] = p_target['birthdate']
-                            if p_target['ethnicity'] != '':
+                            if 'ethnicity' in p_target and p_target['ethnicity'] != '':
                                 target['ethnicity'] = p_target['ethnicity']
-                            if p_target['race'] != '':
+                            if 'race' in p_target and p_target['race'] != '':
                                 target['race'] = p_target['race']
-                            if p_target['language'] != '':
+                            if 'langauge' in p_target and p_target['language'] != '':
                                 target['language'] = p_target['language']
-                            if p_target['disability'] != '':
+                            if 'disability' in p_target and p_target['disability'] != '':
                                 target['disability'] = p_target['disability']
-                            if p_target['gender'] != '':
+                            if 'gender' in p_target and p_target['gender'] != '':
                                 target['gender'] = p_target['gender'].title()
 
 
@@ -243,7 +247,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     prefixes = (pos_start, pos_end, neg_start, neg_end)
 
-                    clip_options = tuple(assignIfThere(i+asset_no, headerIndex, row) for i in prefixes)
+                    clip_options = tuple(assignIfThere(i+asset_no, headerIndex, row, None) for i in prefixes)
                     
                     asset_entry = checkClipsStatus(fpath,*clip_options)
 
@@ -255,7 +259,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         if t_options == '':
                             del i['options']
 
-                    s_curr['assets'] = asset_entry
+                    for j in asset_entry:
+                        s_curr['assets'].append(j)
 
 
                 elif header == 'pilot' and pilot != '':
@@ -285,8 +290,12 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 s_curr['date'] = date
                 s_curr['top'] = top
-                s_curr['name'] = s_curr['key'] = name
+                s_curr['name'] = name 
+                s_curr['key'] = key
                 s_curr['consent'] = consent
+
+                if s_curr['name'] is None:
+                    del s_curr['name']
 
 
         data = {
