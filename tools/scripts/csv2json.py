@@ -31,6 +31,7 @@ def getHeaderIndex(headerlist):
 def assignIfThere(k, index, row, assignthis):
     '''all purpose check for key in header index so we know to assign a value for the row or not
         so we do not need empty columns in the spreadsheet'''
+        
     return row[index[k]] if k in index and row[index[k]] != '' else assignthis
 
 
@@ -131,6 +132,9 @@ def checkClipsStatus(file_path, *args):
 
         elif neg_in != "" and neg_out is not "$":
             clipArr = [("0:00", neg_in), (neg_out, None)]
+
+        else:
+            clipArr = ""
 
         else:
             clipArr = ""
