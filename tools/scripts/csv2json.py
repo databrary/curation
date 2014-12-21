@@ -35,6 +35,7 @@ def assignIfThere(k, index, row, assignthis):
     return row[index[k]] if k in index and row[index[k]] != '' else assignthis
 
 
+
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 def getParticipantMap(p_csvFile):
     '''This will give us back a dictionary with participant IDs as keys and
@@ -189,7 +190,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             setting = row[headerIndex['setting']]
             state = row[headerIndex['state']]
             country = row[headerIndex['country']]
-            consent = assignIfThere('consent', headerIndex, row, None).upper()
+            consent = assignIfThere('consent', headerIndex, row, None)
             language = row[headerIndex['language']]
             t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
             tasks = makeTasks(row[headerIndex['tasks']].split(';')) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
@@ -294,7 +295,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 s_curr['top'] = top
                 s_curr['name'] = name 
                 s_curr['key'] = key
-                s_curr['consent'] = consent
+                s_curr['consent'] = consent.upper() if consent is not None else consent
 
                 if s_curr['name'] is None:
                     del s_curr['name']
@@ -303,7 +304,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         data = {
 
             'name': _filepath_prefix,
-            'containers': sorted(list(s_map.values()), key=lambda k: k['key'])
+            'containers': sorted(list(s_map.values()), key=lambda k: int(k['key']) if type(k['key']) is str and k['key'].isdigit() else k['key'] )
         }
 
 
