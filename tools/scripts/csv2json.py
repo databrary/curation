@@ -102,10 +102,17 @@ def makeTasks(tasklist):
     return taskObjs
 
 def recordAppend(obj, val, cat):
-    obj['records'].append({'category': cat,
-                           'ident': val,
-                           'key': val
+
+    if cat == 'exclusion':
+        obj['records'].append({'category': cat,
+                               'reason': val,
+                               'key': val
                            })
+    else: 
+        obj['records'].append({'category': cat,
+                               'ident': val,
+                               'key': val
+                               })
 
 def checkClipsStatus(file_path, *args):
 
@@ -270,7 +277,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     recordAppend(s_curr, pilot, 'pilot')
                     
 
-                elif header == 'exlcusion' and exclusion != '':
+                elif header == 'exclusion' and exclusion != '':
                     recordAppend(s_curr, exclusion, 'exclusion')
                     
 
