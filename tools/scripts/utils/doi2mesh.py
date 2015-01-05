@@ -27,8 +27,6 @@ def getSearchResults(base, search_path, term, database="pubmed"):
 
     xml = fetchData(url)
 
-    print("now running: ", term)
-
     if xml.getElementsByTagName('PhraseNotFound') != []:
         recordID = -999
 
@@ -43,10 +41,7 @@ def getSearchResults(base, search_path, term, database="pubmed"):
 
 def getFullRecord(base, fetch_path, recordID, retformat="xml", database="pubmed"):
 
-    if recordID == -999:
-        return 0
-
-    elif recordID == -9999:
+    if recordID == -999 or recordID == -9999:
         return 0
 
     else:
@@ -81,16 +76,15 @@ def getFullRecord(base, fetch_path, recordID, retformat="xml", database="pubmed"
                 else:
                     mesh_results.append(desc)
                                
-        else:
-            mesh_results = 0
+        
 
         if keywords is not []:
             keyword_results = []
             for k in range(len(keywords)):
-                keyw = keywords[0].childNodes[0].data
+                keyw = keywords[k].childNodes[0].data
                 keyword_results.append(keyw)
-        else:
-            keyword_results = 0
+        
+            
 
         return (mesh_results, keyword_results)
 
