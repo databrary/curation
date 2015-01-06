@@ -116,11 +116,11 @@ if __name__ == '__main__':
                     row.extend([str(mesh), str(keyw)])
 
                     writer.writerow(row)
-                else:
-                    mesh = ""
-                    keyw = ""
-                    row.extend([str(mesh), str(keyw)])
-                    writer.writerow(row)
+            else:
+                mesh = ""
+                keyw = ""
+                row.extend([str(mesh), str(keyw)])
+                writer.writerow(row)
 
 
 
