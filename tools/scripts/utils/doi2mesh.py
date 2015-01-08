@@ -114,8 +114,14 @@ if __name__ == '__main__':
                     mesh = ";".join(results[0])
                     keyw = ";".join(results[1])
                     row.extend([str(mesh), str(keyw)])
-
                     writer.writerow(row)
+
+                else:
+                    mesh = ""
+                    keyw = ""
+                    row.extend([str(mesh), str(keyw)])
+                    writer.writerow(row)
+
             else:
                 mesh = ""
                 keyw = ""
