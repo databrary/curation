@@ -111,8 +111,8 @@ if __name__ == '__main__':
                 results = getFullRecord(BASE_URL, FETCH_PATH, getSearchResults(BASE_URL, SEARCH_PATH, doi))
 
                 if results != 0:
-                    mesh = ",".join(results[0])
-                    keyw = ",".join(results[1])
+                    mesh = ";".join(results[0])
+                    keyw = ";".join(results[1])
                     row.extend([str(mesh), str(keyw)])
 
                     writer.writerow(row)
