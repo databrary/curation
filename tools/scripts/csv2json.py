@@ -108,6 +108,11 @@ def recordAppend(obj, val, cat):
                                'reason': val,
                                'key': val
                            })
+    elif cat == 'pilot':
+        obj['records'].append({'category': cat,
+                               'key': val
+                           })
+
     else: 
         obj['records'].append({'category': cat,
                                'ident': val,
