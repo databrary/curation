@@ -125,32 +125,76 @@ def checkClipsStatus(file_path, *args):
     '''Here determine how to handle the creation of assets:
         pos_start, pos_end, neg_start, neg_end'''
 
-    pos_in = args[0]
-    pos_out = args[1]
-    neg_in = args[2]
-    neg_out = args[3]
+    pos = args[0] #one or more clips or None
+    neg = args[1] # '' ''  ''    ''  ''  ''
+
 
     entries = []
+    clipArr = []
 
-    if pos_in is not None and pos_in != "" and pos_out is not None and pos_in != "":
-        clipArr = [(pos_in, pos_out)]
+    if pos != None:
 
-    
-    elif neg_in is not None and neg_in != "" and neg_out is not None and neg_out != "":
-        if neg_in == '0:00':
-            clipArr = [(neg_out, None)]
+        if pos != "":
+            clip_ins = pos.split(';').strip()
+            num_of_clip_ins = len(clip_ins)
 
-        elif neg_in != "" and neg_out == "$":
-            clipArr = [("0:00", neg_in)]
+            for i in clip_ins:
+                times = i.split('-').strip()
+                clipArr.append((times[0], times[1]))
 
-        elif neg_in != "" and neg_out is not "$":
-            clipArr = [("0:00", neg_in), (neg_out, None)]
+
+        else clipArr = "":
+
+    if neg != None:
+
+        if neg != "":
+            clip_outs = neg.split(';').strip()
+            num_of_clip_outs = len(clip_outs)
+
+            if num_of_clip_outs == 1:
+                times = clip_outs.splti('-').strip()
+                time_in = times[0]
+                time_out = times[1]
+
+                if time_in == '0:00':
+                    clipArr.append((time_out, None))
+                elif time_out == "$":
+                    clipArr.append(("0:00", time_in))
+                else:
+                    clipArr.append(("0:00", time_in))
+                    clipArr.append((time_out, None))
+
+            if num_of_clip_outs > 1:
+                for k in range(num_of_clip_outs):
+                    
+                    first_times = clip_outs[0].split('-')
+                    last_times = clip_outs[-1].split('-')
+                    
+                    try:
+                        next_times = clip_outs[k+1].split('-')
+                    except: 
+                        next_times = last_times
+
+                    first_in = first_times[0].strip()
+                    first_out = first_times[1].strip()
+
+                    if next_times != last_times:
+                        next_in = next_times[0].strip()
+                        next_out = next_times[1].strip()
+
+
+                        if first_in == '0:00':
+                            clipArr.append((first_out, next_in))
+                        if first_in != '0:00'
+                            clipArr.append(("0:00", time_in))
+
+                    else:
+
+
+
 
         else:
             clipArr = ""
-
-    else:
-        clipArr = ""
 
 
     if clipArr is not "":
@@ -252,20 +296,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     fpath = path+row[i]
 
+                    ##### CLIP STUFF #####
                     asset_no = header.split("_")[1]
 
-                    pos_start = "clip_in_start_" 
-                    pos_end = "clip_in_end_" 
-                    neg_start = "clip_out_start_" 
-                    neg_end = "clip_out_end_"
-
-                    prefixes = (pos_start, pos_end, neg_start, neg_end)
+                    pos_clip = "clip_in_" 
+                    neg_clip = "clip_out_" 
+                    
+                    prefixes = (pos_clip, neg_clip)
 
                     clip_options = tuple(assignIfThere(i+asset_no, headerIndex, row, None) for i in prefixes)
                     
-                    asset_entry = checkClipsStatus(fpath,*clip_options)
+                    asset_entry = checkClipsStatus(fpath,*clip_options) #sends either 1 or more sets of clips or none
 
-                    
+
                     for i in asset_entry:
                         i['classification'] = classification
                         i['options'] = t_options
@@ -276,6 +319,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for j in asset_entry:
                         if j not in s_curr['assets']:
                             s_curr['assets'].append(j)
+
+                    ##### CLIP STUFF #####
 
 
                 elif header == 'pilot' and pilot != '':
