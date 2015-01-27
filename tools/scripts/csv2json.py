@@ -165,32 +165,31 @@ def checkClipsStatus(file_path, *args):
                     clipArr.append((time_out, None))
 
             if num_of_clip_outs > 1:
-                for k in range(num_of_clip_outs):
-                    
-                    first_times = clip_outs[0].split('-')
-                    last_times = clip_outs[-1].split('-')
-                    
-                    try:
-                        next_times = clip_outs[k+1].split('-')
-                    except: 
-                        next_times = last_times
 
-                    first_in = first_times[0].strip()
-                    first_out = first_times[1].strip()
+                first_times = clip_outs[0].split('-')
+                last_times = clip_outs[-1].split('-')
+                mid_times = clip_outs[1:-1]
 
-                    if next_times != last_times:
-                        next_in = next_times[0].strip()
-                        next_out = next_times[1].strip()
+                first_in = first_times[0].strip()
+                first_out = first_times[1].strip()
+                last_in = last_times[0].strip()
+                last_out = last_times[1].strip()
+
+                if first_in != '0:00':
+                    clipArr.append(("0:00", first_in))
 
 
-                        if first_in == '0:00':
-                            clipArr.append((first_out, next_in))
-                        if first_in != '0:00'
-                            clipArr.append(("0:00", time_in))
+                if len(mid_times) == 0:
 
-                    else:
+                    if first_in == '0:00':
+                        clipArr.append((first_out, last_in))
+                
+                if len(mid_times) > 0:
 
+                    print "you need to handle multiple clips of this nature here"
 
+                if last_out != '$':
+                        clipArr.append((last_out, None))
 
 
         else:
