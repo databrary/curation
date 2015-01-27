@@ -143,18 +143,19 @@ def checkClipsStatus(file_path, *args):
                 clipArr.append((times[0], times[1]))
 
 
-        else clipArr = "":
+        else: 
+            clipArr = ""
 
     if neg != None:
 
         if neg != "":
-            clip_outs = neg.split(';').strip()
+            clip_outs = neg.split(';')
             num_of_clip_outs = len(clip_outs)
 
             if num_of_clip_outs == 1:
-                times = clip_outs.splti('-').strip()
-                time_in = times[0]
-                time_out = times[1]
+                times = clip_outs[0].split('-')
+                time_in = times[0].strip()
+                time_out = times[1].strip()
 
                 if time_in == '0:00':
                     clipArr.append((time_out, None))
