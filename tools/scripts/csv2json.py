@@ -185,8 +185,13 @@ def checkClipsStatus(file_path, *args):
                         clipArr.append((first_out, last_in))
                 
                 if len(mid_times) > 0:
-
-                    print "you need to handle multiple clips of this nature here"
+                    recent = first_out
+                    for z in mid_times:
+                        curr_clip = z.split('-')
+                        curr_in = curr_clip[0].strip()
+                        curr_out = curr_clip[1].strip()
+                        clipArr.append((recent, curr_in))
+                        recent = curr_out
 
                 if last_out != '$':
                         clipArr.append((last_out, None))
