@@ -34,6 +34,11 @@ def assignIfThere(k, index, row, assignthis):
 
     return row[index[k]] if k in index and row[index[k]] != '' else assignthis
 
+def assignWithEmpty(k, index, row, assignthis):
+    '''assign none if does not exist, or assign with empty string if the column does exist'''
+
+    return row[index[k]] if k in index else assignthis
+
 
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
@@ -128,7 +133,6 @@ def checkClipsStatus(file_path, *args):
     pos = args[0] #one or more clips or None
     neg = args[1] # '' ''  ''    ''  ''  ''
 
-
     entries = []
     clipArr = []
 
@@ -145,6 +149,7 @@ def checkClipsStatus(file_path, *args):
 
         else: 
             clipArr = ""
+    
 
     if neg != None:
 
@@ -193,6 +198,7 @@ def checkClipsStatus(file_path, *args):
                         curr_out = curr_clip[1].strip()
                         clipArr.append((recent, curr_in))
                         recent = curr_out
+                    clipArr.append((curr_out, last_in))
 
                 if last_out != '$':
                         clipArr.append((last_out, None))
@@ -200,6 +206,7 @@ def checkClipsStatus(file_path, *args):
 
         else:
             clipArr = ""
+
 
 
     if clipArr is not "":
@@ -309,7 +316,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     
                     prefixes = (pos_clip, neg_clip)
 
-                    clip_options = tuple(assignIfThere(i+asset_no, headerIndex, row, None) for i in prefixes)
+                    clip_options = tuple(assignWithEmpty(i+asset_no, headerIndex, row, None) for i in prefixes)
                     
                     asset_entry = checkClipsStatus(fpath,*clip_options) #sends either 1 or more sets of clips or none
 
