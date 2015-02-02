@@ -4,6 +4,9 @@ import fields
 import os, glob
 from xlsxwriter.workbook import Workbook
 
+'''This is run on python3'''
+
+
 _PATH_TO_TEMPLATES = '../../../spec/templates/'
 _SESSIONS_TEMPLATE = 'sessions_template.csv'
 _PARTICIPANTS_TEMPLATE = 'participants_template.csv'
@@ -15,7 +18,7 @@ record_field_values = volume_schema['definitions']['record']['properties']
 
 
 def headerIndices(headers):
-    
+
     hIndex = {headers[i]: i for i in range(len(headers))}
 
     return hIndex
@@ -23,7 +26,7 @@ def headerIndices(headers):
 
 def csvWriter(path, headers):
     with open(path, 'wt') as csvfile:
-        outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)    
+        outfile = csv.writer(csvfile, delimiter = ',', quotechar="|", quoting=csv.QUOTE_MINIMAL)
         outfile.writerow(headers)
 
         csvfile.close()
@@ -35,21 +38,21 @@ def xlsxWriter(path):
 
     for csvfile in glob.glob(os.path.join(_PATH_TO_TEMPLATES, '*.csv')):
         curr_sheet = csvfile.split('/')[-1].split('_')[0]
-        
+
         if curr_sheet == 'sessions':
             headerIdx = headerIndices(fields.General.session_headers)
         elif curr_sheet == 'participants':
             headerIdx = headerIndices(fields.General.participant_headers)
 
         wsheet = wbook.add_worksheet(curr_sheet)
-        
+
         with open(csvfile, 'rt') as f:
             reader = csv.reader(f)
             for r, row in enumerate(reader):
                 for c, col in enumerate(row):
                     wsheet.write(r, c, col)
 
-        if curr_sheet == 'sessions':    
+        if curr_sheet == 'sessions':
             wsheet.data_validation(1, headerIdx['exclusion'], 1000, headerIdx['exclusion'], {'validate': 'list', 'source': record_field_values['reason']['enum']})
             wsheet.data_validation(1, headerIdx['classification'], 1000, headerIdx['classification'], {'validate': 'list', 'source': volume_field_values['classification']['enum']})
             wsheet.data_validation(1, headerIdx['setting'], 1000, headerIdx['setting'], {'validate': 'list', 'source': record_field_values['setting']['enum']})
@@ -60,7 +63,7 @@ def xlsxWriter(path):
             wsheet.data_validation(1, headerIdx['race'], 1000, headerIdx['race'], {'validate': 'list', 'source': record_field_values['race']['enum']})
             wsheet.data_validation(1, headerIdx['gender'], 1000, headerIdx['gender'], {'validate': 'list', 'source': record_field_values['gender']['enum']})
             wsheet.data_validation(1, headerIdx['ethnicity'], 1000, headerIdx['ethnicity'], {'validate': 'list', 'source': record_field_values['ethnicity']['enum']})
-            
+
 
 
     wbook.close()
