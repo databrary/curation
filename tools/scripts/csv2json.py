@@ -212,7 +212,7 @@ def checkClipsStatus(file_path, *args):
     if clipArr is not "":
         for i in clipArr:
             entries.append({'file': file_path, 
-                                'position': "", 
+                                'position': i[0], 
                                 'clip': [i[0], i[1]], 
                                 'classification': "", 
                                 'options': ""})
@@ -324,7 +324,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for i in asset_entry:
                         i['classification'] = classification
                         i['options'] = t_options
-                        i['position'] = position
+                        i['position'] = position if i['position'] == '' else i['position']
                         if t_options == '':
                             del i['options']
 
