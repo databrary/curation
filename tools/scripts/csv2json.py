@@ -136,6 +136,8 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
     '''Here determine how to handle the creation of assets:
         pos_start, pos_end, neg_start, neg_end'''
 
+    file_default_name = file_path.split("/")[-1]
+
     pos = args[0] #one or more clips or None
     neg = args[1] # '' ''  ''    ''  ''  ''
 
@@ -220,7 +222,7 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
     if clipArr is not "":
         for i in clipArr:
             entries.append({'file': file_path,
-                            'name': file_name, 
+                            'name': file_name if file_name is not None else file_default_name, 
                             'position': i[0], 
                             'clip': [i[0], i[1]], 
                             'classification': "", 
@@ -232,14 +234,14 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
             file_position = None if file_position == 'null' else file_position
 
             entries.append({'file': file_path,
-                            'name': file_name, 
+                            'name': file_name if file_name is not None else file_default_name, 
                             'position': file_position, 
                             'classification': "", 
                             'options': ""})
         else:
 
             entries.append({'file': file_path,
-                            'name': file_name, 
+                            'name': file_name if file_name is not None else file_default_name, 
                             'position': "", 
                             'classification': "", 
                             'options': ""})
@@ -327,6 +329,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
                 elif 'file_' in header and row[i] != '':
+                    path = path if path.endswith("/") else path + "/"
                     fpath = path+row[i]
                     ##### CLIP STUFF #####
                     asset_no = header.split("_")[1]
