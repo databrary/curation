@@ -217,13 +217,8 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
         else:
             clipArr = ""
 
-
-    print("now serving: ", file_path, file_name, file_position)
-
     if clipArr is not "":
         for i in clipArr:
-            print("\tcliparray: ", clipArr)
-            print("\tadding these: ", file_path, file_name)
             entries.append({'file': file_path,
                             'name': file_name, 
                             'position': i[0], 
@@ -232,8 +227,6 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
                             'options': ""})
 
     else:
-        print("\tcliparray else: ", clipArr)
-        print("\tadding these else: ", file_path, file_name)
         if file_position is not None: 
 
             file_position = None if file_position == 'null' else file_position
