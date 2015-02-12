@@ -130,7 +130,7 @@ def recordAppend(obj, val, cat):
                                'key': val
                                })
 
-def checkClipsStatus(file_path, file_name, *args):
+def checkClipsStatus(file_path, file_name, file_position, *args):
 
 
     '''Here determine how to handle the creation of assets:
@@ -224,12 +224,24 @@ def checkClipsStatus(file_path, file_name, *args):
                             'classification': "", 
                             'options': ""})
 
-    else: 
-        entries.append({'file': file_path,
-                        'name': file_name, 
-                        'position': "", 
-                        'classification': "", 
-                        'options': ""})
+    else:
+        if file_position is not None: 
+
+            file_position = None if file_position == 'null' else file_position
+
+            entries.append({'file': file_path,
+                            'name': file_name, 
+                            'position': file_position, 
+                            'classification': "", 
+                            'options': ""})
+        else:
+
+            entries.append({'file': file_path,
+                            'name': file_name, 
+                            'position': "", 
+                            'classification': "", 
+                            'options': ""})
+
 
 
     return entries
@@ -323,13 +335,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     neg_clip = "clip_out_" 
 
                     file_name = "file_name_" + asset_no
+                    file_position = "file_position_" + asset_no
                     fname = assignIfThere(file_name, headerIndex, row, None)
+                    fposition = assignWithEmpty(file_position, headerIndex, row, None)
                     
                     prefixes = (pos_clip, neg_clip)
 
                     clip_options = tuple(assignWithEmpty(i+asset_no, headerIndex, row, None) for i in prefixes)
                     
-                    asset_entry = checkClipsStatus(fpath, fname, *clip_options) #sends either 1 or more sets of clips or none
+                    asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
 
 
                     for i in asset_entry:
