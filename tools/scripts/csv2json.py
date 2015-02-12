@@ -140,7 +140,11 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
     neg = args[1] # '' ''  ''    ''  ''  ''
 
     entries = []
-    clipArr = []
+    
+    if pos == None and neg == None:
+        clipArr = ""
+    else:
+        clipArr = []
 
     if pos != None:
 
@@ -214,9 +218,12 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
             clipArr = ""
 
 
+    print("now serving: ", file_path, file_name, file_position)
 
     if clipArr is not "":
         for i in clipArr:
+            print("\tcliparray: ", clipArr)
+            print("\tadding these: ", file_path, file_name)
             entries.append({'file': file_path,
                             'name': file_name, 
                             'position': i[0], 
@@ -225,6 +232,8 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
                             'options': ""})
 
     else:
+        print("\tcliparray else: ", clipArr)
+        print("\tadding these else: ", file_path, file_name)
         if file_position is not None: 
 
             file_position = None if file_position == 'null' else file_position
@@ -325,26 +334,18 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
                 elif 'file_' in header and row[i] != '':
-
                     fpath = path+row[i]
-
                     ##### CLIP STUFF #####
                     asset_no = header.split("_")[1]
-
                     pos_clip = "clip_in_" 
                     neg_clip = "clip_out_" 
-
-                    file_name = "file_name_" + asset_no
-                    file_position = "file_position_" + asset_no
+                    file_name = "fname_" + asset_no
+                    file_position = "fposition_" + asset_no
                     fname = assignIfThere(file_name, headerIndex, row, None)
                     fposition = assignWithEmpty(file_position, headerIndex, row, None)
-                    
                     prefixes = (pos_clip, neg_clip)
-
                     clip_options = tuple(assignWithEmpty(i+asset_no, headerIndex, row, None) for i in prefixes)
-                    
                     asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
-
 
                     for i in asset_entry:
                         i['classification'] = classification
@@ -359,22 +360,18 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     ##### CLIP STUFF #####
 
-
                 elif header == 'pilot' and pilot != '':
                     recordAppend(s_curr, pilot, 'pilot')
                     
-
                 elif header == 'exclusion' and exclusion != '':
                     for excl in exclusion:
                         s_curr['records'].append(excl)
                     
-
                 elif header == 'condition' and condition != '':
                     recordAppend(s_curr, condition, 'condition')
 
                 elif header == 'group' and group != '':
                     recordAppend(s_curr, group, 'group')
-
 
                 elif header == 'setting' and len(context) > 2 and not any(context == d for d in s_curr['records']):
                     s_curr['records'].append(context)
@@ -383,8 +380,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for task in tasks:
                         if not any(task == f for f in s_curr['records']):
                             s_curr['records'].append(task)
-
-
 
                 s_curr['date'] = date
                 s_curr['top'] = top

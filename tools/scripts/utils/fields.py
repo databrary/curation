@@ -33,11 +33,13 @@ class General(object):
                        "transcode_options",
                        "filepath",
                        "file_1",
-                       "file_name_1",
+                       "fname_1",
+                       "fposition_1"
                        "clip_out_1",
                        "clip_in_1",
                        "file_2",
-                       "file_name_2",
+                       "fname_2"
+                       "fposition_2",
                        "clip_out_2",
                        "clip_in_2"
                        ]
