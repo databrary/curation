@@ -223,30 +223,25 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
         for i in clipArr:
             entries.append({'file': file_path,
                             'name': file_name if file_name is not None else file_default_name, 
-                            'position': i[0], 
+                            'position': i[0] if file_position is None or file_position == "" else file_position, 
                             'clip': [i[0], i[1]], 
                             'classification': "", 
                             'options': ""})
 
     else:
         if file_position is not None: 
-
             file_position = None if file_position == 'null' else file_position
-
             entries.append({'file': file_path,
                             'name': file_name if file_name is not None else file_default_name, 
                             'position': file_position, 
                             'classification': "", 
                             'options': ""})
         else:
-
             entries.append({'file': file_path,
                             'name': file_name if file_name is not None else file_default_name, 
                             'position': "", 
                             'classification': "", 
                             'options': ""})
-
-
 
     return entries
 
