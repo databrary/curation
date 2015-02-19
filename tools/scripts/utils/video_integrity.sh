@@ -12,7 +12,11 @@ do
     if [[ -f $file && $base = *.* ]]; then
       
       OUTPUT=$(ffprobe -loglevel 16 "$file")
-      echo "$OUTPUT"
+      if [ ! "$OUTPUT"]; then 
+      	echo "$file has no errors"
+      else
+     	 echo "$OUTPUT"
+      fi
     
     fi
   
