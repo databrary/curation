@@ -95,23 +95,32 @@ def makeOuterMostElements(csvReader):
 
     return emptydict
 
-def makeRecordsFromList(category, list):
+def makeRecordsFromList(category, list, positions):
     recObjs = []
+
+    '''TODO: make positions ending with $ compliant with schema'''
 
     for i in range(len(list)):
 
         if category == 'task':
         
             task = list[i].strip()
-            taskObj = {'category':category, 'ident':task, 'key':task}
+            taskObj = {'category':category, 'ident':task, 'key':task, 'position': [positions[i]]}
+
+            if positions is not None:
+                    taskObj['position'] = [positions[i]]
+
             if not any(taskObj == d for d in recObjs):
                 recObjs.append(taskObj)
 
         if category == 'exclusion':
 
             excl = list[i].strip()
-            if excl != '':
+            print("i am excl:", excl)
+            if excl != '#':
                 exclObj = {'category':category, 'reason':excl, 'key':excl}
+                if positions is not None:
+                    exclObj['position'] = [positions[i]]
                 recObjs.append(exclObj)
 
 
@@ -268,10 +277,14 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
             path = row[headerIndex['filepath']]
             position = assignIfThere('position', headerIndex, row, 'auto')
+            t_positions = assignIfThere('task_positions', headerIndex, row, None)
+            task_positions = t_positions.split(';') if t_positions is not None else t_positions
+            ex_positions = assignIfThere('excl_positions', headerIndex, row, None)
+            excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
             classification = assignIfThere('classification', headerIndex, row, 'RESTRICTED').upper()
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
             pilot = row[headerIndex['pilot']]
-            exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';')) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
+            exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
             condition = row[headerIndex['condition']]
             group = row[headerIndex['group']]
             setting = row[headerIndex['setting']]
@@ -280,7 +293,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             consent = assignIfThere('consent', headerIndex, row, None)
             language = row[headerIndex['language']]
             t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
-            tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';')) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
+            tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';'), task_positions) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
 
 
             context = {}
