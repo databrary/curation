@@ -97,16 +97,17 @@ def makeOuterMostElements(csvReader):
 
 def makeRecordsFromList(category, list, positions):
     recObjs = []
-
+    
     position_formatted = []
 
-    for i in positions:
-        clip = i.split('-')
-        if clip[0] != '#':
-            if clip[1] == '$':
-                position_formatted.append([clip[0], None])
-            else:
-                position_formatted.append([clip[0], clip[1]])
+    if positions is not None:
+        for i in positions:
+            clip = i.split('-')
+            if clip[0] != '#':
+                if clip[1] == '$':
+                    position_formatted.append([clip[0], None])
+                else:
+                    position_formatted.append([clip[0], clip[1]])
 
 
     for i in range(len(list)):
@@ -114,9 +115,11 @@ def makeRecordsFromList(category, list, positions):
         if category == 'task':
         
             task = list[i].strip()
-            taskObj = {'category':category, 'ident':task, 'key':task, 'position': position_formatted[i]}
+            taskObj = {'category':category, 
+                       'ident':task, 
+                       'key':task}
 
-            if positions is not None:
+            if position_formatted != []:
                     taskObj['position'] = position_formatted[i]
 
             if not any(taskObj == d for d in recObjs):
