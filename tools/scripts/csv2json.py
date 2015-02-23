@@ -98,17 +98,26 @@ def makeOuterMostElements(csvReader):
 def makeRecordsFromList(category, list, positions):
     recObjs = []
 
-    '''TODO: make positions ending with $ compliant with schema'''
+    position_formatted = []
+
+    for i in positions:
+        clip = i.split('-')
+        if clip[0] != '#':
+            if clip[1] == '$':
+                position_formatted.append([clip[0], None])
+            else:
+                position_formatted.append([clip[0], clip[1]])
+
 
     for i in range(len(list)):
 
         if category == 'task':
         
             task = list[i].strip()
-            taskObj = {'category':category, 'ident':task, 'key':task, 'position': [positions[i]]}
+            taskObj = {'category':category, 'ident':task, 'key':task, 'position': position_formatted[i]}
 
             if positions is not None:
-                    taskObj['position'] = [positions[i]]
+                    taskObj['position'] = position_formatted[i]
 
             if not any(taskObj == d for d in recObjs):
                 recObjs.append(taskObj)
@@ -116,11 +125,10 @@ def makeRecordsFromList(category, list, positions):
         if category == 'exclusion':
 
             excl = list[i].strip()
-            print("i am excl:", excl)
             if excl != '#':
                 exclObj = {'category':category, 'reason':excl, 'key':excl}
                 if positions is not None:
-                    exclObj['position'] = [positions[i]]
+                    exclObj['position'] = position_formatted[i]
                 recObjs.append(exclObj)
 
 
