@@ -171,12 +171,12 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
     if pos != None:
 
         if pos != "":
-            clip_ins = pos.split(';').strip()
+            clip_ins = pos.split(';')
             num_of_clip_ins = len(clip_ins)
 
             for i in clip_ins:
-                times = i.split('-').strip()
-                clipArr.append((times[0], times[1]))
+                times = i.split('-')
+                clipArr.append((times[0].strip(), times[1].strip()))
 
 
         else: 
