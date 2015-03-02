@@ -359,19 +359,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     fname = assignIfThere(file_name, headerIndex, row, None)
                     fposition = assignWithEmpty(file_position, headerIndex, row, None)
                     prefixes = (pos_clip, neg_clip)
-                    clip_options = tuple(assignWithEmpty(i+asset_no, headerIndex, row, None) for i in prefixes)
+                    clip_options = tuple(assignWithEmpty(j+asset_no, headerIndex, row, None) for j in prefixes)
                     asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
 
-                    for i in asset_entry:
-                        i['classification'] = classification
-                        i['options'] = t_options
-                        i['position'] = position if i['position'] == '' else i['position']
+                    for z in asset_entry:
+                        z['classification'] = classification
+                        z['options'] = t_options
+                        z['position'] = position if z['position'] == '' else z['position']
                         if t_options == '':
-                            del i['options']
+                            del z['options']
 
-                    for j in asset_entry:
-                        if j not in s_curr['assets']:
-                            s_curr['assets'].append(j)
+                    for y in asset_entry:
+                        if y not in s_curr['assets']:
+                            s_curr['assets'].append(y)
 
                     ##### CLIP STUFF #####
 
