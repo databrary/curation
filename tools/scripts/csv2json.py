@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import collections
-
+from utils import csv_helpers as ch
 
 ################### COMMAND LINE ARGUMENT HANDLING #####################################
 try:
@@ -17,36 +17,12 @@ except:
     sys.exit()
 
 
-################### QUICK OPERATIONS FOR REDUNDANT TASKS ###############################
-def giveMeCSV(file):
-    f = open(file, 'rt') 
-    return csv.reader(f)
-
-def cleanVal(i):
-    return i.strip()
-
-def getHeaderIndex(headerlist):
-    return {headerlist[i]: i for i in range(len(headerlist))}
-
-def assignIfThere(k, index, row, assignthis):
-    '''all purpose check for key in header index so we know to assign a value for the row or not
-        so we do not need empty columns in the spreadsheet'''
-
-    return row[index[k]] if k in index and row[index[k]] != '' else assignthis
-
-def assignWithEmpty(k, index, row, assignthis):
-    '''assign none if does not exist, or assign with empty string if the column does exist'''
-
-    return row[index[k]] if k in index else assignthis
-
-
-
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 def getParticipantMap(p_csvFile):
     '''This will give us back a dictionary with participant IDs as keys and
         their records in the form of dictionaries as the values'''
     participantMap = {};
-    p_reader = giveMeCSV(p_csvFile)
+    p_reader = ch.giveMeCSV(p_csvFile)
     p_headers = next(p_reader)
 
 
@@ -62,14 +38,14 @@ def getSessionMap(s_csvFile):
     '''This will give us back a dictionary where the unique session names (IDs) are associated with a dictionary of
        values containing participant'''
 
-    r = giveMeCSV(s_csvFile)
+    r = ch.giveMeCSV(s_csvFile)
     rhead = next(r)
 
     sessionMap = makeOuterMostElements(r)
 
-    vol = giveMeCSV(s_csvFile)
+    vol = ch.giveMeCSV(s_csvFile)
     vheaders = next(vol)
-    vHIdx = getHeaderIndex(vheaders)
+    vHIdx = ch.getHeaderIndex(vheaders)
 
     for i in vol:
 
@@ -273,7 +249,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         s_reader = csv.reader(s_input)
         s_headers = next(s_reader)
 
-        headerIndex = getHeaderIndex(s_headers)
+        headerIndex = ch.getHeaderIndex(s_headers)
 
         p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
@@ -284,25 +260,25 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             key = row[headerIndex['key']] if 'key' in headerIndex else name 
             s_curr = s_map[key]
 
-            date = assignIfThere('date', headerIndex, row, None)
+            date = ch.assignIfThere('date', headerIndex, row, None)
 
-            path = assignIfThere('filepath', headerIndex, row, None)
-            position = assignIfThere('position', headerIndex, row, 'auto')
-            t_positions = assignIfThere('task_positions', headerIndex, row, None)
+            path = ch.assignIfThere('filepath', headerIndex, row, None)
+            position = ch.assignIfThere('position', headerIndex, row, 'auto')
+            t_positions = ch.assignIfThere('task_positions', headerIndex, row, None)
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
-            ex_positions = assignIfThere('excl_positions', headerIndex, row, None)
+            ex_positions = ch.assignIfThere('excl_positions', headerIndex, row, None)
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
-            classification = assignIfThere('classification', headerIndex, row, 'RESTRICTED').upper()
+            classification = ch.assignIfThere('classification', headerIndex, row, 'RESTRICTED').upper()
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
-            pilot = assignIfThere('pilot', headerIndex, row, None)
+            pilot = ch.assignIfThere('pilot', headerIndex, row, None)
             exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
-            condition = assignIfThere('condition', headerIndex, row, None)
-            group = assignIfThere('group', headerIndex, row, None)
-            setting = assignIfThere('setting', headerIndex, row, None)
-            state = assignIfThere('state', headerIndex, row, None)
-            country = assignIfThere('country', headerIndex, row, None)
-            consent = assignIfThere('consent', headerIndex, row, None)
-            language = assignIfThere('language', headerIndex, row, None)
+            condition = ch.assignIfThere('condition', headerIndex, row, None)
+            group = ch.assignIfThere('group', headerIndex, row, None)
+            setting = ch.assignIfThere('setting', headerIndex, row, None)
+            state = ch.assignIfThere('state', headerIndex, row, None)
+            country = ch.assignIfThere('country', headerIndex, row, None)
+            consent = ch.assignIfThere('consent', headerIndex, row, None)
+            language = ch.assignIfThere('language', headerIndex, row, None)
             t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
             tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';'), task_positions) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
 
@@ -319,7 +295,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
             for i in range(len(s_headers)):
-                header = cleanVal(s_headers[i])
+                header = ch.cleanVal(s_headers[i])
 
 
                 if header == 'participantID':
@@ -356,10 +332,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     neg_clip = "clip_out_" 
                     file_name = "fname_" + asset_no
                     file_position = "fposition_" + asset_no
-                    fname = assignIfThere(file_name, headerIndex, row, None)
-                    fposition = assignWithEmpty(file_position, headerIndex, row, None)
+                    fname = ch.assignIfThere(file_name, headerIndex, row, None)
+                    fposition = ch.assignWithEmpty(file_position, headerIndex, row, None)
                     prefixes = (pos_clip, neg_clip)
-                    clip_options = tuple(assignWithEmpty(j+asset_no, headerIndex, row, None) for j in prefixes)
+                    clip_options = tuple(ch.assignWithEmpty(j+asset_no, headerIndex, row, None) for j in prefixes)
                     asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
 
                     for z in asset_entry:
