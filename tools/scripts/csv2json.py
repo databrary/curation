@@ -284,9 +284,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             key = row[headerIndex['key']] if 'key' in headerIndex else name 
             s_curr = s_map[key]
 
-            date = row[headerIndex['date']]
+            date = assignIfThere('date', headerIndex, row, None)
 
-            path = row[headerIndex['filepath']]
+            path = assignIfThere('filepath', headerIndex, row, None)
             position = assignIfThere('position', headerIndex, row, 'auto')
             t_positions = assignIfThere('task_positions', headerIndex, row, None)
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
@@ -294,15 +294,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
             classification = assignIfThere('classification', headerIndex, row, 'RESTRICTED').upper()
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
-            pilot = row[headerIndex['pilot']]
+            pilot = assignIfThere('pilot', headerIndex, row, None)
             exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
-            condition = row[headerIndex['condition']]
-            group = row[headerIndex['group']]
-            setting = row[headerIndex['setting']]
-            state = row[headerIndex['state']]
-            country = row[headerIndex['country']]
+            condition = assignIfThere('condition', headerIndex, row, None)
+            group = assignIfThere('group', headerIndex, row, None)
+            setting = assignIfThere('setting', headerIndex, row, None)
+            state = assignIfThere('state', headerIndex, row, None)
+            country = assignIfThere('country', headerIndex, row, None)
             consent = assignIfThere('consent', headerIndex, row, None)
-            language = row[headerIndex['language']]
+            language = assignIfThere('language', headerIndex, row, None)
             t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
             tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';'), task_positions) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
 
@@ -310,11 +310,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             context = {}
             context['category'] = 'context'
             context['key'] = 'context'
-            if setting != '':
+            if setting != None:
                 context['setting'] = setting.title()
-            if state != '':
+            if state != None:
                 context['state'] = state
-            if country != '':
+            if country != None:
                 context['country'] = country
 
 
@@ -375,17 +375,17 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     ##### CLIP STUFF #####
 
-                elif header == 'pilot' and pilot != '':
+                elif header == 'pilot' and pilot != None:
                     recordAppend(s_curr, pilot, 'pilot')
                     
                 elif header == 'exclusion' and exclusion != '':
                     for excl in exclusion:
                         s_curr['records'].append(excl)
                     
-                elif header == 'condition' and condition != '':
+                elif header == 'condition' and condition != None:
                     recordAppend(s_curr, condition, 'condition')
 
-                elif header == 'group' and group != '':
+                elif header == 'group' and group != None:
                     recordAppend(s_curr, group, 'group')
 
                 elif header == 'setting' and len(context) > 2 and not any(context == d for d in s_curr['records']):
@@ -396,11 +396,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         if not any(task == f for f in s_curr['records']):
                             s_curr['records'].append(task)
 
-                s_curr['date'] = date
+                if date is not None:
+                    s_curr['date'] = date
+                
+                if consent is not None:
+                    s_curr['consent'] = consent.upper()
+
                 s_curr['top'] = top
                 s_curr['name'] = name 
                 s_curr['key'] = key
-                s_curr['consent'] = consent.upper() if consent is not None else consent
+                
 
                 if s_curr['name'] is None:
                     del s_curr['name']
