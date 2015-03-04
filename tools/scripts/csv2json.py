@@ -13,7 +13,11 @@ try:
 except:
     print('''To run this, please add paths to two csv files and a name
              for the file where the video data is kept as arguments:
-             e.g. `python csv2json.py session.csv participants.csv study1_files`''')
+             e.g. `python csv2json.py session.csv participants.csv study1_files`
+
+             Run as python csv2json.py session.csv None study1_files
+             if no need for participants
+             ''')
     sys.exit()
 
 
@@ -48,10 +52,10 @@ def getSessionMap(s_csvFile):
     vHIdx = ch.getHeaderIndex(vheaders)
 
     for i in vol:
+        if 'participantID' in vHIdx:
 
-        participantID = i[vHIdx['participantID']]
-
-        sessionMap[i[0]]['records'].append({'ident': participantID, 'key': participantID, 'category': 'participant'})
+            participantID = i[vHIdx['participantID']]
+            sessionMap[i[0]]['records'].append({'ident': participantID, 'key': participantID, 'category': 'participant'})
 
     '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
@@ -251,7 +255,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         headerIndex = ch.getHeaderIndex(s_headers)
 
-        p_map = getParticipantMap(p_csvFile)
+        if p_csvFile != "None":
+            p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
 
         for row in s_reader:
