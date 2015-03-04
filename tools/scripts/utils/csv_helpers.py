@@ -27,3 +27,11 @@ def assignWithEmpty(k, index, row, assignthis):
     '''assign none if does not exist, or assign with empty string if the column does exist'''
 
     return row[index[k]] if k in index else assignthis
+
+def makeNewFile(path, filename_addition="output"):
+    '''given a filepath as an argument, we will use that to create the new file where
+       output will be stored'''
+    PATH_PARTS = path.split('/')
+    PATH_PARTS.pop()
+    PATH = ('/').join(PATH_PARTS)
+    return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'

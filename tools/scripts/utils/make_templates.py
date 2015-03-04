@@ -4,8 +4,6 @@ import fields
 import os, glob
 from xlsxwriter.workbook import Workbook
 
-'''This is run on python3'''
-
 
 _PATH_TO_TEMPLATES = '../../../spec/templates/'
 _SESSIONS_TEMPLATE = 'sessions_template.csv'
