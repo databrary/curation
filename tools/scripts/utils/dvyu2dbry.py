@@ -17,7 +17,7 @@ def convertMStoMMHH(milliseconds):
 
 def convert(f):
     output = open(DBRY_OUTPUT, 'w')
-    output_headers = ['key', 'participantID', 'condition', 'tasks', 'task_positions']
+    output_headers = ['key', 'condition', 'tasks', 'task_positions']
     csvoutput = csv.writer(output)
     csvoutput.writerow(output_headers)
     
@@ -27,7 +27,6 @@ def convert(f):
 
     
     for row in csvinput:
-        p_id = row[hIdx['id']]
         session_key = ch.assignIfThere('key', hIdx, row, None)
         condition = row[hIdx['condition']]
         records = []
@@ -49,7 +48,6 @@ def convert(f):
 
 
         csvoutput.writerow([session_key, 
-                           p_id,
                            condition, 
                            (';').join(records), 
                            (';').join(clips)])
