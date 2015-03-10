@@ -35,3 +35,34 @@ def makeNewFile(path, filename_addition="output"):
     PATH_PARTS.pop()
     PATH = ('/').join(PATH_PARTS)
     return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'
+
+def mergeCSV(file1, file2, *args):
+
+    if len(args) > 1:
+        '''can either enter one column for both or each one ''' 
+        column1 = args[0]
+        column2 = args[2]
+    elif len(args) == 1:
+        column1, column2 = args[0]
+
+    f1 = open(file1, 'rt')
+    f2 = open(file2, 'rt')
+    f1head = next(f1)
+    f2head = next(f2)
+    f1Idx = getHeaderIndex(f1head)
+    f2Idx = getHeaderIndex(f2head)
+
+    f1csv = giveMeCSV(f1)
+    f2csv = giveMeCSV(f2)
+
+    merged = csv.writer(open('merged.csv', 'w'))
+    merged.writerow(f1head+f2head)
+
+    for row1 in f1:
+        for row2 in f2:
+            if row1[hIdx_u[column1]] == row2[hIdx_o[column2]]:
+                row_merged = row1+row2
+                mergred.writerow(row_merged)
+
+    merged.close()
+                
