@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import collections
+from pprint import pprint
 from utils import csv_helpers as ch
 
 ################### COMMAND LINE ARGUMENT HANDLING #####################################
@@ -28,13 +29,13 @@ def getParticipantMap(p_csvFile):
     participantMap = {};
     p_reader = ch.giveMeCSV(p_csvFile)
     p_headers = next(p_reader)
-
+    p_idx = ch.getHeaderIndex(p_headers)
 
     for rec in p_reader:
         
         vals = {p_headers[z]: rec[z] for z in range(len(p_headers))}
 
-        participantMap[rec[0]] = vals
+        participantMap[rec[p_idx['participantID']]] = vals
 
     return participantMap
 
@@ -109,10 +110,20 @@ def makeRecordsFromList(category, list, positions):
 
             excl = list[i].strip()
             if excl != '#':
-                exclObj = {'category':category, 'reason':excl, 'key':excl}
+                exclObj = {'category':category, 
+                           'reason':excl, 
+                           'key':excl}
                 if positions is not None:
                     exclObj['position'] = position_formatted[i]
                 recObjs.append(exclObj)
+
+        if category == 'condition':
+
+            cond = list[i].strip()
+            condObj = {'category':category, 
+                       'ident':cond, 
+                       'key':cond}
+            recObjs.append(condObj)
 
 
     return recObjs
@@ -277,7 +288,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
             pilot = ch.assignIfThere('pilot', headerIndex, row, None)
             exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
-            condition = ch.assignIfThere('condition', headerIndex, row, None)
+            condition = makeRecordsFromList('condition', row[headerIndex['condition']].split(';'), None) if 'condition' in headerIndex and row[headerIndex['condition']] != '' else ''
             group = ch.assignIfThere('group', headerIndex, row, None)
             setting = ch.assignIfThere('setting', headerIndex, row, None)
             state = ch.assignIfThere('state', headerIndex, row, None)
@@ -286,7 +297,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             language = ch.assignIfThere('language', headerIndex, row, None)
             t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
             tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';'), task_positions) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
-
 
             context = {}
             context['category'] = 'context'
@@ -363,8 +373,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for excl in exclusion:
                         s_curr['records'].append(excl)
                     
-                elif header == 'condition' and condition != None:
-                    recordAppend(s_curr, condition, 'condition')
+                elif header == 'condition' and condition != '':
+                    for c in condition:
+                        s_curr['records'].append(c)
 
                 elif header == 'group' and group != None:
                     recordAppend(s_curr, group, 'group')

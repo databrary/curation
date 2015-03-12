@@ -28,7 +28,7 @@ def assignWithEmpty(k, index, row, assignthis):
 
     return row[index[k]] if k in index else assignthis
 
-def makeNewFile(path, filename_addition="output"):
+def makeNewFile(path, filename_addition="_output"):
     '''given a filepath as an argument, we will use that to create the new file where
        output will be stored'''
     PATH_PARTS = path.split('/')
@@ -68,7 +68,7 @@ def leadingZeros(csvfile, zeros, col="participantID", newCol="pID" ):
        want to throw yourself out of a window trying to achieve and maintain that formatting over
        a number of different use cases'''
     num_converter = "%0" + str(zeros) + "d"
-    new_filename = csvfile.split('/')[1].split('.')[0] + "_zeroed.csv"
+    new_filename = makeNewFile(csvfile, "_zeroed")
     fcsv = giveMeCSV(csvfile)
     fhead = output_head = next(fcsv)
     output_head.extend([newCol])
@@ -77,7 +77,7 @@ def leadingZeros(csvfile, zeros, col="participantID", newCol="pID" ):
     output_file.writerow(output_head)
     for row in fcsv:
         non_zeroed_id = int(row[fcsvIdx[col]])
-        zeroed_id = num_converter % (non_zeroed_id)
+        zeroed_id = str(num_converter % (non_zeroed_id))
         row.extend([zeroed_id])
         output_file.writerow(row)
 
