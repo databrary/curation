@@ -29,8 +29,12 @@ class Api:
 
 
     def getVolume(self, v_id):
+        '''returns a json object for a volume that includes containers and records'''
         vol = str(v_id)
         endpoint = _BASE_URL+'volume/'+vol+"?containers&records"
         res = self.sesh.get(endpoint)
         return json.loads(res.text)
         
+    #get records - relies on getVolume
+    #get containers - relies on getVolume
+    #get assets
