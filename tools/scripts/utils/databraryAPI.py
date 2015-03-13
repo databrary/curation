@@ -1,11 +1,19 @@
 import urllib.request
 import json
 import requests
-from data import api_config as conf 
+from data import api_config as conf
+from data import api_paths as paths 
 
 _BASE_URL = conf.access_points.dev
 _USER = conf.creds.email
 _PASS = conf.creds.dev_password
+
+msg = {
+    
+    "error": "Something failed",
+    "success": "It went fine, good job"
+
+}
 
 class Api:        
 
@@ -14,6 +22,9 @@ class Api:
         self.user = _USER
         self.passw = _PASS
         self.sesh = requests.Session() 
+
+    def _ParseJson(self, result):
+        return json.loads(result)
 
     def login(self):
         login_path = 'user/login' 
@@ -33,8 +44,23 @@ class Api:
         vol = str(v_id)
         endpoint = _BASE_URL+'volume/'+vol+"?containers&records"
         res = self.sesh.get(endpoint)
-        return json.loads(res.text)
+        if res.status_code == 200:
+            return self._ParseJson(res.text)
+        else:
+            return msg['error'] + ", " + "status ruturned was: " + str(res.status_code)
         
     #get records - relies on getVolume
     #get containers - relies on getVolume
     #get assets
+    
+
+    def addTag(self, container, tag, segment="-", vote="true"):
+
+        endpoint = _BASE_URL + paths.DATABRARY_PATHS['add_tag'] % (tag) + "?container=" + container + "&segment=" + segment + "&vote=" + vote
+        ret = self.sesh.post(endpoint)
+        res = self._ParseJson(ret.text)
+
+        if ret.status_code == 200:
+            return msg['success'] + ": " + ret.text 
+        else:
+            return msg['error'] + ": " + ret.text
