@@ -49,9 +49,9 @@ class Api:
         else:
             return msg['error'] + ", " + "status ruturned was: " + str(res.status_code)
         
-    #get records - relies on getVolume
-    #get containers - relies on getVolume
-    #get assets
+        #get records - relies on getVolume
+        #get containers - relies on getVolume
+        #get assets
     
 
     def addTag(self, container, tag, segment="-", vote="true"):

@@ -28,7 +28,7 @@ def convert(f):
     
     for row in csvinput:
         session_key = ch.assignIfThere('key', hIdx, row, None)
-        condition = row[hIdx['condition']]
+        condition = row[hIdx['condition']] if 'condition' in hIdx else None
         records = []
         clips = []
 
