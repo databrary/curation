@@ -23,7 +23,7 @@ class Api:
         self.passw = _PASS
         self.sesh = requests.Session() 
 
-    def _ParseJson(self, result):
+    def _ParseJson(self, result:str) -> dict:
         return json.loads(result)
 
     def login(self):
@@ -39,7 +39,7 @@ class Api:
         return self.sesh.get(endpoint)
 
 
-    def getVolume(self, v_id):
+    def getVolume(self, v_id:int) -> dict:
         '''returns a json object for a volume that includes containers and records'''
         vol = str(v_id)
         endpoint = _BASE_URL+'volume/'+vol+"?containers&records"
@@ -54,8 +54,8 @@ class Api:
         #get assets
     
 
-    def addTag(self, container, tag, segment="-", vote="true"):
-
+    def addTag(self, container:int, tag:str, segment:str="-", vote:str="true") -> str:
+        container = str(container)
         endpoint = _BASE_URL + paths.DATABRARY_PATHS['add_tag'] % (tag) + "?container=" + container + "&segment=" + segment + "&vote=" + vote
         ret = self.sesh.post(endpoint)
         res = self._ParseJson(ret.text)
