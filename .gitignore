@@ -13,5 +13,8 @@ tools/o
 #data
 data/
 
+#configs
+config/
+
 #third party utilities we dont need to push
 third_party/
