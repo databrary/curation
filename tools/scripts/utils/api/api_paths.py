@@ -27,7 +27,7 @@ DATABRARY_PATHS = {
     "update_volume":"volume/%s",                    #POST, % ($volumeId<[0-9]+>),  
 #Volume Access
 #Volume_Funding
-    "search_funders":"funder",                      #GET, parameters - ?q= - (see also search.crossref.org/funders?q=)
+    "search_funders":"funder?query=%s",             #GET, parameters - ?q= - (see also search.crossref.org/funders?q=)
     "update_funding":"volume/%s/funding/%s",        #POST, % ($volumeId<[0-9]+>, $funderId<[0-9]+>), parameter - awards=[]
     #"update_funding":"volume/%s/funding/%s",        #DELETE, % ($volumeId<[0-9]+>, $funderId<[0-9]+>), parameter - awards=[]?
 #Slot
