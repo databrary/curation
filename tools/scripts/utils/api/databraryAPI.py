@@ -3,6 +3,7 @@ import json
 import requests
 from config import api_config as conf
 import api_paths as paths 
+from urllib.parse import urlencode
 
 _BASE_URL = conf.access_points.dev
 _USER = conf.creds.email
@@ -12,9 +13,8 @@ msg = {
     "error": "Something failed",
     "success": "It went fine, good job"}
 
-class Api:        
+class Api:      
 
-    #TODO: if there is an improper response for json.loads (i.e. status code 200 but nothing else) - it crashes, so fix it.
 
     def __init__(self, user=None, passw=None, sesh=None):
 
@@ -29,15 +29,20 @@ class Api:
         if method.lower() == "get":
             ret = self.sesh.get(endpoint)
         if method.lower() == "post":
-            ret = self.sesh.post(endpoint)
-        res = self._ParseJson(ret.text)
+            ret = self.sesh.post(endpoint)    
         if ret.status_code == 200:
+            res = self._ParseJson(ret.text)
             return res
+        if ret.status_code == 404:
+            return msg['error'] + ", " + "status ruturned was: " + str(ret.status_code) + ", either the resource does not exist or you must be logged in"
         else: 
-            return msg['error'] + ", " + "status ruturned was: " + str(res.status_code)
+            return msg['error'] + ", " + "status ruturned was: " + str(ret.status_code) + ", " + ret.text
 
     def _ParseJson(self, result:str) -> dict:
         return json.loads(result)
+
+    def _AddParameters(self, params:dict) -> str:
+        return urlencode(params)
 
     def login(self): 
         endpoint = self._BuildEndpoint('user_login')
@@ -48,6 +53,26 @@ class Api:
     def logout(self):
         endpoint = self._BuildEndpoint('user_logout')
         return self._HandleRequest(endpoint, "post")
+
+    def getActivityStream(self):
+        endpoint = self._BuildEndpoint('activity_stream')
+        return self._HandleRequest(endpoint, "get")
+
+    def queryUsers(self, access_level:int="", query:str="") -> dict:
+        endpoint = self._BuildEndpoint('query_users')
+        params = {}
+        if access_level != '':
+            params['access'] = access_level
+        if query != '':
+            params['query'] = query
+        if params != {}:
+            endpoint += "?" + self._AddParameters(params)
+
+        return self._HandleRequest(endpoint, "get")
+
+    def getUser(self, user_id:int) -> dict:
+        endpoint = self._BuildEndpoint('get_party') % (user_id)
+        return self._HandleRequest(endpoint, "get")
 
     def getMyProfile(self):
         endpoint = self._BuildEndpoint('current_user')
@@ -68,13 +93,7 @@ class Api:
     def addTag(self, container:int, tag:str, segment:str="-", vote:str="true") -> str:
         container = str(container)
         endpoint = self._BuildEndpoint('add_tag') % (tag) + "?container=" + container + "&segment=" + segment + "&vote=" + vote
-        ret = self.sesh.post(endpoint)
-        res = self._ParseJson(ret.text)
-
-        if ret.status_code == 200:
-            return msg['success'] + ": " + ret.text 
-        else:
-            return msg['error'] + ": " + ret.text
+        return self._HandleRequest(endpoint, "post") # the response on this isn't really clear that it was successful
 
     def getTagDetails(self, query:str) -> dict:
         endpoint = self._BuildEndpoint('get_tag') % (query) + "?containers"

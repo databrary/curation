@@ -11,10 +11,8 @@ DATABRARY_PATHS = {
     #"user_register":"user/register",                #POST
 #ACTIVITY STREAM
     "activity_stream":"activity",                   #GET
-#TOKEN
-    "token":"token/%s",                             #GET, % (:token)
 #PARTY
-    "all_parties":"party",                          #GET, QUERY ?access=LEVEL;query=terms
+    "query_users":"party",                          #GET, QUERY ?access=LEVEL;query=terms
     "get_party":"party/%s",                         #GET, % ($partyId<-?[0-9]+>),?volumes;comments;parents[=all];children[=all]  
     "current_user":"profile",                       #GET, equivalent to /api/party/<currentUser>
     "update_party":"party/%s",                      #POST, % ($partyId<[0-9]+>), parameters (application/x-www-formencoded): name:string, orcid:, affiliation, url, avatar
