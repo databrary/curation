@@ -14,6 +14,8 @@ msg = {
 
 class Api:        
 
+    #TODO: if there is an improper response for json.loads (i.e. status code 200 but nothing else) - it crashes, so fix it.
+
     def __init__(self, user=None, passw=None, sesh=None):
 
         self.user = _USER
@@ -44,8 +46,8 @@ class Api:
         return self.sesh.post(endpoint, data=credentials)
 
     def logout(self):
-        endpoint = self._BuildEndpoint('user_logut')
-        
+        endpoint = self._BuildEndpoint('user_logout')
+        return self._HandleRequest(endpoint, "post")
 
     def getMyProfile(self):
         endpoint = self._BuildEndpoint('current_user')
