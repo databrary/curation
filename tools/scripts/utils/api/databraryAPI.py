@@ -43,6 +43,10 @@ class Api:
         self.sesh.headers.update({"x-requested-with":"true"})
         return self.sesh.post(endpoint, data=credentials)
 
+    def logout(self):
+        endpoint = self._BuildEndpoint('user_logut')
+        
+
     def getMyProfile(self):
         endpoint = self._BuildEndpoint('current_user')
         return self._HandleRequest(endpoint, "get")
