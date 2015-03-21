@@ -15,8 +15,8 @@ DATABRARY_PATHS = {
     "query_users":"party",                          #GET, QUERY ?access=LEVEL;query=terms
     "get_party":"party/%s",                         #GET, % ($partyId<-?[0-9]+>),?volumes;comments;parents[=all];children[=all]  
     "current_user":"profile",                       #GET, equivalent to /api/party/<currentUser>
-    "update_party":"party/%s",                      #POST, % ($partyId<[0-9]+>), parameters (application/x-www-formencoded): name:string, orcid:, affiliation, url, avatar
-    "add_party":"party",                            #POST, parameters (application/x-www-formencoded): name:string, orcid:, affiliation, url, avatar
+    #"update_party":"party/%s",                      #POST, % ($partyId<[0-9]+>), parameters (application/x-www-formencoded): name:string, orcid:, affiliation, url, avatar
+    #"add_party":"party",                            #POST, parameters (application/x-www-formencoded): name:string, orcid:, affiliation, url, avatar
     #"":"api/party/%s/password",                     #POST,  % ($pID<[0-9]+>), parameters: ??? resetting password, don't need this.
 #Volume
     "all_volumes":"volume",                         #GET, return all volumes the current user can see, parameters - ?query=search+terms;party=id

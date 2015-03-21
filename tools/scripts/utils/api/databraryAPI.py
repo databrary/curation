@@ -15,6 +15,7 @@ msg = {
 
 class Api:      
 
+    #TODO: HANDLING PARAMS FUNC.
 
     def __init__(self, user=None, passw=None, sesh=None):
 
@@ -22,7 +23,7 @@ class Api:
         self.passw = _PASS
         self.sesh = requests.Session() 
 
-    def _BuildEndpoint(self, api_path:str) -> str:
+    def _BuildEndpoint(self, api_path:str) -> dict:
         return _BASE_URL + paths.DATABRARY_PATHS[api_path]
 
     def _HandleRequest(self, endpoint:str, method:str) -> dict:
@@ -34,12 +35,20 @@ class Api:
             res = self._ParseJson(ret.text)
             return res
         if ret.status_code == 404:
-            return msg['error'] + ", " + "status ruturned was: " + str(ret.status_code) + ", either the resource does not exist or you must be logged in"
+            return {"status": msg['error'], 
+                    "status code":str(ret.status_code), 
+                    "details": "Either the resource does not exist or you must be logged in"}
         else: 
-            return msg['error'] + ", " + "status ruturned was: " + str(ret.status_code) + ", " + ret.text
+            return {"status": msg['error'], 
+                    "status code":str(ret.status_code), 
+                    "details": ret.text}
 
     def _ParseJson(self, result:str) -> dict:
         return json.loads(result)
+
+    def _ParseParams(self, **kwargs) -> dict:
+        print(kwargs)
+        return kwargs
 
     def _AddParameters(self, params:dict) -> str:
         return urlencode(params)
@@ -58,16 +67,11 @@ class Api:
         endpoint = self._BuildEndpoint('activity_stream')
         return self._HandleRequest(endpoint, "get")
 
-    def queryUsers(self, access_level:int="", query:str="") -> dict:
+    def queryUsers(self, access:int="", query:str="") -> dict:
+        '''would rather that this returns the default if access is not specified'''
         endpoint = self._BuildEndpoint('query_users')
-        params = {}
-        if access_level != '':
-            params['access'] = access_level
-        if query != '':
-            params['query'] = query
-        if params != {}:
-            endpoint += "?" + self._AddParameters(params)
-
+        params = self._ParseParams(access=access, query=query)
+        endpoint += "?" + self._AddParameters(params)
         return self._HandleRequest(endpoint, "get")
 
     def getUser(self, user_id:int) -> dict:
@@ -78,7 +82,13 @@ class Api:
         endpoint = self._BuildEndpoint('current_user')
         return self._HandleRequest(endpoint, "get")
 
-    def getAllVolume(self, v_id:int) -> dict:
+    def getAllVolumes(self, query:str="", party:int="") -> dict:
+        endpoint = self._BuildEndpoint('all_volumes')
+        params = self._ParseParams(query=query, party=party)
+        endpoint += "?" + self._AddParameters(params)
+        return self._HandleRequest(endpoint, "get")
+
+    def getFullVolume(self, v_id:int) -> dict:
         '''returns a json object for a volume that includes containers and records'''
         vol = str(v_id)
         endpoint = self._BuildEndpoint("volume_data") % vol + "?containers&records"
