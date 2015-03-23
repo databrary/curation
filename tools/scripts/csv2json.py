@@ -23,6 +23,17 @@ except:
 
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
+
+class ParticipantStrings(object):
+
+    ethnicity = "ethnicity"
+    birthdate = "birthdate"
+    gender = "gender"
+    race = "race"
+    disability = "disability"
+
+
+
 def getParticipantMap(p_csvFile):
     '''This will give us back a dictionary with participant IDs as keys and
         their records in the form of dictionaries as the values'''
@@ -322,18 +333,19 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             p_target = p_map[target['ident']]
 
 
-                            if p_map[target['ident']]['birthdate'] != '':
-                                target['birthdate'] = p_target['birthdate']
-                            if 'ethnicity' in p_target and p_target['ethnicity'] != '':
-                                target['ethnicity'] = p_target['ethnicity']
-                            if 'race' in p_target and p_target['race'] != '':
-                                target['race'] = p_target['race']
-                            if 'langauge' in p_target and p_target['language'] != '':
-                                target['language'] = p_target['language']
-                            if 'disability' in p_target and p_target['disability'] != '':
-                                target['disability'] = p_target['disability']
-                            if 'gender' in p_target and p_target['gender'] != '':
-                                target['gender'] = p_target['gender'].title()
+                            '''this is not very DRY, but there are enough exceptions that it will just be shifting things around'''
+                            if p_map[target['ident']][ParticipantStrings.birthdate] != '':
+                                target[ParticipantStrings.birthdate] = p_target[ParticipantStrings.birthdate]
+                            if ParticipantStrings.ethnicity in p_target and p_target[ParticipantStrings.ethnicity] != '':
+                                target[ParticipantStrings.ethnicity] = p_target[ParticipantStrings.ethnicity]
+                            if ParticipantStrings.race in p_target and p_target[ParticipantStrings.race] != '':
+                                target[ParticipantStrings.race] = p_target[ParticipantStrings.race]
+                            if ParticipantStrings.language in p_target and p_target[ParticipantStrings.language] != '':
+                                target[ParticipantStrings.language] = p_target[ParticipantStrings.language]
+                            if ParticipantStrings.disability in p_target and p_target[ParticipantStrings.disability] != '':
+                                target[ParticipantStrings.disability] = p_target[ParticipantStrings.disability]
+                            if ParticipantStrings.gender in p_target and p_target[ParticipantStrings.gender] != '':
+                                target[ParticipantStrings.gender] = p_target[ParticipantStrings.gender].title()
 
 
 
