@@ -26,12 +26,12 @@ DATABRARY_PATHS = {
 #Volume Access
 #Volume_Funding
     "search_funders":"funder?query=%s",             #GET, parameters - ?q= - (see also search.crossref.org/funders?q=)
-    "update_funding":"volume/%s/funding/%s",        #POST, % ($volumeId<[0-9]+>, $funderId<[0-9]+>), parameter - awards=[]
+    "update_funder":"volume/%s/funding/%s",        #POST, % ($volumeId<[0-9]+>, $funderId<[0-9]+>), parameter - awards=[]
     #"update_funding":"volume/%s/funding/%s",        #DELETE, % ($volumeId<[0-9]+>, $funderId<[0-9]+>), parameter - awards=[]?
 #Slot
-    "get_volume_slot":"volume/%s/slot/%s",          #GET, % ($volumeId<[0-9]+>, $containerId<[0-9]+>), parameters - ?segment=;assets;records;tags;comments 
-    "update_slot":"slot/%s",                        #POST, % ($containerId<[0-9]+>), parameters - name, date, top ???
-    "create_slot":"volume/%s/slot ",                #POST, % ($volumeId<[0-9]+>), parameters - top:boolean, ???HtmlForm[ContainerCreateForm]
+    "get_session":"volume/%s/slot/%s",          #GET, % ($volumeId<[0-9]+>, $containerId<[0-9]+>), parameters - ?segment=;assets;records;tags;comments 
+    "update_session":"slot/%s",                        #POST, % ($containerId<[0-9]+>), parameters - name, date, top ???
+    "create_session":"volume/%s/slot ",                #POST, % ($volumeId<[0-9]+>), parameters - top:boolean, ???HtmlForm[ContainerCreateForm]
     #"remove_slot":"slot/%s",                        #DELETE, % ($containerId<[0-9]+>)
 #Record
     "get_volume_records":"record",                  #GET, parameters - ?volume=ID<required>;category=ID 

@@ -15,14 +15,13 @@ msg = {
 
 class Api:      
 
-    #TODO: HANDLING PARAMS FUNC.
-
     def __init__(self, user=None, passw=None, sesh=None):
 
         self.user = _USER
         self.passw = _PASS
         self.sesh = requests.Session() 
-
+    
+    '''helper functions'''
     def _BuildEndpoint(self, api_path:str) -> dict:
         return _BASE_URL + paths.DATABRARY_PATHS[api_path]
 
@@ -46,13 +45,13 @@ class Api:
     def _ParseJson(self, result:str) -> dict:
         return json.loads(result)
 
-    def _ParseParams(self, **kwargs) -> dict:
-        print(kwargs)
+    def _ParseParams(self, **kwargs) -> dict: #maybe a little too hacky
         return kwargs
 
     def _AddParameters(self, params:dict) -> str:
         return urlencode(params)
-
+    '''/helper functions'''
+    
     def login(self): 
         endpoint = self._BuildEndpoint('user_login')
         credentials = {"email": self.user, "password": self.passw}
@@ -100,9 +99,27 @@ class Api:
     def getVolumeContainers(self, v_id:int) -> dict:
         return self.getAllVolume(v_id)['containers']
 
+    def createVolume(self):
+        '''create a volume on databrary'''
+        pass
+
+    def updateVolume(self):
+        '''update an existing volume on databrary'''
+        pass
+
+    def getSession(self):
+        pass
+
+    def createSession(self):
+        pass
+
+    def updateSession(self):
+        pass
+
     def addTag(self, container:int, tag:str, segment:str="-", vote:str="true") -> str:
         container = str(container)
-        endpoint = self._BuildEndpoint('add_tag') % (tag) + "?container=" + container + "&segment=" + segment + "&vote=" + vote
+        params = self._ParseParams(container=container, segment=segment, vote=vote)
+        endpoint = self._BuildEndpoint('add_tag') % (tag) + "?" + self._AddParameters(params)
         return self._HandleRequest(endpoint, "post") # the response on this isn't really clear that it was successful
 
     def getTagDetails(self, query:str) -> dict:
@@ -116,4 +133,9 @@ class Api:
     def searchFunders(self, query:str) -> dict: 
         endpoint = self._BuildEndpoint('search_funders') % (query)
         return self._HandleRequest(endpoint, "get")
+
+    def updateFunder(self):
+        '''update existing funder'''
+        pass
+
 
