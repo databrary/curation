@@ -99,26 +99,37 @@ class Api:
     def getVolumeContainers(self, v_id:int) -> dict:
         return self.getAllVolume(v_id)['containers']
 
-    def createVolume(self):
-        '''create a volume on databrary'''
+    def createVolume(self, name:str, alias:str, body:str, citation_url:str, citation_title:str, citation_year:int, citation_head:str, published:bool) -> dict:
+        '''POST'''
         pass
 
-    def updateVolume(self):
-        '''update an existing volume on databrary'''
+    def updateVolume(self, v_id:int, name:str, alias:str, body:str, citation_url:str, citation_title:str, citation_year:int, citation_head:str, published:bool)  -> dict:
+        '''POST'''
         pass
 
-    def getSession(self):
+    def getSession(self, slot:int) -> dict:
+        '''GET'''
         pass
 
-    def createSession(self):
+    def createSession(self, top:bool=False, name:str, date:str, consent:int) -> dict:
+        '''POST'''
         pass
 
-    def updateSession(self):
+    def updateSession(self, slot:int, top:bool=False, name:str, date:str, consent:int) -> dict:
+        '''POST'''
         pass
 
-    def addTag(self, container:int, tag:str, segment:str="-", vote:str="true") -> str:
+    def createRecord(self, slot:int, category:int, measures:dict, v_id:int) -> dict:
+        '''POST'''
+        pass
+
+    def updateRecord(self, slot:int, category:int, measures:dict, v_id:int, r_id:int)-> dict:
+        '''POST'''
+        pass
+
+    def addTag(self, container:int, tag:str, segment:str="-", vote:bool=True, keyword:bool=False) -> str:
         container = str(container)
-        params = self._ParseParams(container=container, segment=segment, vote=vote)
+        params = self._ParseParams(container=container, segment=segment, vote=vote, keyword=keyword)
         endpoint = self._BuildEndpoint('add_tag') % (tag) + "?" + self._AddParameters(params)
         return self._HandleRequest(endpoint, "post") # the response on this isn't really clear that it was successful
 
@@ -133,6 +144,10 @@ class Api:
     def searchFunders(self, query:str) -> dict: 
         endpoint = self._BuildEndpoint('search_funders') % (query)
         return self._HandleRequest(endpoint, "get")
+
+    def updateFunding(self, awards:list=[]) -> dict:
+        '''POST'''
+        pass
 
     def updateFunder(self):
         '''update existing funder'''
