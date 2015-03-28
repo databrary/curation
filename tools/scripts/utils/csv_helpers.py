@@ -36,8 +36,9 @@ def makeNewFile(path, filename_addition="_output"):
     PATH = ('/').join(PATH_PARTS)
     return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'
 
-def mergeCSV(file1, file2, *args):
-    
+def leftJoinCSV(file1, file2, *args):
+    '''Really should only be used to left join two csv files. Left file is first arg, right file is second arg.'''
+
     if len(args) > 1:
         '''can either enter one column for both or each one ''' 
         column1 = args[0]
@@ -52,15 +53,18 @@ def mergeCSV(file1, file2, *args):
     f2head = next(f2csv)
     f1Idx = getHeaderIndex(f1head)
     f2Idx = getHeaderIndex(f2head)
-    merged = csv.writer(open('merged.csv', 'w'))
+    newFile = makeNewFile(file1)
+    merged = csv.writer(open(newFile, 'w'))
     merged.writerow(f1head+f2head)
+
+    right_indexed = {row[f2Idx[column2]].strip(): row for row in f2csv}
     
     for row1 in f1csv:
-        for row2 in f2csv:
-            if row1[f1Idx[column1]] == row2[f2Idx[column2]]:
-                row_merged = row1+row2
-                merged.writerow(row_merged)
-                break
+        if row1[f1Idx[column1]].strip() in right_indexed.keys():
+            mrow = row1 + right_indexed[row1[f1Idx[column1]]]
+        else:
+            mrow = row1
+        merged.writerow(mrow)    
 
 def leadingZeros(csvfile, zeros, col="participantID", newCol="pID" ):
     '''use this if you have a csv file where the IDs are interpretted as numbers when you want
