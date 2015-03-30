@@ -26,6 +26,7 @@ except:
 
 class ParticipantStrings(object):
 
+    language = "language"
     ethnicity = "ethnicity"
     birthdate = "birthdate"
     gender = "gender"
