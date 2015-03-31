@@ -28,8 +28,20 @@ def makeConnection():
 
 def queryAll(cursor):
 	try:
-		#TODO: this query is for testing only.
-	    cursor.execute("""SELECT volume.id as target, volume.name as title, party.name as creator FROM volume_access INNER JOIN volume ON volume_access.volume = volume.id INNER JOIN party ON volume_access.party = party.id WHERE volume_access.individual = 'ADMIN' GROUP BY target, creator ORDER BY target;""")
+		#TODO: make sure this correct
+		#TODO: need to process this afterwards
+	    cursor.execute("""SELECT  v.id as target, v.name as title, p.name as creator, p.id as party_id, va1.individual as access 
+												FROM volume_access va1
+												JOIN (
+    											SELECT DISTINCT volume
+    											FROM volume_access
+    											WHERE (party = 0 AND individual = 'SHARED')
+    											OR (party = -1 AND individual = 'PUBLIC')
+												) va2 USING (volume)
+												INNER JOIN volume v ON v.id = va1.volume
+												INNER JOIN party p ON p.id = va1.party
+												WHERE va1.individual = 'ADMIN'
+												ORDER BY target;""")
 	except:
 		print("Query failed")
 
