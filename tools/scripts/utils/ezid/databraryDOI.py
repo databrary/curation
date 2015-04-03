@@ -5,16 +5,7 @@ from config import conn as c
 
 target_path = "https://example.org"
 
-
-'''Querying and creating DOIs for Databrary resources. 
-   Relevant fields for sending to datacite:
-   		datacite.title: <volume name>
-   		datacite.publisher: Databrary
-   		datacite.creator: <party name(s)> (who is a "creator")
-   		datacite.publicationyear (when shared?)
-   		datacite.type: Dataset'''
-
-sqlQuery = ("SELECT v.id as target, v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
+sqlQuery = ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
             "FROM volume_access va1 "
             "JOIN ("
             "SELECT DISTINCT volume "
@@ -64,11 +55,12 @@ def makeMetadata(rs:list) -> list:
     for r in rs:
         '''check parity here'''
         mdPayload.append({"_target": target_base + str(r[0]), 
-                          "_profile": "datacite", 
+                          "_profile": "dc", 
                           "_status": "reserved", 
-                          "datacite.publisher":"Databrary", 
-                          "datacite.title":r[1], 
-                          "datacite.creator":('; ').join(creators[r[0]])
+                          "dc.publisher":"Databrary",
+                          "dc.date": r[1].strftime('%Y-%m-%d'), 
+                          "dc.title":r[2], 
+                          "dc.creator":('; ').join(creators[r[0]])
                         })
     return mdPayload
 
@@ -81,7 +73,7 @@ def postData(payload:list):
 
 if __name__ == "__main__":
 	print('What do you even want me to do with that?')
-    #cur = makeConnection()
+  #cur = makeConnection()
 	#rows = queryAll(cur)
 
 
