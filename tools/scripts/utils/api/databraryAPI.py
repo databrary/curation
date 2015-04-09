@@ -5,9 +5,11 @@ from config import api_config as conf
 import api_paths as paths 
 from urllib.parse import urlencode
 
-_BASE_URL = conf.access_points.dev
+#_BASE_URL = conf.access_points.dev
+_BASE_URL = conf.access_points.live
 _USER = conf.creds.email
-_PASS = conf.creds.dev_password
+#_PASS = conf.creds.dev_password
+_PASS = conf.creds.live_password
 
 msg = {
     "error": "Something failed",
@@ -111,11 +113,11 @@ class Api:
         '''GET'''
         pass
 
-    def createSession(self, top:bool=False, name:str, date:str, consent:int) -> dict:
+    def createSession(self, name:str, date:str, consent:int, top:bool=False) -> dict:
         '''POST'''
         pass
 
-    def updateSession(self, slot:int, top:bool=False, name:str, date:str, consent:int) -> dict:
+    def updateSession(self, slot:int, name:str, date:str, consent:int, top:bool=False) -> dict:
         '''POST'''
         pass
 
