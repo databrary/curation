@@ -1,6 +1,6 @@
 import csv
 import sys
-
+import time
 
 ################### QUICK OPERATIONS FOR REDUNDANT TASKS INVOLVING CSVs ###############################
 def giveMeTSV(file):
@@ -35,6 +35,10 @@ def makeNewFile(path, filename_addition="_output"):
     PATH_PARTS.pop()
     PATH = ('/').join(PATH_PARTS)
     return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'
+
+def convertMStoMMHH(milliseconds):
+    clip_time = int(milliseconds) * 0.001 
+    return time.strftime('%H:%M:%S', time.gmtime(clip_time))
 
 def leftJoinCSV(file1, file2, *args):
     '''Really should only be used to left join two csv files. Left file is first arg, right file is second arg.'''
