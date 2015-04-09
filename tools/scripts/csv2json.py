@@ -68,11 +68,11 @@ def getSessionMap(s_csvFile):
         if 'participantID' in vHIdx:
 
             participantID = i[vHIdx['participantID']]
-            sessionMap[i[0]]['records'].append({'ident': participantID, 'key': participantID, 'category': 'participant'})
+            sessionMap[i[0]]['records'].append({'ID': participantID, 'key': participantID, 'category': 'participant'})
 
     '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
-        deduped = list({d['ident']:d for d in sessionMap[k]['records']}.values())
+        deduped = list({d['ID']:d for d in sessionMap[k]['records']}.values())
         sessionMap[k]['records'] = deduped
 
 
@@ -88,7 +88,7 @@ def makeOuterMostElements(csvReader):
 
     return emptydict
 
-def makeRecordsFromList(category, list, positions):
+def makeRecordsFromList(category, list_things, positions):
     recObjs = []
     
     position_formatted = []
@@ -103,14 +103,23 @@ def makeRecordsFromList(category, list, positions):
                     position_formatted.append([clip[0], clip[1]])
 
 
-    for i in range(len(list)):
+    for i in range(len(list_things)):
 
         if category == 'task':
         
-            task = list[i].strip()
-            taskObj = {'category':category, 
-                       'ident':task, 
-                       'key':task}
+            task = list_things[i].strip()
+            if "|" in task:
+                task_txt = task.split("|")[0]
+                task_id = int(task.split("|")[1])
+                taskObj = {'category':category, 
+                           'ID':task_txt, 
+                           'key':task_txt,
+                           'id': task_id}
+
+            else:    
+                taskObj = {'category':category, 
+                           'ID':task, 
+                           'key':task}
 
             if position_formatted != []:
                     taskObj['position'] = position_formatted[i]
@@ -120,7 +129,7 @@ def makeRecordsFromList(category, list, positions):
 
         if category == 'exclusion':
 
-            excl = list[i].strip()
+            excl = list_things[i].strip()
             if excl != '#':
                 exclObj = {'category':category, 
                            'reason':excl, 
@@ -131,9 +140,9 @@ def makeRecordsFromList(category, list, positions):
 
         if category == 'condition':
 
-            cond = list[i].strip()
+            cond = list_things[i].strip()
             condObj = {'category':category, 
-                       'ident':cond, 
+                       'ID':cond, 
                        'key':cond}
             recObjs.append(condObj)
 
@@ -149,7 +158,7 @@ def recordAppend(obj, val, cat):
 
     else: 
         obj['records'].append({'category': cat,
-                               'ident': val,
+                               'ID': val,
                                'key': val
                                })
 
@@ -285,7 +294,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         for row in s_reader:
 
             name = row[headerIndex['name']] if 'name' in headerIndex else None
-            key = row[headerIndex['key']] if 'key' in headerIndex else name 
+            key = row[headerIndex['key']] if 'key' in headerIndex else name
+            dbrary_session_id = int(row[headerIndex['slot_id']]) if 'slot_id' in headerIndex else None 
             s_curr = s_map[key]
 
             date = ch.assignIfThere('date', headerIndex, row, None)
@@ -331,11 +341,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         '''missing: date and age, in days.'''
                         if 'category' in target and target['category'] == 'participant':
 
-                            p_target = p_map[target['ident']]
+                            p_target = p_map[target['ID']]
 
 
                             '''this is not very DRY, but there are enough exceptions that it will just be shifting things around'''
-                            if p_map[target['ident']][ParticipantStrings.birthdate] != '':
+                            if p_map[target['ID']][ParticipantStrings.birthdate] != '':
                                 target[ParticipantStrings.birthdate] = p_target[ParticipantStrings.birthdate]
                             if ParticipantStrings.ethnicity in p_target and p_target[ParticipantStrings.ethnicity] != '':
                                 target[ParticipantStrings.ethnicity] = p_target[ParticipantStrings.ethnicity]
@@ -406,6 +416,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 
                 if consent is not None:
                     s_curr['consent'] = consent.upper()
+
+                if dbrary_session_id is not None:
+                    s_curr['id'] = dbrary_session_id
 
                 s_curr['top'] = top
                 s_curr['name'] = name 
