@@ -5,7 +5,7 @@ from config import conn as c
 
 target_path = "https://example.org"
 
-sqlQuery = ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
+sqlQueryAll = ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
             "FROM volume_access va1 "
             "JOIN ("
             "SELECT DISTINCT volume "
@@ -17,6 +17,8 @@ sqlQuery = ("SELECT v.id as target, volume_creation(v.id), v.name as title, COAL
             "WHERE va1.individual = 'ADMIN' "
             "ORDER BY target;"
             ) 
+sqlGetCitations = "SELECT * FROM volume_citation WHERE volume IN (%s)"
+sqlGetFunders = "SELECT vf.volume, vf.awards, f.name FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"
 
 def _makeHash(record:dict) -> str:
 	return hashlib.sha256(str(record).encode('UTF-8')).hexdigest()
@@ -34,9 +36,9 @@ def makeConnection():
 
 def queryAll(cursor) -> list:
     try:
-        cursor.execute(sqlQuery)
+        cursor.execute(sqlQueryAll)
     except:
-        print("Query failed")
+        print("Query for everything failed")
     rows = cursor.fetchall()
     return rows
 
@@ -47,20 +49,48 @@ def getCreators(rs:list) -> dict:
         creators[r[0]].append(r[2])
     return creators
 
+def getCitations(cursor, vs:str) -> dict:
+    try:
+        cursor.execute(sqlGetCitations % vs)
+    except Exception as e:
+        print("Query for citations failed: ", e)
+    citations = cursor.fetchall()
+    citation_data = {}
+    for c in citations:
+        citation_data[c[0]] = {"cite_head":c[1], "cite_url":c[2], "cite_year":c[3]}
+    return citation_data
 
-def makeMetadata(rs:list) -> list:
+def getFunders(cursor, vs:str) -> dict:
+    try:
+        cursor.execute(sqlGetFunders % vs)
+    except Exception as e:
+        print("Query for funders failed: ", e)
+    funders = cursor.fetchall()
+    funder_data = {f[0]:[] for f in funders}
+    for f in funders:
+        funder_data[f[0]].append({"award_no":f[1], "funder":f[2]})
+    return funder_data
+
+def makeMetadata(cursor, rs:list) -> list:
     mdPayload = []
     target_base = target_path + "/volume/"
+    volumes = ", ".join(list(set([str(r[0]) for r in rs])))
+    citations = getCitations(cursor, volumes)
+    funders = getFunders(cursor, volumes)
     creators = getCreators(rs)
     for r in rs:
         '''check parity here'''
+
+        #This is a sketch of the metadata, will probably need this to be reshaped in the final version
         mdPayload.append({"_target": target_base + str(r[0]), 
                           "_profile": "dc", 
                           "_status": "reserved", 
                           "dc.publisher":"Databrary",
                           "dc.date": r[1].strftime('%Y-%m-%d'), 
                           "dc.title":r[2], 
-                          "dc.creator":('; ').join(creators[r[0]])
+                          "dc.creator":('; ').join(creators[r[0]]),
+                          "dc.citation": "{0}({1})".format(citations[r[0]]['cite_head'], citations[r[0]]['cite_year']) if r[0] in citations else None,
+                          "dc.funder": "; ".join(str(f['funder'])+"-"+str(f['award_no']) for f in funders[r[0]]) if r[0] in funders else None
                         })
     return mdPayload
 
