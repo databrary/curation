@@ -12,11 +12,11 @@ do
     base=`basename "$file"`
     if [[ -f $file && $base = *.* ]]; then
       
-      OUTPUT=$(ffprobe -loglevel 16 "$file")
+      OUTPUT=$(ffmpeg -v error -i "$file" -f null -)
       if [ ! "$OUTPUT"]; then 
       	echo "$file has no errors"
       else
-     	 echo "$OUTPUT"
+     	 echo "$file - $OUTPUT"
       fi
     
     fi
