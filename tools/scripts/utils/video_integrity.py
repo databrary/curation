@@ -33,6 +33,6 @@ def main():
             if error != '':
                 log.write("Error: %s - %s\n" % (f, error))
             elif error == '':
-                log.write("%s appears to okay\n" % f)
+                log.write("%s appears to be okay\n" % f)
 if __name__ == '__main__':
     main()
