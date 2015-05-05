@@ -30,7 +30,9 @@ def main():
             p = Popen(command, stdout=PIPE, stderr=PIPE, bufsize=10**8)
             output = p.stdout.read().decode("utf-8")
             error = p.stderr.read().decode("utf-8")
-            log.write("Error: %s - %s\n" % (f, error))
-            
+            if error != '':
+                log.write("Error: %s - %s\n" % (f, error))
+            elif error == '':
+                log.write("%s appears to okay\n" % f)
 if __name__ == '__main__':
     main()
