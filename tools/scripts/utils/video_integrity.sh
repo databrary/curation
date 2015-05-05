@@ -1,7 +1,8 @@
 #!/bin/bash
 
 ##
-#Run with FILE_PATH 2> <somename>.log to get a log file to identify any corrupt or broken video files
+#Run with FILE_PATH 2> <somename>.log to get a log file to identify any corrupt or broken video files 
+#or FILE_PATH &> <somename>.log to show all output
 ##
 
 target="$1"
