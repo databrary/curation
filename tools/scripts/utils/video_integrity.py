@@ -15,7 +15,7 @@ def getFiles(path:str) -> list:
     for root, dirs, files in os.walk(path):
         for f in files:
             filesList.append(os.path.join(root, f))
-    return filesList    
+    return filesList
 
 def main():
     files = getFiles(FILE_DIR)
@@ -24,7 +24,8 @@ def main():
             command = [
                 FFMPEG_BIN,
                 '-v', 'error',
-                '-i', f, 
+                '-threads', 1,
+                '-i', f,
                 '-f', 'null', '-'
             ]
             print("now checking %s" % f)
