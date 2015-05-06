@@ -2,8 +2,6 @@ from subprocess import PIPE, Popen
 import os, sys
 import time
 
-'''For now should run from utils folder so logs get deposited correctly'''
-
 FILE_DIR = sys.argv[1] if not sys.argv[1].endswith('/') else sys.argv[1][:-1]
 FFMPEG_BIN = 'ffmpeg'
 LOG_FILE = FILE_DIR.split('/')[-1] + '_errors_' + str(int(time.time())) + '.log'
