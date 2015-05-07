@@ -22,7 +22,7 @@ def main():
             command = [
                 FFMPEG_BIN,
                 '-v', 'error',
-                '-threads', 1,
+                '-threads', '1',
                 '-i', f,
                 '-f', 'null', '-'
             ]
