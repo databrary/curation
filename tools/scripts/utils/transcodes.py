@@ -26,15 +26,22 @@ def getData(cursor):
 
 def filterErrors(data:list) -> dict:
     terrors = {d[9]:[] for d in data}
-    pattern = re.compile(r'(\[\w+\s@\s\w+\])(.*)')
+    pattern = re.compile(r'\[(\w+)\s@\s\w+\](.*)')
     for d in data:
         if d[7] != None:
             loglines = d[7].split('\n')
             for line in loglines:
                 m = re.match(pattern, line) 
                 if m:
-                    terrors[d[9]].append(m.group(2).strip())
+                    terrors[d[9]].append({'asset': d[1], 
+                                          'msg_group': m.group(1).strip(), 
+                                          'msg':m.group(2).strip()})
     return terrors
 
+def errorsByVolume(errors):
+    for k in sorted(errors):
+        print("%s: %s" % (k, len(errors[k])))
 
-                
+
+'''notes: 1) incomplete frame is followed by a new line and Error while decoding stream ??
+          2) Mutiple frames in a packet from stream _ not begining with memory location'''
