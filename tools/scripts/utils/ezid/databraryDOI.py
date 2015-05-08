@@ -29,16 +29,16 @@ def _compareHash(record:dict, existing:str) -> bool:
 def makeConnection():
 	try:
 		conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
-	except:
-		conn = "Unable to connect to the database"
+	except Exception as e:
+		print("Unable to connect to database. Exception: %s" % str(e), file=sys.stderr) 
 
 	return conn.cursor()
 
 def queryAll(cursor) -> list:
     try:
         cursor.execute(sqlQueryAll)
-    except:
-        print("Query for everything failed")
+    except Exception as e:
+        print("Query for everything failed. Exception: %s" % str(e), file=sys.stderr)
     rows = cursor.fetchall()
     return rows
 
