@@ -1,4 +1,5 @@
 import psycopg2
+import pandas as pd
 import sys
 from config import conn as c
 import re
@@ -38,10 +39,35 @@ def filterErrors(data:list) -> dict:
                                           'msg':m.group(2).strip()})
     return terrors
 
+def filteredDataFrame(fdata:dict):
+    flattened = []
+    for k in fdata:
+        for f in fdata[k]:
+            f['vol'] = k
+            flattened.append(f)
+    return pd.DataFrame(flattened)
+
+
 def errorsByVolume(errors):
     for k in sorted(errors):
         print("%s: %s" % (k, len(errors[k])))
 
+def librarySummary(fd):
+    pass
+
+def errorSummary(fd):
+    pass
+
+def volumeSummar(fd):
+    pass
+
+def generateReport(filteredData:dict):
+    pass
+
+
 
 '''notes: 1) incomplete frame is followed by a new line and Error while decoding stream ??
-          2) Mutiple frames in a packet from stream _ not begining with memory location'''
+          2) Mutiple frames in a packet from stream _ not begining with memory location
+          3) what kind of reports do we need
+                - aggregate '''
+          
