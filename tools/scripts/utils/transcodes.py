@@ -1,8 +1,11 @@
 import psycopg2
 import pandas as pd
-import sys
+import sys, os, time
 from config import conn as c
 import re
+import csv
+
+DATA_DIR = os.path.expanduser('~/curation/data/transcodes/')
 
 sqlQuery = "SELECT * FROM transcode LEFT JOIN asset ON (transcode.asset = asset.id);"
 
@@ -30,7 +33,10 @@ def filterErrors(data:list) -> dict:
     pattern = re.compile(r'\[(\w+)\s@\s\w+\](.*)')
     for d in data:
         if d[7] != None:
-            loglines = d[7].split('\n')
+            logtext = d[7]
+            if "incomplete frame" in logtext:
+                logtext = str.replace(logtext, "incomplete frame\n", "incomplete frame: ")
+            loglines = logtext.split('\n')
             for line in loglines:
                 m = re.match(pattern, line) 
                 if m:
@@ -47,21 +53,33 @@ def filteredDataFrame(fdata:dict):
             flattened.append(f)
     return pd.DataFrame(flattened)
 
+def outputFilteredCSV(fdata:dict):
+    DATA_FNAME = "transcode_errors_" + str(int(time.time())) + '.csv'
+    output_path = DATA_DIR + DATA_FNAME
+    #with open(output_path, 'w+') as dfile:
+    with open(DATA_FNAME, 'w+') as dfile:
+        dfile_writer = csv.writer(dfile)
+        head = ["volume", "asset", "error_text", "codec"]
+        dfile_writer.writerow(head)
+        for d in fdata:
+            for i in fdata[d]:
+                row = [d, i["asset"], i["msg"], i["msg_group"]]
+                dfile_writer.writerow(row)
 
 def errorsByVolume(errors):
     for k in sorted(errors):
         print("%s: %s" % (k, len(errors[k])))
 
-def librarySummary(fd):
+def librarySummary(fd:dict):
     pass
 
-def errorSummary(fd):
+def errorSummary(fd:dict):
     pass
 
-def volumeSummar(fd):
+def volumeSummary(fd:dict):
     pass
 
-def generateReport(filteredData:dict):
+def generateReport(fd:dict):
     pass
 
 
