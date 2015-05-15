@@ -5,7 +5,7 @@ from config import conn as c
 import re
 import csv
 
-DATA_DIR = os.path.expanduser('~/curation/data/transcodes/')
+DATA_DIR = os.path.expanduser('~/curation/data/transcode_data/')
 
 sqlQuery = "SELECT * FROM transcode LEFT JOIN asset ON (transcode.asset = asset.id);"
 
@@ -30,7 +30,7 @@ def getData(cursor):
 
 def filterErrors(data:list) -> dict:
     terrors = {d[9]:[] for d in data}
-    pattern = re.compile(r'\[(\w+)\s@\s\w+\](.*)')
+    pattern = re.compile(r'\[([\w,;]+)\s@\s\w+\](.*)')
     for d in data:
         if d[7] != None:
             logtext = d[7]
@@ -40,9 +40,19 @@ def filterErrors(data:list) -> dict:
             for line in loglines:
                 m = re.match(pattern, line) 
                 if m:
-                    terrors[d[9]].append({'asset': d[1], 
-                                          'msg_group': m.group(1).strip(), 
-                                          'msg':m.group(2).strip()})
+                    codec = m.group(1).strip()
+                    msg = m.group(2).strip()
+                    if "ac-tex" in msg:
+                        fam = msg.split("at")[0]
+                    elif "incomplete frame" in msg:
+                        fam = msg.split(':')[0].strip()
+                    else: 
+                        fam = msg
+                    terrors[d[9]].append({'asset': d[1],
+                                          'options': d[4],
+                                          'error_family': fam, 
+                                          'error': msg, 
+                                          'codec': codec})
     return terrors
 
 def filteredDataFrame(fdata:dict):
@@ -56,15 +66,18 @@ def filteredDataFrame(fdata:dict):
 def outputFilteredCSV(fdata:dict):
     DATA_FNAME = "transcode_errors_" + str(int(time.time())) + '.csv'
     output_path = DATA_DIR + DATA_FNAME
-    #with open(output_path, 'w+') as dfile:
-    with open(DATA_FNAME, 'w+') as dfile:
+    with open(output_path, 'w+') as dfile:
         dfile_writer = csv.writer(dfile)
-        head = ["volume", "asset", "error_text", "codec"]
+        head = ["volume", "asset", "options" "error", "error_family", "codec"]
         dfile_writer.writerow(head)
         for d in fdata:
             for i in fdata[d]:
-                row = [d, i["asset"], i["msg"], i["msg_group"]]
+                row = [d, i["asset"], i['options'], i["error"], i["error_family"], i["codec"]]
                 dfile_writer.writerow(row)
+
+
+
+#TODO - the following if we want reports
 
 def errorsByVolume(errors):
     for k in sorted(errors):
@@ -84,8 +97,6 @@ def generateReport(fd:dict):
 
 
 
-'''notes: 1) incomplete frame is followed by a new line and Error while decoding stream ??
-          2) Mutiple frames in a packet from stream _ not begining with memory location
-          3) what kind of reports do we need
-                - aggregate '''
-          
+# NOTE - Mutiple frames in a packet from stream _ not begining with memory location
+# NOTE - Guessed Channel Layout for  Input Stream #0.1 : stereo
+# NOTE - Error while decoding stream #0:1: Invalid data found when processing input
