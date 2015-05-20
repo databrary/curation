@@ -1,11 +1,12 @@
 import ezid_api
+import logging #need to make use of this over printing
 import psycopg2
 import hashlib
 from config import conn as c
 
 target_path = "https://example.org"
 
-sqlQueryAll = ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
+sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
             "FROM volume_access va1 "
             "JOIN ("
             "SELECT DISTINCT volume "
@@ -16,14 +17,14 @@ sqlQueryAll = ("SELECT v.id as target, volume_creation(v.id), v.name as title, C
             "INNER JOIN party p ON p.id = va1.party "
             "WHERE va1.individual = 'ADMIN' "
             "ORDER BY target;"
-            ) 
-sqlGetCitations = "SELECT * FROM volume_citation WHERE volume IN (%s)"
-sqlGetFunders = "SELECT vf.volume, vf.awards, f.name FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"
+            ), 
+       'GetCitations' : "SELECT * FROM volume_citation WHERE volume IN (%s)",
+       'GetFunders' : "SELECT vf.volume, vf.awards, f.name FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"}
 
-def _makeHash(record:dict) -> str:
+def __makeHash(record:dict) -> str:
 	return hashlib.sha256(str(record).encode('UTF-8')).hexdigest()
 
-def _compareHash(record:dict, existing:str) -> bool:
+def __compareHash(record:dict, existing:str) -> bool:
 	return _makeHash(record) == existing
 
 def makeConnection():
@@ -36,22 +37,22 @@ def makeConnection():
 
 def queryAll(cursor) -> list:
     try:
-        cursor.execute(sqlQueryAll)
+        cursor.execute(sql['QueryAll'])
     except Exception as e:
         print("Query for everything failed. Exception: %s" % str(e), file=sys.stderr)
     rows = cursor.fetchall()
     return rows
 
-def getCreators(rs:list) -> dict:
+def _getCreators(rs:list) -> dict:
     '''compile all admin for a volume into a list of creators per volume'''
     creators = {r[0]:[] for r in rs}
     for r in rs:
-        creators[r[0]].append(r[2])
+        creators[r[0]].append(r[3])
     return creators
 
-def getCitations(cursor, vs:str) -> dict:
+def _getCitations(cursor, vs:str) -> dict:
     try:
-        cursor.execute(sqlGetCitations % vs)
+        cursor.execute(sql['GetCitations'] % vs)
     except Exception as e:
         print("Query for citations failed: ", e)
     citations = cursor.fetchall()
@@ -60,9 +61,9 @@ def getCitations(cursor, vs:str) -> dict:
         citation_data[c[0]] = {"cite_head":c[1], "cite_url":c[2], "cite_year":c[3]}
     return citation_data
 
-def getFunders(cursor, vs:str) -> dict:
+def _getFunders(cursor, vs:str) -> dict:
     try:
-        cursor.execute(sqlGetFunders % vs)
+        cursor.execute(sql['GetFunders'] % vs)
     except Exception as e:
         print("Query for funders failed: ", e)
     funders = cursor.fetchall()
@@ -72,17 +73,14 @@ def getFunders(cursor, vs:str) -> dict:
     return funder_data
 
 def makeMetadata(cursor, rs:list) -> list:
-    mdPayload = []
+    metafull = []
     target_base = target_path + "/volume/"
     volumes = ", ".join(list(set([str(r[0]) for r in rs])))
-    citations = getCitations(cursor, volumes)
-    funders = getFunders(cursor, volumes)
-    creators = getCreators(rs)
+    citations = _getCitations(cursor, volumes)
+    funders = _getFunders(cursor, volumes)
+    creators = _getCreators(rs)
     for r in rs:
-        '''check parity here'''
-
-        #This is a sketch of the metadata, will probably need this to be reshaped in the final version
-        mdPayload.append({"_target": target_base + str(r[0]), 
+        metafull.append({"_target": target_base + str(r[0]), 
                           "_profile": "dc", 
                           "_status": "reserved", 
                           "dc.publisher":"Databrary",
@@ -92,6 +90,12 @@ def makeMetadata(cursor, rs:list) -> list:
                           "dc.citation": "{0}({1})".format(citations[r[0]]['cite_head'], citations[r[0]]['cite_year']) if r[0] in citations else None,
                           "dc.funder": "; ".join(str(f['funder'])+"-"+str(f['award_no']) for f in funders[r[0]]) if r[0] in funders else None
                         })
+    #dedupe records (since there's one row for every owner on the volume)
+    mdPayload = []
+    for m in metafull:
+        if m not in mdPayload:
+            mdPayload.append(m)
+    
     return mdPayload
 
 
@@ -99,11 +103,19 @@ def postData(payload:list):
 	ezid_doi_session = ezid_api.ApiSession(scheme='doi')
 	for p in payload:
 		print("I AM NOW SENDING THIS TO THE EZID SERVER [%s]: %s" % (ezid_doi_session, p))
-    #ezid_doi_session.mint(p)
+        #ezid_doi_session.mint(p)
 
 if __name__ == "__main__":
 	print('What do you even want me to do with that?')
-  #cur = makeConnection()
+    #cur = makeConnection()
 	#rows = queryAll(cur)
+    #tosend = makeMetadata(cur, rows)
+    #postData(tosend)
 
 
+'''TODOS:
+   - Logging
+   - Make sure we're checking for all available and all records with DOIs (if has DOI but not available, need to change status to UNAVAILABLE)
+   - Fallback logic for it cannot connect to db or ezid
+   - Fallback logic if data fails to post
+'''
