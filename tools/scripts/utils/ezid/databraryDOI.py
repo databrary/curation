@@ -2,9 +2,11 @@ import ezid_api
 import logging #need to make use of this over printing
 import psycopg2
 import hashlib
+from lxml import etree as e
 from config import conn as c
 
 target_path = "https://example.org"
+
 
 sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
             "FROM volume_access va1 "
@@ -19,7 +21,7 @@ sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as ti
             "ORDER BY target;"
             ), 
        'GetCitations' : "SELECT * FROM volume_citation WHERE volume IN (%s)",
-       'GetFunders' : "SELECT vf.volume, vf.awards, f.name FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"}
+       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"}
 
 def __makeHash(record:dict) -> str:
 	return hashlib.sha256(str(record).encode('UTF-8')).hexdigest()
@@ -69,8 +71,31 @@ def _getFunders(cursor, vs:str) -> dict:
     funders = cursor.fetchall()
     funder_data = {f[0]:[] for f in funders}
     for f in funders:
-        funder_data[f[0]].append({"award_no":f[1], "funder":f[2]})
+        funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
     return funder_data
+
+def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict) -> str:
+    '''taking in a row returned from the database, convert it to datacite xml
+        according to http://ezid.cdlib.org/doc/apidoc.html#metadata-profiles this can
+        be then sent along in the ANVL'''
+    NSMAP = {None:"http://datacite.org/schema/kernel-3",
+         "xsi":"http://www.w3.org/2001/XMLSchema-instance"}
+    xmldoc = e.Element("resource", nsmap=NSMAP)
+    ielem = e.SubElement(xmldoc, "identifier", identifierType="DOI")
+    ielem.text = "(:tba)"
+    crelem = e.SubElement(xmldoc, "creators")
+    felem = e.SubElement(xmldoc, "contributors")
+    for c in creators[volume]:
+        cr = e.SubElement(crelem, "creatorName")
+        cr.text = c
+    if volume in funders.keys():
+        for f in funders[volume]:   
+            ftype = e.SubElement(felem, "contributor", contributorType="Funder")
+            fname = e.SubElement(ftype, "contributorName")
+            fname.text = f['funder']
+            fid = e.SubElement(ftype, "nameIdentifier", schemeUri="http://www.crossref.org/fundref/", nameIdentifierScheme="FundRef")
+            fid.text = str(f['fundref_id'])
+    return e.tostring(xmldoc).decode('utf-8')    
 
 def makeMetadata(cursor, rs:list) -> list:
     metafull = []
@@ -80,15 +105,13 @@ def makeMetadata(cursor, rs:list) -> list:
     funders = _getFunders(cursor, volumes)
     creators = _getCreators(rs)
     for r in rs:
+        xml = _createXMLDoc(r, r[0], creators, funders)
         metafull.append({"_target": target_base + str(r[0]), 
-                          "_profile": "dc", 
+                          "_profile": "datacite", 
                           "_status": "reserved", 
-                          "dc.publisher":"Databrary",
-                          "dc.date": r[1].strftime('%Y-%m-%d'), 
-                          "dc.title":r[2], 
-                          "dc.creator":('; ').join(creators[r[0]]),
-                          "dc.citation": "{0}({1})".format(citations[r[0]]['cite_head'], citations[r[0]]['cite_year']) if r[0] in citations else None,
-                          "dc.funder": "; ".join(str(f['funder'])+"-"+str(f['award_no']) for f in funders[r[0]]) if r[0] in funders else None
+                          "datacite.publisher":"Databrary", 
+                          "datacite.title":r[2], 
+                          "datacite": xml
                         })
     #dedupe records (since there's one row for every owner on the volume)
     mdPayload = []
@@ -102,7 +125,7 @@ def makeMetadata(cursor, rs:list) -> list:
 def postData(payload:list):
 	ezid_doi_session = ezid_api.ApiSession(scheme='doi')
 	for p in payload:
-		print("I AM NOW SENDING THIS TO THE EZID SERVER [%s]: %s" % (ezid_doi_session, p))
+		print("I AM NOW SENDING THIS TO THE EZID SERVER: %s" % (p))
         #ezid_doi_session.mint(p)
 
 if __name__ == "__main__":
@@ -114,8 +137,15 @@ if __name__ == "__main__":
 
 
 '''TODOS:
+   - Generate XML 
+   - Validate XML
+   - Send XML (check if this is possible first)
    - Logging
    - Make sure we're checking for all available and all records with DOIs (if has DOI but not available, need to change status to UNAVAILABLE)
    - Fallback logic for it cannot connect to db or ezid
    - Fallback logic if data fails to post
+
+   "dc.citation": "{0}({1})".format(citations[r[0]]['cite_head'], citations[r[0]]['cite_year']) if r[0] in citations else None,
+   "dc.funder": "; ".join(str(f['funder'])+"-"+str(f['award_no']) for f in funders[r[0]]) if r[0] in funders else None
+   "datacite.creator":('; ').join(creators[r[0]]),
 '''
