@@ -78,16 +78,25 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict) -> str:
     '''taking in a row returned from the database, convert it to datacite xml
         according to http://ezid.cdlib.org/doc/apidoc.html#metadata-profiles this can
         be then sent along in the ANVL'''
-    NSMAP = {None:"http://datacite.org/schema/kernel-3",
-         "xsi":"http://www.w3.org/2001/XMLSchema-instance"}
-    xmldoc = e.Element("resource", nsmap=NSMAP)
+    
+    xmlns="http://datacite.org/schema/kernel-3"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    schemaLocation="https://schema.datacite.org/meta/kernel-3/metadata.xsd"
+    NSMAP = {None:xmlns, "xsi":xsi}
+    xmldoc = e.Element("resource", attrib={"{"+xsi+"}schemaLocation":schemaLocation},  nsmap=NSMAP)
     ielem = e.SubElement(xmldoc, "identifier", identifierType="DOI")
-    ielem.text = "(:tba)"
+    ielem.text = "(:tba)" #need to check on this, if there is already a DOI, put it here.
+    pubelem = e.SubElement(xmldoc, "publisher")
+    pubelem.text = "Databrary"
+    telem = e.SubElement(xmldoc, "titles")
+    title = e.SubElement(telem, "title")
+    title.text = r[2]
     crelem = e.SubElement(xmldoc, "creators")
     felem = e.SubElement(xmldoc, "contributors")
     for c in creators[volume]:
-        cr = e.SubElement(crelem, "creatorName")
-        cr.text = c
+        cr = e.SubElement(crelem, "creator")
+        crname = e.SubElement(cr, "creatorName")
+        crname.text = c
     if volume in funders.keys():
         for f in funders[volume]:   
             ftype = e.SubElement(felem, "contributor", contributorType="Funder")
@@ -109,8 +118,6 @@ def makeMetadata(cursor, rs:list) -> list:
         metafull.append({"_target": target_base + str(r[0]), 
                           "_profile": "datacite", 
                           "_status": "reserved", 
-                          "datacite.publisher":"Databrary", 
-                          "datacite.title":r[2], 
                           "datacite": xml
                         })
     #dedupe records (since there's one row for every owner on the volume)
@@ -121,25 +128,22 @@ def makeMetadata(cursor, rs:list) -> list:
     
     return mdPayload
 
-
 def postData(payload:list):
-	ezid_doi_session = ezid_api.ApiSession(scheme='doi')
-	for p in payload:
-		print("I AM NOW SENDING THIS TO THE EZID SERVER: %s" % (p))
-        #ezid_doi_session.mint(p)
+    ezid_doi_session = ezid_api.ApiSession(scheme='doi')
+    for p in payload:
+        print("now sending %s" % p)
+        ezid_doi_session.mint(p)
 
 if __name__ == "__main__":
-	print('What do you even want me to do with that?')
-    #cur = makeConnection()
-	#rows = queryAll(cur)
-    #tosend = makeMetadata(cur, rows)
-    #postData(tosend)
+    cur = makeConnection()
+    rows = queryAll(cur)
+    tosend = makeMetadata(cur, rows)
+    postData(tosend)
 
 
 '''TODOS:
-   - Generate XML 
+   - Get names from db as lastname first
    - Validate XML
-   - Send XML (check if this is possible first)
    - Logging
    - Make sure we're checking for all available and all records with DOIs (if has DOI but not available, need to change status to UNAVAILABLE)
    - Fallback logic for it cannot connect to db or ezid
