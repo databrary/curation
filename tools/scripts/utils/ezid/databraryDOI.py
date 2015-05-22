@@ -106,6 +106,8 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:
     telem = e.SubElement(xmldoc, "titles")
     title = e.SubElement(telem, "title")
     title.text = row[2]
+    reselem = e.SubElemetn(xmldoc, "resourceType" resourceTypeGeneral="Dataset")
+    reselem.text = "Dataset"
     crelem = e.SubElement(xmldoc, "creators")
     felem = e.SubElement(xmldoc, "contributors")
     for c in creators[volume]:
