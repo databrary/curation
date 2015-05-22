@@ -106,7 +106,7 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:
     telem = e.SubElement(xmldoc, "titles")
     title = e.SubElement(telem, "title")
     title.text = row[2]
-    reselem = e.SubElemetn(xmldoc, "resourceType" resourceTypeGeneral="Dataset")
+    reselem = e.SubElement(xmldoc, "resourceType", resourceTypeGeneral="Dataset")
     reselem.text = "Dataset"
     crelem = e.SubElement(xmldoc, "creators")
     felem = e.SubElement(xmldoc, "contributors")
@@ -127,9 +127,8 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:
             relelem = e.SubElement(xmldoc, "relatedIdentifiers")
             relid = e.SubElement(relelem, "relatedIdentifier", relatedIdentifierType="URL", relationType="IsReferencedBy")
             relid.text = cite_url
-    xmloutput = e.tostring(xmldoc, pretty_print=True, xml_declaration=True).decode('utf-8')  #will not need to decode if this is run on python 2.6. 
-    xmltocheck = e.tostring(xmldoc).decode('utf-8')  #will not need to decode if this is run on python 2.6. 
-    #dv._validateXML(xmltocheck) # this is not ideal because we have to send a (:tba) to ezid, even though that doesn't validate
+    xmloutput = e.tostring(xmldoc).decode('utf-8')  #will not need to decode if this is run on python 2.6. 
+    #dv._validateXML(xmloutput) # this is not ideal because we have to send a (:tba) to ezid, even though that doesn't validate
     return xmloutput
 
 def makeMetadata(cursor, rs:list) -> list:
