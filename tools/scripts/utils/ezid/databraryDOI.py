@@ -4,11 +4,13 @@ import psycopg2
 import hashlib
 from lxml import etree as e
 from config import conn as c
+import datacite_validator as dv
+import datetime
 
 target_path = "https://example.org"
 
 
-sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(prename || ' ', '') || sortname as creator, p.id as party_id, va1.individual as access "
+sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(sortname || ', ', '') || prename as creator, p.id as party_id, va1.individual as access "
             "FROM volume_access va1 "
             "JOIN ("
             "SELECT DISTINCT volume "
@@ -21,6 +23,7 @@ sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as ti
             "ORDER BY target;"
             ), 
        'GetCitations' : "SELECT * FROM volume_citation WHERE volume IN (%s)",
+       'GetPublished' : "SELECT * FROM volume_creation(%s)",
        'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"}
 
 def __makeHash(record:dict) -> str:
@@ -29,6 +32,7 @@ def __makeHash(record:dict) -> str:
 def __compareHash(record:dict, existing:str) -> bool:
 	return _makeHash(record) == existing
 
+#wrap the connection in an object 
 def makeConnection():
 	try:
 		conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
@@ -52,7 +56,7 @@ def _getCreators(rs:list) -> dict:
         creators[r[0]].append(r[3])
     return creators
 
-def _getCitations(cursor, vs:str) -> dict:
+def _getCitations(cursor, vs:list) -> dict:
     try:
         cursor.execute(sql['GetCitations'] % vs)
     except Exception as e:
@@ -63,7 +67,7 @@ def _getCitations(cursor, vs:str) -> dict:
         citation_data[c[0]] = {"cite_head":c[1], "cite_url":c[2], "cite_year":c[3]}
     return citation_data
 
-def _getFunders(cursor, vs:str) -> dict:
+def _getFunders(cursor, vs:list) -> dict:
     try:
         cursor.execute(sql['GetFunders'] % vs)
     except Exception as e:
@@ -74,7 +78,15 @@ def _getFunders(cursor, vs:str) -> dict:
         funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
     return funder_data
 
-def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict) -> str:
+def _getPublished(cursor, v:int):
+    try:
+        cursor.execute(sql['GetPublished'] % v)
+    except Exception as e:
+        print("Query for published dates failed: ", e)
+    published = cursor.fetchone()
+    return str(published[0].year)
+
+def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:dict, publishedyr:str) -> str:
     '''taking in a row returned from the database, convert it to datacite xml
         according to http://ezid.cdlib.org/doc/apidoc.html#metadata-profiles this can
         be then sent along in the ANVL'''
@@ -82,15 +94,18 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict) -> str:
     xmlns="http://datacite.org/schema/kernel-3"
     xsi="http://www.w3.org/2001/XMLSchema-instance"
     schemaLocation="https://schema.datacite.org/meta/kernel-3/metadata.xsd"
+    fundrefURI = "http://data.fundref.org/fundref/funder/"
     NSMAP = {None:xmlns, "xsi":xsi}
     xmldoc = e.Element("resource", attrib={"{"+xsi+"}schemaLocation":schemaLocation},  nsmap=NSMAP)
     ielem = e.SubElement(xmldoc, "identifier", identifierType="DOI")
     ielem.text = "(:tba)" #need to check on this, if there is already a DOI, put it here.
     pubelem = e.SubElement(xmldoc, "publisher")
     pubelem.text = "Databrary"
+    pubyrelem = e.SubElement(xmldoc, "publicationYear")
+    pubyrelem.text = publishedyr
     telem = e.SubElement(xmldoc, "titles")
     title = e.SubElement(telem, "title")
-    title.text = r[2]
+    title.text = row[2]
     crelem = e.SubElement(xmldoc, "creators")
     felem = e.SubElement(xmldoc, "contributors")
     for c in creators[volume]:
@@ -102,9 +117,18 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict) -> str:
             ftype = e.SubElement(felem, "contributor", contributorType="Funder")
             fname = e.SubElement(ftype, "contributorName")
             fname.text = f['funder']
-            fid = e.SubElement(ftype, "nameIdentifier", schemeUri="http://www.crossref.org/fundref/", nameIdentifierScheme="FundRef")
-            fid.text = str(f['fundref_id'])
-    return e.tostring(xmldoc).decode('utf-8')    
+            fid = e.SubElement(ftype, "nameIdentifier", schemeURI=fundrefURI, nameIdentifierScheme="FundRef")
+            fid.text = fundrefURI + str(f['fundref_id'])
+    if volume in citations.keys():
+        cite_url = citations[volume]['cite_url']
+        if cite_url is not None:
+            relelem = e.SubElement(xmldoc, "relatedIdentifiers")
+            relid = e.SubElement(relelem, "relatedIdentifier", relatedIdentifierType="URL", relationType="IsReferencedBy")
+            relid.text = cite_url
+    xmloutput = e.tostring(xmldoc, pretty_print=True, xml_declaration=True).decode('utf-8')  #will not need to decode if this is run on python 2.6. 
+    xmltocheck = e.tostring(xmldoc).decode('utf-8')  #will not need to decode if this is run on python 2.6. 
+    #dv._validateXML(xmltocheck) # this is not ideal because we have to send a (:tba) to ezid, even though that doesn't validate
+    return xmloutput
 
 def makeMetadata(cursor, rs:list) -> list:
     metafull = []
@@ -114,8 +138,10 @@ def makeMetadata(cursor, rs:list) -> list:
     funders = _getFunders(cursor, volumes)
     creators = _getCreators(rs)
     for r in rs:
-        xml = _createXMLDoc(r, r[0], creators, funders)
-        metafull.append({"_target": target_base + str(r[0]), 
+        vol = r[0]
+        publishedyr = _getPublished(cursor, vol)
+        xml = _createXMLDoc(r, vol, creators, funders, citations, publishedyr)
+        metafull.append({"_target": target_base + str(vol), 
                           "_profile": "datacite", 
                           "_status": "reserved", 
                           "datacite": xml
@@ -142,14 +168,9 @@ if __name__ == "__main__":
 
 
 '''TODOS:
-   - Get names from db as lastname first
-   - Validate XML
-   - Logging
-   - Make sure we're checking for all available and all records with DOIs (if has DOI but not available, need to change status to UNAVAILABLE)
-   - Fallback logic for it cannot connect to db or ezid
-   - Fallback logic if data fails to post
-
-   "dc.citation": "{0}({1})".format(citations[r[0]]['cite_head'], citations[r[0]]['cite_year']) if r[0] in citations else None,
-   "dc.funder": "; ".join(str(f['funder'])+"-"+str(f['award_no']) for f in funders[r[0]]) if r[0] in funders else None
-   "datacite.creator":('; ').join(creators[r[0]]),
+    - Logging
+    - wrap db connection in object: http://programmers.stackexchange.com/questions/200522/how-to-deal-with-database-connections-in-a-python-library-module
+    - Make sure we're checking for all available and all records with DOIs (if has DOI but not available, need to change status to UNAVAILABLE)
+    - Fallback logic for it cannot connect to db or ezid
+    - Fallback logic if data fails to post
 '''
