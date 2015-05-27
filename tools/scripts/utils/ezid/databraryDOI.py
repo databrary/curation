@@ -1,5 +1,5 @@
 import ezid_api
-import logging #need to make use of this over printing
+import logging #TODO: replace all prints with this
 import psycopg2
 from lxml import etree as e
 from config import conn as c
@@ -8,23 +8,16 @@ import datetime
 import sys
 
 target_path = "http://databrary.org"
-#TODO: Build out the first query so that it gets volumes with DOIs and checks if they are still shared or not, either way, update record
-#TODO: change QueryAll so that it only pulls those which are without DOIs already.
-sql = { 'QueryDOI' : "SELECT * FROM volume_doi;",
-        'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(sortname || ', ', '') || prename as creator, p.id as party_id, va1.individual as access "
-            "FROM volume_access va1 "
-            "JOIN ("
-            "SELECT DISTINCT volume "
-            "FROM volume_access va "
-            "WHERE (va.party = 0 AND va.individual = 'SHARED') OR (va.party = -1 AND va.individual = 'PUBLIC') "
-            ") va2 USING (volume) "
-            "INNER JOIN volume v ON v.id = va1.volume "
-            "INNER JOIN party p ON p.id = va1.party "
-            "WHERE va1.individual = 'ADMIN' "
+
+sql = { 'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), volume_access_check(v.id, -1) > 'NONE', v.name as title, "
+            "COALESCE(sortname || ', ' || prename, sortname, '') as creator, p.id as party_id, volume_doi.doi, volume_citation.* "
+            "FROM volume v "
+            "LEFT JOIN volume_access va1 ON v.id = va1.volume AND va1.individual = 'ADMIN' "
+            "JOIN party p ON p.id = va1.party "
+            "LEFT JOIN volume_doi ON v.id = volume_doi.volume "
+            "LEFT JOIN volume_citation ON v.id = volume_citation.volume "
             "ORDER BY target;"
             ), 
-       'GetCitations' : "SELECT * FROM volume_citation WHERE volume IN (%s);",
-       'GetPublished' : "SELECT * FROM volume_creation(%s);",
        'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s);"}
 
 #wrap the connection in an object 
@@ -51,17 +44,6 @@ def _getCreators(rs): #rs is a list of rows
         creators[r[0]].append(r[3])
     return creators
 
-def _getCitations(cursor, vs): #vs is a list of volumes -> dict
-    try:
-        cursor.execute(sql['GetCitations'] % vs)
-    except Exception as e:
-        sys.stderr.write("Query for citations failed: ")
-    citations = cursor.fetchall()
-    citation_data = {}
-    for c in citations:
-        citation_data[c[0]] = {"cite_head":c[1], "cite_url":c[2], "cite_year":c[3]}
-    return citation_data
-
 def _getFunders(cursor, vs): #vs is a list of volumes -> dict
     try:
         cursor.execute(sql['GetFunders'] % vs)
@@ -73,19 +55,10 @@ def _getFunders(cursor, vs): #vs is a list of volumes -> dict
         funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
     return funder_data
 
-def _getPublished(cursor, v): #v is a single volume int -> str
-    try:
-        cursor.execute(sql['GetPublished'] % v)
-    except Exception as e:
-        sys.stderr.write("Query for published dates failed: ", e)
-    published = cursor.fetchone()
-    return str(published[0].year)
-
-def _createXMLDoc(row, volume, creators, funders, citations, publishedyr): #tuple, str, dict, dict, dict, str, -> xml str
+def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, dict, dict, str, -> xml str
     '''taking in a row returned from the database, convert it to datacite xml
         according to http://ezid.cdlib.org/doc/apidoc.html#metadata-profiles this can
-        be then sent along in the ANVL'''
-    
+        be then sent along in the ANVL'''  
     xmlns="http://datacite.org/schema/kernel-3"
     xsi="http://www.w3.org/2001/XMLSchema-instance"
     schemaLocation="https://schema.datacite.org/meta/kernel-3/metadata.xsd"
@@ -93,14 +66,14 @@ def _createXMLDoc(row, volume, creators, funders, citations, publishedyr): #tupl
     NSMAP = {None:xmlns, "xsi":xsi}
     xmldoc = e.Element("resource", attrib={"{"+xsi+"}schemaLocation":schemaLocation},  nsmap=NSMAP)
     ielem = e.SubElement(xmldoc, "identifier", identifierType="DOI")
-    ielem.text = "(:tba)" #need to check on this, if there is already a DOI, put it here.
+    ielem.text = "(:tba)" if doi is None else doi
     pubelem = e.SubElement(xmldoc, "publisher")
     pubelem.text = "Databrary"
     pubyrelem = e.SubElement(xmldoc, "publicationYear")
-    pubyrelem.text = publishedyr
+    pubyrelem.text = str(row[1].year) if row[1] is not None else "(:unav)"
     telem = e.SubElement(xmldoc, "titles")
     title = e.SubElement(telem, "title")
-    title.text = row[2].decode('utf-8')
+    title.text = row[3].decode('utf-8')
     reselem = e.SubElement(xmldoc, "resourceType", resourceTypeGeneral="Dataset")
     reselem.text = "Dataset"
     crelem = e.SubElement(xmldoc, "creators")
@@ -116,54 +89,75 @@ def _createXMLDoc(row, volume, creators, funders, citations, publishedyr): #tupl
             fname.text = f['funder'].decode('utf-8')
             fid = e.SubElement(ftype, "nameIdentifier", schemeURI=fundrefURI, nameIdentifierScheme="FundRef")
             fid.text = fundrefURI + str(f['fundref_id'])
-    if volume in citations.keys():
-        cite_url = citations[volume]['cite_url']
-        if cite_url is not None:
-            relelem = e.SubElement(xmldoc, "relatedIdentifiers")
-            relid = e.SubElement(relelem, "relatedIdentifier", relatedIdentifierType="URL", relationType="IsReferencedBy")
-            relid.text = cite_url
-    xmloutput = e.tostring(xmldoc)  #will not need to decode if this is run on python 2.6. 
+    cite_url = row[9]
+    if cite_url is not None:
+        if cite_url.startswith('doi'):
+            cite_url = "http://dx.doi.org/" + cite_url.split(':')[1]
+        relelem = e.SubElement(xmldoc, "relatedIdentifiers")
+        relid = e.SubElement(relelem, "relatedIdentifier", relatedIdentifierType="URL", relationType="IsSupplementTo")
+        relid.text = cite_url
+    xmloutput = e.tostring(xmldoc)
     #dv._validateXML(xmloutput) # this is not ideal because we have to send a (:tba) to ezid, even though that doesn't validate
     return xmloutput
 
-def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
-    metafull = []
+def _generateRecord(status, xml, vol):
     target_base = target_path + "/volume/"
+    record = {"_target": target_base + str(vol), 
+                             "_profile": "datacite", 
+                             "_status": status, 
+                             "datacite": xml
+                            }
+    return record
+
+def _payloadDedupe(records, record_kind):
+    '''dedupe records (since there's one row for every owner on the volume)'''
+    set_list = []
+    for m in records[record_kind]:
+        if m not in set_list:
+            set_list.append(m)
+    return set_list
+
+def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
+    allToUpload = {"mint":[], "modify":[]}
     volumes = ", ".join(list(set([str(r[0]) for r in rs])))
-    citations = _getCitations(cursor, volumes)
     funders = _getFunders(cursor, volumes)
     creators = _getCreators(rs)
     for r in rs:
         vol = r[0]
-        #TODO: check here if a dataset has a doi, but it is not shared
-        status = "public"
-        publishedyr = _getPublished(cursor, vol)
-        xml = _createXMLDoc(r, vol, creators, funders, citations, publishedyr)
-        metafull.append({"_target": target_base + str(vol), 
-                          "_profile": "datacite", 
-                          "_status": status, 
-                          "datacite": xml
-                        })
-    #dedupe records (since there's one row for every owner on the volume)
-    mdPayload = []
-    for m in metafull:
-        if m not in mdPayload:
-            mdPayload.append(m)
-    
+        shared = r[2]
+        vol_doi = r[6]
+        if shared is True and vol_doi is None:
+            status = "public"
+            xml = _createXMLDoc(r, vol, creators, funders)
+            allToUpload['mint'].append(_generateRecord(status, xml, vol))
+        elif shared is not True and vol_doi is not None:
+            status = "unavailable"
+            xml = _createXMLDoc(r, vol, creators, funders, vol_doi)
+            allToUpload['modify'].append({'_id':"doi:"+vol_doi, 'record':_generateRecord(status, xml, vol)})
+        elif shared is True and vol_doi is not None:
+            status = "public"
+            xml = _createXMLDoc(r, vol, creators, funders, vol_doi)
+            allToUpload['modify'].append({'_id':"doi:"+vol_doi, 'record':_generateRecord(status, xml, vol)})
+
+    mdPayload = {'mint':_payloadDedupe(allToUpload, 'mint'), "modify":_payloadDedupe(allToUpload, 'modify')}
     return mdPayload
 
 def postData(payload):
     ezid_doi_session = ezid_api.ApiSession(scheme='doi')
-    for p in payload:
-        print "now sending %s" % p
-        res = ezid_doi_session.mint(p)
-        if res.startswith('doi'):
-            doi = res.split('|')[0].strip().split(':')[1]
-            print "the doi for this resource is: %s" % doi
+    for p in payload['mint']:
+        print "now minting %s" % p
+        mint_res = ezid_doi_session.mint(p)
+        if mint_res.startswith('doi'):
+            curr_doi = res.split('|')[0].strip().split(':')[1]
+            print "the doi for this resource is: %s" % curr_doi
         else:
             print "something appears to have gone wrong, check the script log"
-        #TODO: do something with response - will obviously need it to update the database, also check if success or not.
-        #TODO: use ezid_doi_session.modify(id, p), so need to track minting v. updating (has doi or no doi)
+        #TODO: update database or store in datastructure to update after all done
+    for q in payload['modify']:
+        print "now modifying %s" % q
+        identifier = q['datacite']
+        mod_res = ezid_doi_session.recordModify(q['_id'], q['record'])
+        #TODO: check response here and act accordingly
 
 if __name__ == "__main__":
     cur = makeConnection()
@@ -175,7 +169,6 @@ if __name__ == "__main__":
 '''TODOS:
     - Logging
     - wrap db connection in object: http://programmers.stackexchange.com/questions/200522/how-to-deal-with-database-connections-in-a-python-library-module
-    - Make sure we're checking for all available and all records with DOIs (if has DOI but not available, need to change status to UNAVAILABLE)
     - Fallback logic for it cannot connect to db or ezid
     - Fallback logic if data fails to post
 '''
