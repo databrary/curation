@@ -5,6 +5,7 @@ from lxml import etree as e
 from config import conn as c
 import datacite_validator as dv
 import datetime
+import sys
 
 target_path = "http://databrary.org"
 #TODO: Build out the first query so that it gets volumes with DOIs and checks if they are still shared or not, either way, update record
@@ -31,56 +32,56 @@ def makeConnection():
 	try:
 		conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
 	except Exception as e:
-		print("Unable to connect to database. Exception: %s" % str(e), file=sys.stderr) 
+		sys.stderr.write("Unable to connect to database. Exception: %s" % str(e))
 
 	return conn.cursor()
 
-def queryAll(cursor) -> list:
+def queryAll(cursor):
     try:
         cursor.execute(sql['QueryAll'])
     except Exception as e:
-        print("Query for everything failed. Exception: %s" % str(e), file=sys.stderr)
+        sys.stderr.write("Query for everything failed. Exception: %s" % str(e))
     rows = cursor.fetchall()
     return rows
 
-def _getCreators(rs:list) -> dict:
+def _getCreators(rs): #rs is a list of rows
     '''compile all admin for a volume into a list of creators per volume'''
     creators = {r[0]:[] for r in rs}
     for r in rs:
         creators[r[0]].append(r[3])
     return creators
 
-def _getCitations(cursor, vs:list) -> dict:
+def _getCitations(cursor, vs): #vs is a list of volumes -> dict
     try:
         cursor.execute(sql['GetCitations'] % vs)
     except Exception as e:
-        print("Query for citations failed: ", e)
+        sys.stderr.write("Query for citations failed: ")
     citations = cursor.fetchall()
     citation_data = {}
     for c in citations:
         citation_data[c[0]] = {"cite_head":c[1], "cite_url":c[2], "cite_year":c[3]}
     return citation_data
 
-def _getFunders(cursor, vs:list) -> dict:
+def _getFunders(cursor, vs): #vs is a list of volumes -> dict
     try:
         cursor.execute(sql['GetFunders'] % vs)
     except Exception as e:
-        print("Query for funders failed: ", e)
+        sys.stderr.write("Query for funders failed: ", e)
     funders = cursor.fetchall()
     funder_data = {f[0]:[] for f in funders}
     for f in funders:
         funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
     return funder_data
 
-def _getPublished(cursor, v:int):
+def _getPublished(cursor, v): #v is a single volume int -> str
     try:
         cursor.execute(sql['GetPublished'] % v)
     except Exception as e:
-        print("Query for published dates failed: ", e)
+        sys.stderr.write("Query for published dates failed: ", e)
     published = cursor.fetchone()
     return str(published[0].year)
 
-def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:dict, publishedyr:str) -> str:
+def _createXMLDoc(row, volume, creators, funders, citations, publishedyr): #tuple, str, dict, dict, dict, str, -> xml str
     '''taking in a row returned from the database, convert it to datacite xml
         according to http://ezid.cdlib.org/doc/apidoc.html#metadata-profiles this can
         be then sent along in the ANVL'''
@@ -99,7 +100,7 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:
     pubyrelem.text = publishedyr
     telem = e.SubElement(xmldoc, "titles")
     title = e.SubElement(telem, "title")
-    title.text = row[2]
+    title.text = row[2].decode('utf-8')
     reselem = e.SubElement(xmldoc, "resourceType", resourceTypeGeneral="Dataset")
     reselem.text = "Dataset"
     crelem = e.SubElement(xmldoc, "creators")
@@ -107,12 +108,12 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:
     for c in creators[volume]:
         cr = e.SubElement(crelem, "creator")
         crname = e.SubElement(cr, "creatorName")
-        crname.text = c
+        crname.text = c.decode('utf-8')
     if volume in funders.keys():
         for f in funders[volume]:   
             ftype = e.SubElement(felem, "contributor", contributorType="Funder")
             fname = e.SubElement(ftype, "contributorName")
-            fname.text = f['funder']
+            fname.text = f['funder'].decode('utf-8')
             fid = e.SubElement(ftype, "nameIdentifier", schemeURI=fundrefURI, nameIdentifierScheme="FundRef")
             fid.text = fundrefURI + str(f['fundref_id'])
     if volume in citations.keys():
@@ -121,11 +122,11 @@ def _createXMLDoc(row:tuple, volume:str, creators:dict, funders:dict, citations:
             relelem = e.SubElement(xmldoc, "relatedIdentifiers")
             relid = e.SubElement(relelem, "relatedIdentifier", relatedIdentifierType="URL", relationType="IsReferencedBy")
             relid.text = cite_url
-    xmloutput = e.tostring(xmldoc).decode('utf-8')  #will not need to decode if this is run on python 2.6. 
+    xmloutput = e.tostring(xmldoc)  #will not need to decode if this is run on python 2.6. 
     #dv._validateXML(xmloutput) # this is not ideal because we have to send a (:tba) to ezid, even though that doesn't validate
     return xmloutput
 
-def makeMetadata(cursor, rs:list) -> list:
+def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
     metafull = []
     target_base = target_path + "/volume/"
     volumes = ", ".join(list(set([str(r[0]) for r in rs])))
@@ -151,11 +152,16 @@ def makeMetadata(cursor, rs:list) -> list:
     
     return mdPayload
 
-def postData(payload:list):
+def postData(payload):
     ezid_doi_session = ezid_api.ApiSession(scheme='doi')
     for p in payload:
-        print("now sending %s" % p)
+        print "now sending %s" % p
         res = ezid_doi_session.mint(p)
+        if res.startswith('doi'):
+            doi = res.split('|')[0].strip().split(':')[1]
+            print "the doi for this resource is: %s" % doi
+        else:
+            print "something appears to have gone wrong, check the script log"
         #TODO: do something with response - will obviously need it to update the database, also check if success or not.
         #TODO: use ezid_doi_session.modify(id, p), so need to track minting v. updating (has doi or no doi)
 
