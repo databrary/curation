@@ -1,16 +1,16 @@
 import ezid_api
 import logging #need to make use of this over printing
 import psycopg2
-import hashlib
 from lxml import etree as e
 from config import conn as c
 import datacite_validator as dv
 import datetime
 
-target_path = "https://example.org"
-
-
-sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(sortname || ', ', '') || prename as creator, p.id as party_id, va1.individual as access "
+target_path = "http://databrary.org"
+#TODO: Build out the first query so that it gets volumes with DOIs and checks if they are still shared or not, either way, update record
+#TODO: change QueryAll so that it only pulls those which are without DOIs already.
+sql = { 'QueryDOI' : "SELECT * FROM volume_doi;",
+        'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as title, COALESCE(sortname || ', ', '') || prename as creator, p.id as party_id, va1.individual as access "
             "FROM volume_access va1 "
             "JOIN ("
             "SELECT DISTINCT volume "
@@ -22,15 +22,9 @@ sql = {'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), v.name as ti
             "WHERE va1.individual = 'ADMIN' "
             "ORDER BY target;"
             ), 
-       'GetCitations' : "SELECT * FROM volume_citation WHERE volume IN (%s)",
-       'GetPublished' : "SELECT * FROM volume_creation(%s)",
-       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s)"}
-
-def __makeHash(record:dict) -> str:
-	return hashlib.sha256(str(record).encode('UTF-8')).hexdigest()
-
-def __compareHash(record:dict, existing:str) -> bool:
-	return _makeHash(record) == existing
+       'GetCitations' : "SELECT * FROM volume_citation WHERE volume IN (%s);",
+       'GetPublished' : "SELECT * FROM volume_creation(%s);",
+       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s);"}
 
 #wrap the connection in an object 
 def makeConnection():
@@ -140,11 +134,13 @@ def makeMetadata(cursor, rs:list) -> list:
     creators = _getCreators(rs)
     for r in rs:
         vol = r[0]
+        #TODO: check here if a dataset has a doi, but it is not shared
+        status = "public"
         publishedyr = _getPublished(cursor, vol)
         xml = _createXMLDoc(r, vol, creators, funders, citations, publishedyr)
         metafull.append({"_target": target_base + str(vol), 
                           "_profile": "datacite", 
-                          "_status": "reserved", 
+                          "_status": status, 
                           "datacite": xml
                         })
     #dedupe records (since there's one row for every owner on the volume)
@@ -159,7 +155,9 @@ def postData(payload:list):
     ezid_doi_session = ezid_api.ApiSession(scheme='doi')
     for p in payload:
         print("now sending %s" % p)
-        ezid_doi_session.mint(p)
+        res = ezid_doi_session.mint(p)
+        #TODO: do something with response - will obviously need it to update the database, also check if success or not.
+        #TODO: use ezid_doi_session.modify(id, p), so need to track minting v. updating (has doi or no doi)
 
 if __name__ == "__main__":
     cur = makeConnection()
