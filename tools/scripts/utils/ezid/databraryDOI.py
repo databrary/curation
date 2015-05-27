@@ -41,7 +41,7 @@ def _getCreators(rs): #rs is a list of rows
     '''compile all admin for a volume into a list of creators per volume'''
     creators = {r[0]:[] for r in rs}
     for r in rs:
-        creators[r[0]].append(r[3])
+        creators[r[0]].append(r[4])
     return creators
 
 def _getFunders(cursor, vs): #vs is a list of volumes -> dict
@@ -155,7 +155,6 @@ def postData(payload):
         #TODO: update database or store in datastructure to update after all done
     for q in payload['modify']:
         print "now modifying %s" % q
-        identifier = q['datacite']
         mod_res = ezid_doi_session.recordModify(q['_id'], q['record'])
         #TODO: check response here and act accordingly
 
