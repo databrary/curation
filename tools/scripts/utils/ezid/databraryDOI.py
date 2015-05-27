@@ -117,6 +117,10 @@ def _payloadDedupe(records, record_kind):
             set_list.append(m)
     return set_list
 
+def _addDOIS(new_dois):
+    '''takes a list of dois and the volumes they belong to and updates the database'''
+    pass
+
 def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
     allToUpload = {"mint":[], "modify":[]}
     volumes = ", ".join(list(set([str(r[0]) for r in rs])))
@@ -129,7 +133,7 @@ def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
         if shared is True and vol_doi is None:
             status = "public"
             xml = _createXMLDoc(r, vol, creators, funders)
-            allToUpload['mint'].append(_generateRecord(status, xml, vol))
+            allToUpload['mint'].append({"volume":vol, "record":_generateRecord(status, xml, vol)})
         elif shared is not True and vol_doi is not None:
             status = "unavailable"
             xml = _createXMLDoc(r, vol, creators, funders, vol_doi)
@@ -143,19 +147,26 @@ def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
     return mdPayload
 
 def postData(payload):
+    new_dois = []
     ezid_doi_session = ezid_api.ApiSession(scheme='doi')
     for p in payload['mint']:
-        print "now minting %s" % p
-        mint_res = ezid_doi_session.mint(p)
+        volume = p['volume']
+        record = p['record']
+        print "now minting %s" % record
+        mint_res = ezid_doi_session.mint(record)
         if mint_res.startswith('doi'):
             curr_doi = res.split('|')[0].strip().split(':')[1]
-            print "the doi for this resource is: %s" % curr_doi
+            print "the doi for volume %s is: %s" % (curr_doi)
+            new_dois.append({'vol':volume, 'doi':curr_doi})
         else:
             print "something appears to have gone wrong, check the script log"
-        #TODO: update database or store in datastructure to update after all done
+    _addDOIs(new_dois)
+
     for q in payload['modify']:
+        identifier = q['_id']
+        record = q['record']
         print "now modifying %s" % q
-        mod_res = ezid_doi_session.recordModify(q['_id'], q['record'])
+        mod_res = ezid_doi_session.recordModify(identifier, record)
         #TODO: check response here and act accordingly
 
 if __name__ == "__main__":
