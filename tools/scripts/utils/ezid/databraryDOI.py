@@ -7,6 +7,13 @@ import datacite_validator as dv
 import datetime
 import sys
 
+
+'''TODOS:
+    - Logging
+    - Fallback logic for it cannot connect to db or ezid
+    - Fallback logic if data fails to post
+'''
+
 target_path = "http://databrary.org"
 
 sql = { 'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), volume_access_check(v.id, -1) > 'NONE', v.name as title, "
@@ -18,42 +25,48 @@ sql = { 'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), volume_acce
             "LEFT JOIN volume_citation ON v.id = volume_citation.volume "
             "ORDER BY target;"
             ), 
-       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s);"}
+       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s);", 
+       'AddDOI' : "INSERT into volume_doi VALUES (%d, %s)"}
 
-#wrap the connection in an object 
-def makeConnection():
-	try:
-		conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
-	except Exception as e:
-		sys.stderr.write("Unable to connect to database. Exception: %s" % str(e))
+class dbDB(object):
+    _conn = None
+    _cur = None
 
-	return conn.cursor()
+    def __init__(self):
+        try:
+            self._conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
+        except Exception as e:
+            sys.stderr.write("Unable to connect to database. Exception: %s" % str(e))
+        self._cur = self._conn.cursor()
 
-def queryAll(cursor):
-    try:
-        cursor.execute(sql['QueryAll'])
-    except Exception as e:
-        sys.stderr.write("Query for everything failed. Exception: %s" % str(e))
-    rows = cursor.fetchall()
-    return rows
+    def __del__(self):
+        return self._conn.close()
 
-def _getCreators(rs): #rs is a list of rows
-    '''compile all admin for a volume into a list of creators per volume'''
-    creators = {r[0]:[] for r in rs}
-    for r in rs:
-        creators[r[0]].append(r[4])
-    return creators
+    def query(self, quer, params=None):
+        return self._cur.execute(query, params)
+        
 
-def _getFunders(cursor, vs): #vs is a list of volumes -> dict
-    try:
-        cursor.execute(sql['GetFunders'] % vs)
-    except Exception as e:
-        sys.stderr.write("Query for funders failed: ", e)
-    funders = cursor.fetchall()
+    def insert(self, insert, params=None):
+        return self._cur.execute(insert, params)
+
+def queryAll(db):
+    db.query(sql['QueryAll'])
+    return db._cur.fetchall()
+
+def _getFunders(db, vs): #vs is a list of volumes -> dict
+    db.query(sql['GetFunders'], vs)
+    funders = db._cur.fetchall()
     funder_data = {f[0]:[] for f in funders}
     for f in funders:
         funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
     return funder_data
+
+def _addDOIS(db, new_dois):
+    '''takes a list of dicts with dois and the volumes they belong to and updates the database with those values'''
+    for i in new_dois:
+        params = [i['vol'], i['doi']]
+        db.insert(sql['AddDOI'], params)
+    db._conn.commit()
 
 def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, dict, dict, str, -> xml str
     '''taking in a row returned from the database, convert it to datacite xml
@@ -100,6 +113,13 @@ def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, 
     #dv._validateXML(xmloutput) # this is not ideal because we have to send a (:tba) to ezid, even though that doesn't validate
     return xmloutput
 
+def _getCreators(rs): #rs is a list of rows
+    '''compile all admin for a volume into a list of creators per volume'''
+    creators = {r[0]:[] for r in rs}
+    for r in rs:
+        creators[r[0]].append(r[4])
+    return creators
+
 def _generateRecord(status, xml, vol):
     target_base = target_path + "/volume/"
     record = {"_target": target_base + str(vol), 
@@ -117,14 +137,10 @@ def _payloadDedupe(records, record_kind):
             set_list.append(m)
     return set_list
 
-def _addDOIS(new_dois):
-    '''takes a list of dois and the volumes they belong to and updates the database'''
-    pass
-
-def makeMetadata(cursor, rs): #rs is a list -> list of metadata dict
+def makeMetadata(db, rs): #rs is a list -> list of metadata dict
     allToUpload = {"mint":[], "modify":[]}
     volumes = ", ".join(list(set([str(r[0]) for r in rs])))
-    funders = _getFunders(cursor, volumes)
+    funders = _getFunders(db._cur, volumes)
     creators = _getCreators(rs)
     for r in rs:
         vol = r[0]
@@ -170,15 +186,7 @@ def postData(payload):
         #TODO: check response here and act accordingly
 
 if __name__ == "__main__":
-    cur = makeConnection()
-    rows = queryAll(cur)
-    tosend = makeMetadata(cur, rows)
+    db = dbDB()
+    rows = queryAll(db._cur)
+    tosend = makeMetadata(db, rows)
     postData(tosend)
-
-
-'''TODOS:
-    - Logging
-    - wrap db connection in object: http://programmers.stackexchange.com/questions/200522/how-to-deal-with-database-connections-in-a-python-library-module
-    - Fallback logic for it cannot connect to db or ezid
-    - Fallback logic if data fails to post
-'''
