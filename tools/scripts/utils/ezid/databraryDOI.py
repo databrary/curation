@@ -25,7 +25,7 @@ sql = { 'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), volume_acce
             "LEFT JOIN volume_citation ON v.id = volume_citation.volume "
             "ORDER BY target;"
             ), 
-       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN (%s);", 
+       'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN %s;", 
        'AddDOI' : "INSERT into volume_doi VALUES (%d, %s)"}
 
 class dbDB(object):
@@ -42,7 +42,7 @@ class dbDB(object):
     def __del__(self):
         return self._conn.close()
 
-    def query(self, quer, params=None):
+    def query(self, query, params=None):
         return self._cur.execute(query, params)
         
 
@@ -54,7 +54,7 @@ def queryAll(db):
     return db._cur.fetchall()
 
 def _getFunders(db, vs): #vs is a list of volumes -> dict
-    db.query(sql['GetFunders'], vs)
+    db.query(sql['GetFunders'], (vs,))
     funders = db._cur.fetchall()
     funder_data = {f[0]:[] for f in funders}
     for f in funders:
@@ -64,8 +64,8 @@ def _getFunders(db, vs): #vs is a list of volumes -> dict
 def _addDOIS(db, new_dois):
     '''takes a list of dicts with dois and the volumes they belong to and updates the database with those values'''
     for i in new_dois:
-        params = [i['vol'], i['doi']]
-        db.insert(sql['AddDOI'], params)
+        params = (i['vol'], i['doi'])
+        db.insert(sql['AddDOI'], (params,))
     db._conn.commit()
 
 def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, dict, dict, str, -> xml str
@@ -139,8 +139,8 @@ def _payloadDedupe(records, record_kind):
 
 def makeMetadata(db, rs): #rs is a list -> list of metadata dict
     allToUpload = {"mint":[], "modify":[]}
-    volumes = ", ".join(list(set([str(r[0]) for r in rs])))
-    funders = _getFunders(db._cur, volumes)
+    volumes = tuple(set([r[0] for r in rs]))
+    funders = _getFunders(db, volumes)
     creators = _getCreators(rs)
     for r in rs:
         vol = r[0]
@@ -162,7 +162,7 @@ def makeMetadata(db, rs): #rs is a list -> list of metadata dict
     mdPayload = {'mint':_payloadDedupe(allToUpload, 'mint'), "modify":_payloadDedupe(allToUpload, 'modify')}
     return mdPayload
 
-def postData(payload):
+def postData(db, payload):
     new_dois = []
     ezid_doi_session = ezid_api.ApiSession(scheme='doi')
     for p in payload['mint']:
@@ -171,12 +171,12 @@ def postData(payload):
         print "now minting %s" % record
         mint_res = ezid_doi_session.mint(record)
         if mint_res.startswith('doi'):
-            curr_doi = res.split('|')[0].strip().split(':')[1]
-            print "the doi for volume %s is: %s" % (curr_doi)
+            curr_doi = mint_res.split('|')[0].strip().split(':')[1]
+            print "the doi for volume %s is: %s" % (volume, curr_doi)
             new_dois.append({'vol':volume, 'doi':curr_doi})
         else:
             print "something appears to have gone wrong, check the script log"
-    _addDOIs(new_dois)
+    _addDOIS(db, new_dois)
 
     for q in payload['modify']:
         identifier = q['_id']
@@ -187,6 +187,6 @@ def postData(payload):
 
 if __name__ == "__main__":
     db = dbDB()
-    rows = queryAll(db._cur)
+    rows = queryAll(db)
     tosend = makeMetadata(db, rows)
-    postData(tosend)
+    postData(db, tosend)
