@@ -26,7 +26,7 @@ sql = { 'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), volume_acce
             "ORDER BY target;"
             ), 
        'GetFunders' : "SELECT vf.volume, vf.awards, f.name, f.fundref_id FROM volume_funding vf LEFT JOIN funder f ON vf.funder = f.fundref_id WHERE volume IN %s;", 
-       'AddDOI' : "INSERT into volume_doi VALUES (%d, %s)"}
+       'AddDOI' : "INSERT into volume_doi VALUES (%s, %s)"}
 
 class dbDB(object):
     _conn = None
@@ -53,7 +53,7 @@ def queryAll(db):
     db.query(sql['QueryAll'])
     return db._cur.fetchall()
 
-def _getFunders(db, vs): #vs is a list of volumes -> dict
+def _getFunders(db, vs): #vs is a tuple of volume ids -> dict
     db.query(sql['GetFunders'], (vs,))
     funders = db._cur.fetchall()
     funder_data = {f[0]:[] for f in funders}
@@ -65,7 +65,7 @@ def _addDOIS(db, new_dois):
     '''takes a list of dicts with dois and the volumes they belong to and updates the database with those values'''
     for i in new_dois:
         params = (i['vol'], i['doi'])
-        db.insert(sql['AddDOI'], (params,))
+        db.insert(sql['AddDOI'], params)
     db._conn.commit()
 
 def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, dict, dict, str, -> xml str
@@ -190,3 +190,4 @@ if __name__ == "__main__":
     rows = queryAll(db)
     tosend = makeMetadata(db, rows)
     postData(db, tosend)
+    del db
