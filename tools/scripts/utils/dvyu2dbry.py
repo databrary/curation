@@ -3,7 +3,7 @@ import csv_helpers as ch
 import time
 import sys
 
-DVYU_OUTPUT = sys.argv[1] #datavyu file that you want to convert to a set of columns for csv2json.py
+DVYU_OUTPUT = sys.argv[1] #datavyu csv output file that you want to convert to a set of columns for csv2json.py
 PATH_PARTS = DVYU_OUTPUT.split('/')
 PATH_PARTS.pop()
 PATH = ('/').join(PATH_PARTS)
