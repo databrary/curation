@@ -17,7 +17,7 @@ import sys
 target_path = "http://databrary.org"
 
 sql = { 'QueryAll' : ("SELECT v.id as target, volume_creation(v.id), volume_access_check(v.id, -1) > 'NONE', v.name as title, "
-            "COALESCE(sortname || ', ' || prename, sortname, '') as creator, p.id as party_id, volume_doi.doi, volume_citation.* "
+            "COALESCE(sortname || ', ' || prename, sortname, '') as creator, p.id as party_id, volume_doi.doi, volume_citation.*, v.body "
             "FROM volume v "
             "LEFT JOIN volume_access va1 ON v.id = va1.volume AND va1.individual = 'ADMIN' "
             "JOIN party p ON p.id = va1.party "
@@ -71,7 +71,12 @@ def _addDOIS(db, new_dois):
 def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, dict, dict, str, -> xml str
     '''taking in a row returned from the database, convert it to datacite xml
         according to http://ezid.cdlib.org/doc/apidoc.html#metadata-profiles this can
-        be then sent along in the ANVL'''  
+        be then sent along in the ANVL'''
+    vol_date = row[1]
+    vol_title = row[3].decode('utf-8') if row[3] is not None else "(:unav)"
+    cite_url = row[9]
+    vol_body = row[11].decode('utf-8') if row[11] is not None else "(:unav)"
+    print vol_body
     xmlns="http://datacite.org/schema/kernel-3"
     xsi="http://www.w3.org/2001/XMLSchema-instance"
     schemaLocation="https://schema.datacite.org/meta/kernel-3/metadata.xsd"
@@ -83,12 +88,15 @@ def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, 
     pubelem = e.SubElement(xmldoc, "publisher")
     pubelem.text = "Databrary"
     pubyrelem = e.SubElement(xmldoc, "publicationYear")
-    pubyrelem.text = str(row[1].year) if row[1] is not None else "(:unav)"
+    pubyrelem.text = str(vol_date.year) if vol_date is not None else "(:unav)"
     telem = e.SubElement(xmldoc, "titles")
     title = e.SubElement(telem, "title")
-    title.text = row[3].decode('utf-8')
+    title.text = vol_title
     reselem = e.SubElement(xmldoc, "resourceType", resourceTypeGeneral="Dataset")
     reselem.text = "Dataset"
+    descelem = e.SubElement(xmldoc, "descriptions")
+    description = e.SubElement(descelem, "description", descriptionType="Abstract")
+    description.text = vol_body if vol_body is not None else "(:unav)"
     crelem = e.SubElement(xmldoc, "creators")
     felem = e.SubElement(xmldoc, "contributors")
     for c in creators[volume]:
@@ -102,7 +110,6 @@ def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, 
             fname.text = f['funder'].decode('utf-8')
             fid = e.SubElement(ftype, "nameIdentifier", schemeURI=fundrefURI, nameIdentifierScheme="FundRef")
             fid.text = fundrefURI + str(f['fundref_id'])
-    cite_url = row[9]
     if cite_url is not None:
         if cite_url.startswith('doi'):
             cite_url = "http://dx.doi.org/" + cite_url.split(':')[1]
@@ -181,8 +188,13 @@ def postData(db, payload):
     for q in payload['modify']:
         identifier = q['_id']
         record = q['record']
+        new_status = record['_status']
         print "now modifying %s" % q
         mod_res = ezid_doi_session.recordModify(identifier, record)
+        if new_status == 'unavailable':
+            status_res = ezid_doi_session.makeUnavailable(identifier)
+        elif new_status == 'public':
+            status_res = ezid_doi_session.makePublic(identifier)
         #TODO: check response here and act accordingly
 
 if __name__ == "__main__":
