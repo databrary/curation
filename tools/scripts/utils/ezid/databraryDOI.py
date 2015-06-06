@@ -191,10 +191,6 @@ def postData(db, payload):
         new_status = record['_status']
         print "now modifying %s" % q
         mod_res = ezid_doi_session.recordModify(identifier, record)
-        if new_status == 'unavailable':
-            status_res = ezid_doi_session.makeUnavailable(identifier)
-        elif new_status == 'public':
-            status_res = ezid_doi_session.makePublic(identifier)
         #TODO: check response here and act accordingly
 
 if __name__ == "__main__":
