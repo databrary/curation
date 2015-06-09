@@ -1,18 +1,49 @@
 import ezid_api
-import logging #TODO: replace all prints with this
+import logging 
 import psycopg2
 from lxml import etree as e
 from config import conn as c
 import datacite_validator as dv
 import datetime
-import sys
-
+import sys, os
 
 '''TODOS:
-    - Logging
     - Fallback logic for it cannot connect to db or ezid
     - Fallback logic if data fails to post
 '''
+LOG_PATH = './logs/'
+LOG_FILE = 'ezidlog.log'
+LOG_DEST = LOG_PATH + LOG_FILE
+MAX_LOG_SIZE = 10000000
+logger = logging.getLogger('ezidlog')
+currlog = logging.FileHandler(__setup_log())
+FORMAT = '%(asctime)-15s %(message)s'
+formatter = logging.Formatter(FORMAT)
+currlog.setFormatter(formatter)
+logger.addHandler(currlog)
+def __setup_log():
+    if not os.path.exists(LOG_PATH):
+        os.mkdir(LOG_PATH)
+    if not os.path.isfile(LOG_DEST}):
+        logfile = open(LOG_DEST, 'w+') 
+    else: 
+        stats = os.stat(LOG_DEST)
+        size = stats.st_size
+        if size > MAX_LOG_SIZE:
+            existing_logs = os.listdir(LOG_PATH)
+            if len(existing_logs) > 1:
+                copies = [int(i.split('_')[1].split('.')[0]) for i in existing_logs]
+                increment = max(copies) + 1
+                newdest = LOG_PATH + 'ezidlog_' + increment + '.log' 
+                os.rename(LOG_DEST, newdest)
+                logfile = open(LOG_DEST, 'w+')
+            else:    
+                newdest = LOGPATH + 'ezidlog_0.log'
+                os.rename(LOG_DEST, newdest)
+                logfile = open(LOG_DEST, 'w+')
+    return logfile
+
+
 
 target_path = "http://databrary.org"
 
@@ -36,7 +67,7 @@ class dbDB(object):
         try:
             self._conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
         except Exception as e:
-            sys.stderr.write("Unable to connect to database. Exception: %s" % str(e))
+            logger.error("Unable to connect to database. Exception: %s" % str(e))
         self._cur = self._conn.cursor()
 
     def __del__(self):
@@ -76,7 +107,6 @@ def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, 
     vol_title = row[3].decode('utf-8') if row[3] is not None else "(:unav)"
     cite_url = row[9]
     vol_body = row[11].decode('utf-8') if row[11] is not None else "(:unav)"
-    print vol_body
     xmlns="http://datacite.org/schema/kernel-3"
     xsi="http://www.w3.org/2001/XMLSchema-instance"
     schemaLocation="https://schema.datacite.org/meta/kernel-3/metadata.xsd"
@@ -181,8 +211,9 @@ def postData(db, payload):
             curr_doi = mint_res.split('|')[0].strip().split(':')[1]
             print "the doi for volume %s is: %s" % (volume, curr_doi)
             new_dois.append({'vol':volume, 'doi':curr_doi})
+            logger.info('minted doi: %s for volume %s' % (volume, curr_doi))
         else:
-            print "something appears to have gone wrong, check the script log"
+            logger.error('something appears to have gone wrong minting a DOI for volume %s, check the script log %s' % (volume, mint_res))
     _addDOIS(db, new_dois)
 
     for q in payload['modify']:
@@ -191,9 +222,13 @@ def postData(db, payload):
         new_status = record['_status']
         print "now modifying %s" % q
         mod_res = ezid_doi_session.recordModify(identifier, record)
-        #TODO: check response here and act accordingly
+        if mod_res == XXX:
+            logger.info('%s successfully modified' % identifier)
+        elif mod_res.startswith('ERROR'):
+            logger.error('there has been an error with %s: %s' % (identifier, mod_res))
 
 if __name__ == "__main__":
+    __setup_logger()
     db = dbDB()
     rows = queryAll(db)
     tosend = makeMetadata(db, rows)
