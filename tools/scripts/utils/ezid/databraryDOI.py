@@ -15,16 +15,11 @@ LOG_PATH = './logs/'
 LOG_FILE = 'ezidlog.log'
 LOG_DEST = LOG_PATH + LOG_FILE
 MAX_LOG_SIZE = 10000000
-logger = logging.getLogger('ezidlog')
-currlog = logging.FileHandler(__setup_log())
-FORMAT = '%(asctime)-15s %(message)s'
-formatter = logging.Formatter(FORMAT)
-currlog.setFormatter(formatter)
-logger.addHandler(currlog)
+
 def __setup_log():
     if not os.path.exists(LOG_PATH):
         os.mkdir(LOG_PATH)
-    if not os.path.isfile(LOG_DEST}):
+    if not os.path.isfile(LOG_DEST):
         logfile = open(LOG_DEST, 'w+') 
     else: 
         stats = os.stat(LOG_DEST)
@@ -41,9 +36,16 @@ def __setup_log():
                 newdest = LOGPATH + 'ezidlog_0.log'
                 os.rename(LOG_DEST, newdest)
                 logfile = open(LOG_DEST, 'w+')
+        else:
+            logfile = open(LOG_DEST, 'w+') 
     return logfile
 
-
+logger = logging.getLogger('ezidlog')
+currlog = logging.FileHandler(__setup_log())
+FORMAT = '%(asctime)-15s %(message)s'
+formatter = logging.Formatter(FORMAT)
+currlog.setFormatter(formatter)
+logger.addHandler(currlog)
 
 target_path = "http://databrary.org"
 
@@ -222,9 +224,9 @@ def postData(db, payload):
         new_status = record['_status']
         print "now modifying %s" % q
         mod_res = ezid_doi_session.recordModify(identifier, record)
-        if mod_res == XXX:
+        if type(mod_res) == dict:
             logger.info('%s successfully modified' % identifier)
-        elif mod_res.startswith('ERROR'):
+        elif mod_res.startswith('error'):
             logger.error('there has been an error with %s: %s' % (identifier, mod_res))
 
 if __name__ == "__main__":
