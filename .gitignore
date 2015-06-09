@@ -21,3 +21,6 @@ third_party/
 
 #mac trash
 *DS_Store
+
+#logs
+logs/
