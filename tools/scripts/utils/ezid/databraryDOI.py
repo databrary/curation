@@ -11,12 +11,17 @@ import sys, os
     - Fallback logic for it cannot connect to db or ezid
     - Fallback logic if data fails to post
 '''
+#set globals
 LOG_PATH = './logs/'
 LOG_FILE = 'ezidlog.log'
 LOG_DEST = LOG_PATH + LOG_FILE
 MAX_LOG_SIZE = 10000000
 
+
 def __setup_log():
+    '''check if the log file exists or not, if not, create if, if so 
+       check if it's at 10mb or less. If more, we want to create a new one
+       and move the log file to a stored version'''
     if not os.path.exists(LOG_PATH):
         os.mkdir(LOG_PATH)
     if not os.path.isfile(LOG_DEST):
@@ -35,17 +40,20 @@ def __setup_log():
             else:    
                 newdest = LOGPATH + 'ezidlog_0.log'
                 os.rename(LOG_DEST, newdest)
-                logfile = open(LOG_DEST, 'w+')
+                logfile = open(LOG_DEST, 'a')
         else:
-            logfile = open(LOG_DEST, 'w+') 
+            logfile = open(LOG_DEST, 'a') 
     return logfile
+__setup_log()
 
-logger = logging.getLogger('ezidlog')
-currlog = logging.FileHandler(__setup_log())
-FORMAT = '%(asctime)-15s %(message)s'
-formatter = logging.Formatter(FORMAT)
-currlog.setFormatter(formatter)
-logger.addHandler(currlog)
+#Initiate and configure the logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(LOG_DEST)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 target_path = "http://databrary.org"
 
@@ -230,7 +238,6 @@ def postData(db, payload):
             logger.error('there has been an error with %s: %s' % (identifier, mod_res))
 
 if __name__ == "__main__":
-    __setup_logger()
     db = dbDB()
     rows = queryAll(db)
     tosend = makeMetadata(db, rows)
