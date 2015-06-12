@@ -257,7 +257,7 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
                             'name': file_name if file_name is not None else "", 
                             'position': i[0] if file_position is None or file_position == "" else file_position, 
                             'clip': [i[0], i[1]], 
-                            'classification': "", 
+                            'release': "", 
                             'options': ""})
 
     else:
@@ -266,13 +266,13 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
             entries.append({'file': file_path,
                             'name': file_name if file_name is not None else "", 
                             'position': file_position, 
-                            'classification': "", 
+                            'release': "", 
                             'options': ""})
         else:
             entries.append({'file': file_path,
                             'name': file_name if file_name is not None else "", 
                             'position': "", 
-                            'classification': "", 
+                            'release': "", 
                             'options': ""})
 
     return entries
@@ -306,7 +306,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
             ex_positions = ch.assignIfThere('excl_positions', headerIndex, row, None)
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
-            classification = ch.assignIfThere('classification', headerIndex, row, 'RESTRICTED').upper()
+            classification = ch.assignIfThere('classification', headerIndex, row, 'SHARED').upper()
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
             pilot = ch.assignIfThere('pilot', headerIndex, row, None)
             exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
@@ -377,7 +377,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
 
                     for z in asset_entry:
-                        z['classification'] = classification
+                        z['release'] = classification
                         z['options'] = t_options
                         z['position'] = position if z['position'] == '' else z['position']
                         if t_options == '':
@@ -415,7 +415,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     s_curr['date'] = date
                 
                 if consent is not None:
-                    s_curr['consent'] = consent.upper()
+                    s_curr['release'] = consent.upper()
 
                 if dbrary_session_id is not None:
                     s_curr['id'] = dbrary_session_id
