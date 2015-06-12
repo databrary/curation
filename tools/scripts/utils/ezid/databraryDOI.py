@@ -7,10 +7,6 @@ import datacite_validator as dv
 import datetime
 import sys, os
 
-'''TODOS:
-    - Fallback logic for it cannot connect to db or ezid
-    - Fallback logic if data fails to post
-'''
 #set globals
 LOG_PATH = './logs/'
 LOG_FILE = 'ezidlog.log'
@@ -77,7 +73,7 @@ class dbDB(object):
         try:
             self._conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
         except Exception as e:
-            logger.error("Unable to connect to database. Exception: %s" % str(e))
+            logger.error("Unable to connect to database. Exception: %s. Script coming to a screeching halt" % str(e))
         self._cur = self._conn.cursor()
 
     def __del__(self):
@@ -85,29 +81,39 @@ class dbDB(object):
 
     def query(self, query, params=None):
         return self._cur.execute(query, params)
-        
 
     def insert(self, insert, params=None):
         return self._cur.execute(insert, params)
+       
 
 def queryAll(db):
-    db.query(sql['QueryAll'])
-    return db._cur.fetchall()
+    try:
+        db.query(sql['QueryAll'])
+        return db._cur.fetchall()
+    except Exception as e:
+        logger.error("Unable to query database. Exception: %s. Script coming to a screeching halt" % str(e))
 
 def _getFunders(db, vs): #vs is a tuple of volume ids -> dict
-    db.query(sql['GetFunders'], (vs,))
-    funders = db._cur.fetchall()
-    funder_data = {f[0]:[] for f in funders}
-    for f in funders:
-        funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
-    return funder_data
+    try:
+        db.query(sql['GetFunders'], (vs,))
+        funders = db._cur.fetchall()
+        funder_data = {f[0]:[] for f in funders}
+        for f in funders:
+            funder_data[f[0]].append({"award_no":f[1], "funder":f[2], "fundref_id":f[3]})
+        return funder_data
+    except Exception as e:
+        logger.error("Unable to query database. Exception: %s. Script coming to a screeching halt" % str(e))
 
 def _addDOIS(db, new_dois):
     '''takes a list of dicts with dois and the volumes they belong to and updates the database with those values'''
-    for i in new_dois:
-        params = (i['vol'], i['doi'])
-        db.insert(sql['AddDOI'], params)
-    db._conn.commit()
+
+    try:
+        for i in new_dois:
+            params = (i['vol'], i['doi'])
+            db.insert(sql['AddDOI'], params)
+        db._conn.commit()
+    except Exception as e:
+            logger.error("Unable to insert to database. Exception: %s. Script coming to a screeching halt" % str(e))
 
 def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, dict, dict, str, -> xml str
     '''taking in a row returned from the database, convert it to datacite xml
@@ -119,7 +125,7 @@ def _createXMLDoc(row, volume, creators, funders, doi=None): #tuple, str, dict, 
     vol_body = row[11].decode('utf-8') if row[11] is not None else "(:unav)"
     xmlns="http://datacite.org/schema/kernel-3"
     xsi="http://www.w3.org/2001/XMLSchema-instance"
-    schemaLocation="https://schema.datacite.org/meta/kernel-3/metadata.xsd"
+    schemaLocation="http://datacite.org/schema/kernel-3 http://schema.datacite.org/meta/kernel-3/metadata.xsd"
     fundrefURI = "http://data.fundref.org/fundref/funder/"
     NSMAP = {None:xmlns, "xsi":xsi}
     xmldoc = e.Element("resource", attrib={"{"+xsi+"}schemaLocation":schemaLocation},  nsmap=NSMAP)
@@ -212,6 +218,7 @@ def makeMetadata(db, rs): #rs is a list -> list of metadata dict
 def postData(db, payload):
     new_dois = []
     ezid_doi_session = ezid_api.ApiSession(scheme='doi')
+    logger.info('minting %s DOIs and modifiying %s existing records' % (str(len(payload['mint'])), str(len(payload['modify']))))
     for p in payload['mint']:
         volume = p['volume']
         record = p['record']
@@ -219,11 +226,10 @@ def postData(db, payload):
         mint_res = ezid_doi_session.mint(record)
         if mint_res.startswith('doi'):
             curr_doi = mint_res.split('|')[0].strip().split(':')[1]
-            print "the doi for volume %s is: %s" % (volume, curr_doi)
             new_dois.append({'vol':volume, 'doi':curr_doi})
-            logger.info('minted doi: %s for volume %s' % (volume, curr_doi))
+            logger.info('minted doi: %s for volume %s' % (curr_doi, volume))
         else:
-            logger.error('something appears to have gone wrong minting a DOI for volume %s, check the script log %s' % (volume, mint_res))
+            logger.error('something went wrong minting a DOI for volume %s, error returned: %s' % (volume, mint_res))
     _addDOIS(db, new_dois)
 
     for q in payload['modify']:
@@ -235,7 +241,7 @@ def postData(db, payload):
         if type(mod_res) == dict:
             logger.info('%s successfully modified' % identifier)
         elif mod_res.startswith('error'):
-            logger.error('there has been an error with %s: %s' % (identifier, mod_res))
+            logger.error('something went wrong modffying a record for DOI: %s, error returned: %s' % (identifier, mod_res))
 
 if __name__ == "__main__":
     db = dbDB()
