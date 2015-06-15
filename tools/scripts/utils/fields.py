@@ -15,6 +15,7 @@ class General(object):
                            "consent"]
 
     session_headers = ["name",
+                       "key",
                        "date",
                        "participantID",
                        "top",
