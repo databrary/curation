@@ -46,28 +46,17 @@
       "description": "Organizational unit within volume containing related files (with common annotations), often corresponding to an individual data session (single visit/acquisition/participant/group/day).",
       "type": "object",
       "properties": {
+        "id": {"type": "integer"},
         "key": {"type": "string"},
         "name": {"type": "string"},
         "date": {"$ref": "#/definitions/date"},
         "top": {"type": "boolean",
           "default": false
         },
-        "consent": {
+        "release": {
           "description": "Sharing/release permissions granted by participants on (portions of) contained data.",
           "anyOf": [
-            {"$ref": "#/definitions/consent"},
-            {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "position": {"$ref": "#/definitions/segment"},
-                  "consent": {"$ref": "#/definitions/consent"}
-                },
-                "required": ["position", "consent"],
-                "additionalProperties": false
-              }
-            }
+            {"$ref": "#/definitions/release"}
           ],
           "default": null
         },
@@ -85,14 +74,10 @@
       "required": ["key"],
       "additionalProperties": false
     },
-    "consent": {
-      "title": "participant release",
-      "description": "Levels of sharing that participants may consent to.",
+    "release": {
+      "title": "sharing release level",
+      "description": "Levels at which participants or researchers may choose to share data.",
       "enum": [null, "PRIVATE", "SHARED", "EXCERPTS", "PUBLIC"]
-    },
-    "classification": {
-      "description": "Data (file or measure)-level settings affecting permissions.",
-      "enum": ["PRIVATE", "RESTRICTED", "SHARED", "PUBLIC"]
     },
     "offset": {
       "description": "Point in time in milliseconds or MM:SS.sss, used as endpoint for segment.  Null represents indeterminate value, usually representing +-Infinity as an endpoint.",
@@ -114,13 +99,14 @@
       "description": "Sets of metadata measurements organized into or applying to a single cohesive unit. These are assumed to be unique within a volume, such that two identical records are considered the same object.",
       "type": "object",
       "properties": {
+        "id": {"type": "integer"},
         "key": {"type": "string"},
         "category": {
           "description": "Types of records that are relevant for data organization.",
           "enum": [null, "pilot", "exclusion", "participant", "condition", "task", "group", "context"]
         },
         "position": {"$ref": "#/definitions/segment"},
-        "ident": {"type": "string"},
+        "ID": {"type": "string"},
         "reason": {"type": "string",
           "enum": ["Did not meet inclusion criteria","Procedural/experimenter error","Withdrew/fussy/tired","Outlier"]
         },
@@ -150,14 +136,15 @@
         "info": {"type": "string"},
         "gestational age (weeks)": {"type": "number"}
       },
-      "required": ["key", "category"]
+      "required": ["key", "category"],
+      "additionalProperties": false
     },
     "asset": {
       "title": "file",
       "description": "Assets reflecting files in primary storage.",
       "type": "object",
       "properties": {
-        "classification": {"$ref": "#/definitions/classification"},
+        "release": {"$ref": "#/definitions/release"},
         "name": {"type": "string"},
         "position": {"anyOf": [
           {"$ref": "#/definitions/offset",
@@ -180,24 +167,13 @@
           "description": "Additional transcode options to pass to ffmpeg."
         }
       },
-      "required": ["classification", "file"],
+      "required": ["release", "file"],
       "additionalProperties": false
     }
   },
   "type": "object",
   "properties": {
     "name": {"type": "string"},
-    "body": {"type": "string",
-      "title": "description or abstract"
-    },
-    "alias": {"type": "string",
-      "title": "internal short name",
-      "description": "Short, internal, code name for this volume, for contributors to reference their own data."
-    },
-    "citation": {"$ref": "#/definitions/citation"},
-    "links": {"type": "array",
-      "items": {"$ref": "#/definitions/link"}
-    },
     "containers": {"type": "array",
       "items": {"$ref": "#/definitions/container"},
       "description": "The first container is required and must have 'top' set.",
