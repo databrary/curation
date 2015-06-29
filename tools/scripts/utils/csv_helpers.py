@@ -89,10 +89,21 @@ def leadingZeros(csvfile, zeros, col="participantID", newCol="pID" ):
         row.extend([zeroed_id])
         output_file.writerow(row)
 
-
-
-
-
-
-
-                
+def filterCSV(csvfile1, csvfile2, col="participantID"):
+    '''use this for comparing two csvfiles, and filtering out the rows that are already in both of them
+       csvfile1 is the file with the structure you want to keep, and csvfile2 is what you want to compare it to'''
+    new_filename = makeNewFile(csvfile1, "_filtered")
+    f1csv = giveMeCSV(csvfile1)
+    f2csv = giveMeCSV(csvfile2)
+    f1head = next(f1csv)
+    f2head = next(f2csv)
+    f1Idx = getHeaderIndex(f1head)
+    f2Idx = getHeaderIndex(f2head)
+    output_file = csv.writer(open(new_filename, 'w'))
+    output_file.writerow(f1head)
+    filtervals = [r[f2Idx[col]].strip() for r in f2csv]
+    
+    for row1 in f1csv:
+        p = row1[f1Idx[col]].strip()     
+        if p not in filtervals:
+            output_file.writerow(row1)
