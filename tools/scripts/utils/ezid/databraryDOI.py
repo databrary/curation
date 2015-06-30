@@ -28,13 +28,13 @@ def __setup_log():
         if size > MAX_LOG_SIZE:
             existing_logs = os.listdir(LOG_PATH)
             if len(existing_logs) > 1:
-                copies = [int(i.split('_')[1].split('.')[0]) for i in existing_logs]
+                copies = [int(i.split('_')[1].split('.')[0]) for i in existing_logs if '_' in i]
                 increment = max(copies) + 1
-                newdest = LOG_PATH + 'ezidlog_' + increment + '.log' 
+                newdest = LOG_PATH + 'ezidlog_' + str(increment) + '.log' 
                 os.rename(LOG_DEST, newdest)
                 logfile = open(LOG_DEST, 'w+')
             else:    
-                newdest = LOGPATH + 'ezidlog_0.log'
+                newdest = LOG_PATH + 'ezidlog_0.log'
                 os.rename(LOG_DEST, newdest)
                 logfile = open(LOG_DEST, 'a')
         else:
