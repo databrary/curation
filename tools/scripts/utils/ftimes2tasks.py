@@ -16,7 +16,7 @@ fhead = next(f)
 fIndx = c.getHeaderIndex(fhead)
 output_filename = c.makeNewFile(_FILE, '_formatted')
 output = csv.writer(open(output_filename, 'w'))
-output_header = ['participantID', 'file1', 'task1', 'dur1', 'file2', 'task2', 'dur2']
+output_header = ['participantID', 'file1', 'task1', 'dur1', 'rawdur1', 'file2', 'task2', 'dur2', 'rawdur2']
 output.writerow(output_header)
 
 data = makeData(_FILE) 
@@ -25,6 +25,7 @@ for row in f:
     data[row[fIndx['participantID']]].append(row[fIndx['FILE']])
     data[row[fIndx['participantID']]].append(row[fIndx['TASK']])
     data[row[fIndx['participantID']]].append(row[fIndx['DURATION_M']])
+    data[row[fIndx['participantID']]].append(row[fIndx['DURATION_S']])
 
 data = OrderedDict(sorted(data.items())) 
 

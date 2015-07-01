@@ -32,6 +32,8 @@ class ParticipantStrings(object):
     gender = "gender"
     race = "race"
     disability = "disability"
+    description = "description"
+    info = "info"
 
 
 
@@ -355,6 +357,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                 target[ParticipantStrings.language] = p_target[ParticipantStrings.language]
                             if ParticipantStrings.disability in p_target and p_target[ParticipantStrings.disability] != '':
                                 target[ParticipantStrings.disability] = p_target[ParticipantStrings.disability]
+                            if ParticipantStrings.description in p_target and p_target[ParticipantStrings.description] != '':
+                                target[ParticipantStrings.description] = p_target[ParticipantStrings.description]
+                            if ParticipantStrings.info in p_target and p_target[ParticipantStrings.info] != '':
+                                target[ParticipantStrings.info] = p_target[ParticipantStrings.info]
                             if ParticipantStrings.gender in p_target and p_target[ParticipantStrings.gender] != '':
                                 target[ParticipantStrings.gender] = p_target[ParticipantStrings.gender].title()
 
