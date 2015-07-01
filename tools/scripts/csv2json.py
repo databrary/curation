@@ -5,6 +5,7 @@ import json
 import collections
 from pprint import pprint
 from utils import csv_helpers as ch
+from datetime import datetime
 
 ################### COMMAND LINE ARGUMENT HANDLING #####################################
 try:
@@ -279,6 +280,13 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
 
     return entries
 
+
+def ensureDateFormat(date):
+    if '/' in date:
+        date = datetime.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
+    return date
+
+
 ############################### MAIN ####################################
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -348,7 +356,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             '''this is not very DRY, but there are enough exceptions that it will just be shifting things around'''
                             if p_map[target['ID']][ParticipantStrings.birthdate] != '':
-                                target[ParticipantStrings.birthdate] = p_target[ParticipantStrings.birthdate]
+                                target[ParticipantStrings.birthdate] = ensureDateFormat(p_target[ParticipantStrings.birthdate])
                             if ParticipantStrings.ethnicity in p_target and p_target[ParticipantStrings.ethnicity] != '':
                                 target[ParticipantStrings.ethnicity] = p_target[ParticipantStrings.ethnicity]
                             if ParticipantStrings.race in p_target and p_target[ParticipantStrings.race] != '':
@@ -418,7 +426,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             s_curr['records'].append(task)
 
                 if date is not None:
-                    s_curr['date'] = date
+                    s_curr['date'] = ensureDateFormat(date)
                 
                 if consent is not None:
                     s_curr['release'] = consent.upper()
