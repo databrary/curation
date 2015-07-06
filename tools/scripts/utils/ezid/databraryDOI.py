@@ -71,7 +71,10 @@ class dbDB(object):
 
     def __init__(self):
         try:
-            self._conn = psycopg2.connect('dbname=%s user=%s host=%s password=%s' % (c._DEV_CREDENTIALS['db'], c._DEV_CREDENTIALS['u'], c._DEV_CREDENTIALS['host'], c._DEV_CREDENTIALS['p']))
+            self._conn = psycopg2.connect(dbname=c._CREDENTIALS['db'],
+                                          user=c._CREDENTIALS['u'],
+                                          host=c._CREDENTIALS['host'],
+                                          password=c._CREDENTIALS['p'])
         except Exception as e:
             logger.error("Unable to connect to database. Exception: %s. Script coming to a screeching halt" % str(e))
         self._cur = self._conn.cursor()
@@ -222,7 +225,6 @@ def postData(db, payload):
     for p in payload['mint']:
         volume = p['volume']
         record = p['record']
-        print "now minting %s" % record
         mint_res = ezid_doi_session.mint(record)
         if mint_res.startswith('doi'):
             curr_doi = mint_res.split('|')[0].strip().split(':')[1]
@@ -236,7 +238,6 @@ def postData(db, payload):
         identifier = q['_id']
         record = q['record']
         new_status = record['_status']
-        print "now modifying %s" % q
         mod_res = ezid_doi_session.recordModify(identifier, record)
         if type(mod_res) == dict:
             logger.info('%s successfully modified' % identifier)
