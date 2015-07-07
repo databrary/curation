@@ -1,1 +1,1 @@
-/home/drew/ezid_api/ezid_api.py
+/home/drew/databrary/ezid/ezid_api.py
