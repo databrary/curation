@@ -1,1 +1,1 @@
-/home/drew/databrary/ezid/databraryDOI.py
+/home/drew/databrary/ezid/doi.py
