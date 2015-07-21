@@ -1,0 +1,264 @@
+swagger: '2.0'
+info:
+  title: Databrary
+  description: Databrary is an open data library for developmental science. Share video, audio, and related metadata. Discover more, faster.
+  version: "1.0.0"
+host: nyu.databrary.org
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /api
+produces:
+  - application/json
+paths:
+  /volume:
+    get:
+      summary: Volumes
+      description: The volumes endpoint returns all volumes that the requesting user has access to. The response includes volume owners, a DOI if assigned, volume description, volume creation datetime, volume name, volume id and permission level.
+      parameters:
+        - name: query
+          in: query
+          description: Search terms to filter results.
+          required: false
+          type: string
+        - name: party
+          in: query
+          description: Databrary ID for party related to the volume.
+          required: false
+          type: integer
+          format: int32
+      tags:
+        - Volumes
+      responses:
+        200:
+          description: An array of volumes
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Volumes'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /volume/{id}:
+    get:
+      summary: Volume
+      description: The specified volume endpoint returns data for a specific volume in Databrary. 
+        By default, the response includes owners, doi, body, creation datetime, name, id and permission.
+        Additional parameters to return additional data include tags, records, containers, other parties that have access, 
+        volume citation, funding, records, containers, assets, links, excerpts, consumers, and providers.
+      parameters:
+      #Not sure if the parameters here are done the best way, complicated because they are all valueless params
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int32
+        - name: tags
+          in: query
+          description: Return tags associated with Volume.
+          required: false
+          type: string
+        - name: records
+          in: query
+          description: Return all records associated with volume which user has access to.
+          required: false
+          type: string
+        - name: containers
+          in: query
+          description: Return all containers associated with volume which user has access to.
+          required: false
+          type: string
+        - name: access
+          in: query
+          description: Return all Databrary users that have read/write access to this volume.
+          required: false
+          type: string
+        - name: excerpts
+          in: query
+          description: Return all excerpts associated with a volume
+          required: false
+          type: string        
+        - name: assets
+          in: query
+          description: Return all assets associated with a volume
+          required: false
+          type: string        
+        - name: links
+          in: query
+          description: Return all supplemental links associated with a volume
+          required: false
+          type: string        
+        - name: funding
+          in: query
+          description: Return all funders associated with a volume
+          required: false
+          type: string        
+        - name: consumers
+          in: query
+          description: Return all consumers associated with a volume
+          required: false
+          type: string        
+        - name: providers
+          in: query
+          description: Return all providers associated with a volume
+          required: false
+          type: string
+      tags:
+        - Volumes
+      responses:
+        200:
+          description: An array of price estimates by product
+          schema:
+            type: object
+            $ref: '#/definitions/Volume'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /estimates/time:
+    get:
+      summary: Time Estimates
+      description: The Time Estimates endpoint returns ETAs for all products offered at a given location, with the responses expressed as integers in seconds. We recommend that this endpoint be called every minute to provide the most accurate, up-to-date ETAs.
+      parameters:
+        - name: start_latitude
+          in: query
+          description: Latitude component of start location.
+          required: true
+          type: number
+          format: double
+        - name: start_longitude
+          in: query
+          description: Longitude component of start location.
+          required: true
+          type: number
+          format: double
+        - name: customer_uuid
+          in: query
+          type: string
+          format: uuid
+          description: Unique customer identifier to be used for experience customization.
+        - name: product_id
+          in: query
+          type: string
+          description: Unique identifier representing a specific product for a given latitude & longitude.
+      tags:
+        - Estimates
+      responses:
+        200:
+          description: An array of products
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Volume'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /profile:
+    get:
+      summary: User Profile
+      description: The User Profile endpoint returns information about the Databrary user that has authorized with the application.
+      tags:
+        - User
+        - Profile
+      responses:
+        200:
+          description: Profile information for a user
+          schema:
+            $ref: '#/definitions/Profile'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Volumes:
+    properties:
+      owners:
+        type: object
+        description: Set of owners of the volume. Key is the party, value is the party name.
+        $ref: '#/definitions/Owners'
+      doi:
+        type: string
+        description: Digital Object Identifier for volume if assigned.
+      body:
+        type: string
+        description: Description of the volume, potentially the abstract for an associated publication.
+      creation:
+        type: string
+        format: date-time
+        description: Date and time when volume was added to Databrary.
+      name:
+        type: string
+        description: Name for Volume.
+      id:
+        type: integer
+        format: int32
+        description: ID for the Volume in Databrary.
+      permission:
+        type: integer
+        format: int32
+        description: Permission level for access to the volume.
+  Volume:
+    properties:
+      owners:
+        type: object
+        description: Set of owners of the volume. Key is the party, value is the party name.
+      doi:
+        type: string
+        description: Digital Object Identifier for volume if assigned.
+      body:
+        type: string
+        description: Description of the volume, potentially the abstract for an associated publication.
+      creation:
+        type: string
+        format: date-time
+        description: Date and time when volume was added to Databrary.
+      name:
+        type: string
+        description: Name for Volume.
+      id:
+        type: integer
+        format: int32
+        description: ID for the Volume in Databrary.
+      permission:
+        type: integer
+        format: int32
+        description: Permission level for access to the volume.
+  Profile:
+    properties:
+      email:
+        type: string
+        description: users email address
+      sortname:
+        type: string
+        description: users name for alphatetical sorting, usually surname
+      name:
+        type: string
+        description: users full name as registered
+      id:
+        type: integer
+        format: int32
+        description: users unique party id in Databrary 
+      prename:
+        type: string
+        description: users first name
+      permission:
+        type: integer
+        format: int32
+        description: users access permissions for Databrary
+  Owners:
+    properties:
+      {party}:
+        type: string
+        description: Name of data owner
+  Error:
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
