@@ -43,7 +43,6 @@ def convertMStoMMHH(milliseconds):
 def leftJoinCSV(file1, file2, *args):
     '''Really should only be used to left join two csv files. Left file is first arg, right file is second arg.
        Column(s) title (string in the head) are the third and fourth args'''
-    print(len(args))
     if len(args) > 1:
         '''can either enter one column for both or each one ''' 
         column1 = args[0]
