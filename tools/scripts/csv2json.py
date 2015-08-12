@@ -392,14 +392,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                     for z in asset_entry:
                         z['release'] = classification
-                        z['options'] = t_options
-                        z['position'] = position if z['position'] == '' else z['position']
-                        if t_options == '':
+                        if t_options != '':
+                            z['options'] = t_options
+                        else:
                             del z['options']
-
-                    for y in asset_entry:
-                        if y not in s_curr['assets']:
-                            s_curr['assets'].append(y)
+                        z['position'] = position if z['position'] == '' else z['position']
+                        if z['name'] is None:
+                            del z['name']
+                        if z not in s_curr['assets']:
+                            s_curr['assets'].append(z)
 
                     ##### CLIP STUFF #####
 
