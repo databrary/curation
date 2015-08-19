@@ -316,7 +316,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
             ex_positions = ch.assignIfThere('excl_positions', headerIndex, row, None)
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
-            classification = ch.assignIfThere('classification', headerIndex, row, 'SHARED').upper()
+            classification = ch.assignIfThere('classification', headerIndex, row, None)
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
             pilot = ch.assignIfThere('pilot', headerIndex, row, None)
             exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
@@ -391,7 +391,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
 
                     for z in asset_entry:
-                        z['release'] = classification
+                        if classification is not None:
+                            z['release'] = classification.upper()
+                        else:
+                            del z['release']
                         if t_options != '':
                             z['options'] = t_options
                         else:
