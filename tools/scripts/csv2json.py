@@ -394,7 +394,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         if classification is not None:
                             z['release'] = classification.upper()
                         else:
-                            del z['release']
+                            z['release'] = None
                         if t_options != '':
                             z['options'] = t_options
                         else:
