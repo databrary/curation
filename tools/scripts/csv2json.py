@@ -165,13 +165,11 @@ def recordAppend(obj, val, cat):
                                'key': val
                                })
 
-def checkClipsStatus(file_path, file_name, file_position, *args):
+def checkClipsStatus(file_path, file_name, file_position, file_classification, *args):
 
 
     '''Here determine how to handle the creation of assets:
         pos_start, pos_end, neg_start, neg_end'''
-
-    #file_default_name = file_path.split("/")[-1]
 
     pos = args[0] #one or more clips or None
     neg = args[1] # '' ''  ''    ''  ''  ''
@@ -258,9 +256,9 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
         for i in clipArr:
             entries.append({'file': file_path,
                             'name': file_name, 
-                            'position': i[0] if file_position is None or file_position == "" else file_position, 
+                            'position': i[0] if file_position is 'auto' or file_position == "" else file_position, 
                             'clip': [i[0], i[1]], 
-                            'release': "", 
+                            'release': file_classification, 
                             'options': ""})
 
     else:
@@ -269,13 +267,13 @@ def checkClipsStatus(file_path, file_name, file_position, *args):
             entries.append({'file': file_path,
                             'name': file_name, 
                             'position': file_position, 
-                            'release': "", 
+                            'release': file_classification, 
                             'options': ""})
         else:
             entries.append({'file': file_path,
                             'name': file_name, 
                             'position': "", 
-                            'release': "", 
+                            'release': file_classification, 
                             'options': ""})
 
     return entries
@@ -311,12 +309,10 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             date = ch.assignIfThere('date', headerIndex, row, None)
 
             path = ch.assignIfThere('filepath', headerIndex, row, None)
-            position = ch.assignIfThere('position', headerIndex, row, 'auto')
             t_positions = ch.assignIfThere('task_positions', headerIndex, row, None)
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
             ex_positions = ch.assignIfThere('excl_positions', headerIndex, row, None)
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
-            classification = ch.assignIfThere('classification', headerIndex, row, None)
             top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
             pilot = ch.assignIfThere('pilot', headerIndex, row, None)
             exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
@@ -384,22 +380,24 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     neg_clip = "clip_out_" 
                     file_name = "fname_" + asset_no
                     file_position = "fposition_" + asset_no
+                    file_classification = "fclassification_" + asset_no
                     fname = ch.assignIfThere(file_name, headerIndex, row, None)
-                    fposition = ch.assignWithEmpty(file_position, headerIndex, row, None)
+                    fposition = ch.assignWithEmpty(file_position, headerIndex, row, 'auto')
+                    fclassification = ch.assignWithEmpty(file_classification, headerIndex, row, None)
                     prefixes = (pos_clip, neg_clip)
                     clip_options = tuple(ch.assignWithEmpty(j+asset_no, headerIndex, row, None) for j in prefixes)
-                    asset_entry = checkClipsStatus(fpath, fname, fposition, *clip_options) #sends either 1 or more sets of clips or none
+                    asset_entry = checkClipsStatus(fpath, fname, fposition, fclassification, *clip_options) #sends either 1 or more sets of clips or none
 
                     for z in asset_entry:
-                        if classification is not None:
-                            z['release'] = classification.upper()
+                        if fclassification is not None:
+                            z['release'] = fclassification.upper()
                         else:
                             z['release'] = None
                         if t_options != '':
                             z['options'] = t_options
                         else:
                             del z['options']
-                        z['position'] = position if z['position'] == '' else z['position']
+                        z['position'] = fposition if z['position'] == '' else z['position']
                         if z['name'] is None:
                             del z['name']
                         if z not in s_curr['assets']:

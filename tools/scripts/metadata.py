@@ -32,12 +32,12 @@ class dbClient(object):
     def query(self, query, params=None):
         return self._cur.execute(query, params)
 
-    def insert(self, insert, params=None):
-        return self._cur.execute(insert, params)
-
 def getVolMD(db):
     db.query(sql['VolumeMD'])
     return db._cur.fetchall()
+
+def get VolAssets(db):
+    pass
 
 if __name__ == '__main__':
     db = dbClient()
