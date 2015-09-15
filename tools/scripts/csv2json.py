@@ -1,5 +1,6 @@
 import csv
 import os
+import re
 import sys
 import json
 import collections
@@ -284,7 +285,19 @@ def ensureDateFormat(date):
         date = datetime.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
     return date
 
+def key_checker(item):
+    '''function for checking if a string contains both alpha and numeric characters
+    like V199'''
+    key_pattern = re.compile( r"^(\D+)(\d+)$")
 
+    if type(item['key']) is str: 
+        if item['key'].isdigit():
+            return int(item['key'])
+        elif key_pattern.match(item['key']):
+            m = key_pattern.match(item['key'])
+            return m.group(1), int(m.group(2))
+    else:
+        return item['key']
 ############################### MAIN ####################################
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -448,7 +461,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         data = {
 
             'name': _filepath_prefix,
-            'containers': sorted(list(s_map.values()), key=lambda k: int(k['key']) if type(k['key']) is str and k['key'].isdigit() else k['key'] )
+            'containers': sorted(list(s_map.values()), key=key_checker)
         }
 
 
