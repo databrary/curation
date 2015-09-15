@@ -288,14 +288,20 @@ def ensureDateFormat(date):
 def key_checker(item):
     '''function for checking if a string contains both alpha and numeric characters
     like V199'''
-    key_pattern = re.compile( r"^(\D+)(\d+)$")
-
+    key_pattern_alum = re.compile( r"^(\D+)(\d+)$")
+    key_pattern_punc = re.compile( r"^(\D+)[\-\_](\d+)$")
     if type(item['key']) is str: 
         if item['key'].isdigit():
             return int(item['key'])
-        elif key_pattern.match(item['key']):
-            m = key_pattern.match(item['key'])
+        elif key_pattern_alum.match(item['key']):
+            m = key_pattern_alum.match(item['key'])
             return m.group(1), int(m.group(2))
+        elif key_pattern_punc.match(item['key']):
+            m = key_pattern_punc.match(item['key'])
+            return m.group(1), int(m.group(2))
+        else:
+            print("seems you have a key that we haven't accounted for in sorting, go look at your keys.")
+            sys.exit() 
     else:
         return item['key']
 ############################### MAIN ####################################
