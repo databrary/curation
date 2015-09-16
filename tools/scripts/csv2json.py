@@ -288,18 +288,21 @@ def ensureDateFormat(date):
 def key_checker(item):
     '''function for checking if a string contains both alpha and numeric characters
     like V199'''
+    ikey = item['key']
     key_pattern = re.compile( r"^(\D+)[\-\_]?(\d+)$")
-    if type(item['key']) is str: 
-        if item['key'].isdigit():
-            return int(item['key'])
-        elif key_pattern.match(item['key']):
-            m = key_pattern.match(item['key'])
+    if type(ikey) is str: 
+        if ikey.isalnum() is False:
+            return ikey
+        elif ikey.isdigit():
+            return int(ikey)
+        elif key_pattern.match(ikey):
+            m = key_pattern.match(ikey)
             return m.group(1), int(m.group(2))
         else:
             print("seems you have a key that we haven't accounted for, go look at your keys.")
             sys.exit 
     else:
-        return item['key']
+        return ikey
 ############################### MAIN ####################################
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
