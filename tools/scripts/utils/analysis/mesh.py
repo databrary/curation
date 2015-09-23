@@ -4,6 +4,10 @@ import csv, json, simplejson
 
 #input_file = sys.argv[1]
 
+
+def main():
+    
+
 def getMesh(term):
     qString = """ 
                   PREFIX mesh: <http://id.nlm.nih.gov/mesh/>
@@ -14,7 +18,7 @@ def getMesh(term):
                   FROM <http://id.nlm.nih.gov/mesh>
                   
                   WHERE {
-                    
+                
                   ?d rdfs:label ?dName .
                   FILTER(REGEX(?dName,"%s","i"))
                   
@@ -26,5 +30,16 @@ def getMesh(term):
     sparql.setReturnFormat(JSON)
     res = sparql.query().convert()
     return res
+
+def getCSV(csv):
+    pass
+
+def parseResults(res):
+    pass
+
+
+if __name__ == '__main__':
+    main()
+
 
 
