@@ -300,7 +300,7 @@ def key_checker(item):
             return m.group(1), int(m.group(2))
         else:
             print("seems you have a key that we haven't accounted for, go look at your keys.")
-            sys.exit 
+            sys.exit()
     else:
         return ikey
 ############################### MAIN ####################################
@@ -363,7 +363,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     for i in range(len(s_curr['records'])):
                         target = list(s_curr['records'])[i]
                         '''missing: date and age, in days.'''
-                        if 'category' in target and target['category'] == 'participant':
+                        if 'category' in target and target['category'] == 'participant' and target['ID'] != '':
 
                             p_target = p_map[target['ID']]
 
