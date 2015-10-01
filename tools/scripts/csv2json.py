@@ -370,21 +370,21 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             '''this is not very DRY, but there are enough exceptions that it will just be shifting things around'''
                             if p_map[target['ID']][ParticipantStrings.birthdate] != '':
-                                target[ParticipantStrings.birthdate] = ensureDateFormat(p_target[ParticipantStrings.birthdate])
+                                target[ParticipantStrings.birthdate] = ensureDateFormat(p_target[ParticipantStrings.birthdate].strip())
                             if ParticipantStrings.ethnicity in p_target and p_target[ParticipantStrings.ethnicity] != '':
-                                target[ParticipantStrings.ethnicity] = p_target[ParticipantStrings.ethnicity]
+                                target[ParticipantStrings.ethnicity] = p_target[ParticipantStrings.ethnicity].strip()
                             if ParticipantStrings.race in p_target and p_target[ParticipantStrings.race] != '':
-                                target[ParticipantStrings.race] = p_target[ParticipantStrings.race]
+                                target[ParticipantStrings.race] = p_target[ParticipantStrings.race].strip()
                             if ParticipantStrings.language in p_target and p_target[ParticipantStrings.language] != '':
-                                target[ParticipantStrings.language] = p_target[ParticipantStrings.language]
+                                target[ParticipantStrings.language] = p_target[ParticipantStrings.language].strip()
                             if ParticipantStrings.disability in p_target and p_target[ParticipantStrings.disability] != '':
-                                target[ParticipantStrings.disability] = p_target[ParticipantStrings.disability]
+                                target[ParticipantStrings.disability] = p_target[ParticipantStrings.disability].strip()
                             if ParticipantStrings.description in p_target and p_target[ParticipantStrings.description] != '':
-                                target[ParticipantStrings.description] = p_target[ParticipantStrings.description]
+                                target[ParticipantStrings.description] = p_target[ParticipantStrings.description].strip()
                             if ParticipantStrings.info in p_target and p_target[ParticipantStrings.info] != '':
-                                target[ParticipantStrings.info] = p_target[ParticipantStrings.info]
+                                target[ParticipantStrings.info] = p_target[ParticipantStrings.info].strip()
                             if ParticipantStrings.gender in p_target and p_target[ParticipantStrings.gender] != '':
-                                target[ParticipantStrings.gender] = p_target[ParticipantStrings.gender].title()
+                                target[ParticipantStrings.gender] = p_target[ParticipantStrings.gender].title().strip()
 
 
 
