@@ -71,14 +71,13 @@ def autoMatch(termid, term, evaluator, res):
         did = r['d']['value']
         concept = r['concept']['value']
         note = r['note']['value']
-        print("!!!!!! - %s | %s - !!!!!!" % (concept.lower(), orig.lower()))
         if concept.lower() == orig.lower():
             return [termid, term, "auto", cid, did, concept, note]
         elif sing is not None and concept.lower() == sing.lower():
             return [termid, term, "auto", cid, did, concept, note]
         elif res.index(r) < (len(res) - 1):
             continue
-        else: #TODO, keep checking, don't stop till exhausted list
+        else:
             return None
 
 def evaluateChoices(termid, term, res):
