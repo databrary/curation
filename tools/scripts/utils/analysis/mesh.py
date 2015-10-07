@@ -4,7 +4,11 @@ import sys, os
 import csv, json
 
 _INPUT_FILE = sys.argv[1]
-_TEST_TERMS = ["infant", "perception", "cognition"]
+
+def _checkPlural(term):
+    '''needs more re. this is some really cheap evaluation for plurality, 
+    which can be made more complicated in the future'''
+    return term[-1] == 's'
 
 def _formatPlural(term):
     sing = term[:-1]
@@ -55,7 +59,7 @@ def getTerms(cf):
 def saveData(data):
     with open('./data/mesh.csv', 'wt') as f:
         out = csv.writer(f)
-        head = ["termid", "term", "cid", "did", "concept", "note"]
+        head = ["termid", "term", "type", "cid", "did", "concept", "note"]
         out.writerow(head)
         for i in data:
             out.writerow(i)
@@ -67,26 +71,71 @@ def autoMatch(termid, term, evaluator, res):
         did = r['d']['value']
         concept = r['concept']['value']
         note = r['note']['value']
+        print("!!!!!! - %s | %s - !!!!!!" % (concept.lower(), orig.lower()))
         if concept.lower() == orig.lower():
-            return [termid, term, cid, did, concept, note]
+            return [termid, term, "auto", cid, did, concept, note]
         elif sing is not None and concept.lower() == sing.lower():
-            return [termid, term, cid, did, concept, note]
-        else:
+            return [termid, term, "auto", cid, did, concept, note]
+        elif res.index(r) < (len(res) - 1):
+            continue
+        else: #TODO, keep checking, don't stop till exhausted list
             return None
 
+def evaluateChoices(termid, term, res):
+    '''this function serves to:
+        1) take a set of results back from the query,
+        2) assign them a temporary id
+        3) prints them to the console (conecept and note)
+        4) takes user input to select which one 
+        5) -or- sends back no match if there's no match
+        6) returns a list of values to be inserted into the csv file'''
+    inc = 1
+    for r in res:
+        r['choiceId'] = inc
+        concept = r['concept']['value']
+        note = r['note']['value']
+        print ("%s) %s - %s" % (str(inc), concept, note))
+        inc += 1
+
+    selection = raw_input("Enter the number of your choice - if nothing fits, enter 99: ")
+    
+    if selection.isdigit():
+        selection = int(selection)
+    else:
+        selection = 'NaN'    
+    
+    if selection == 99:
+        return [termid, term, "manual", "NA", "NA", "NA", "NA"]
+    elif selection == 'NaN':
+        print("Please enter a number")
+        evaluateChoices(res)
+    elif selection > inc: 
+        print("That option is not in the set of choices")
+        evaluateChoices(res)
+    else:
+        for r in res:
+            if r['choiceId'] == selection:
+                record = r
+        cid = record['cid']['value']
+        did = record['d']['value']
+        concept = record['concept']['value']
+        note = record['note']['value']
+        return [termid, term, "manual", cid, did, concept, note]
+    print(res)
+        
 
 def prepResults(termid, term, evaluator, res):
     res = res['results']['bindings']
     match = autoMatch(termid, term, evaluator, res)
     if len(res) is 0:
         print("No Results - %s" % (evaluator[0]))
-        return [termid, term, "", "", "", ""]
+        return [termid, term, "auto", "", "", "", ""]
     elif match is not None:
         print("success - setting automatch on - %s" % (evaluator[0]))
         return match
     else:
         print("need to evaluate for - %s" % (evaluator[0]))
-        return [termid, term, "tempval", "tempval", "tempval", "tempval"] #will run whole routine for getting user feedback here
+        return evaluateChoices(termid, term, res)
 
 def main(input_file):
         deposit = []
@@ -94,7 +143,7 @@ def main(input_file):
         for i,t in terms.items():
             orig = t
             sing = None
-            if t[-1] == 's': #this is some really cheap evaluation for plurality, which can be made more complicated in the future
+            if _checkPlural(t): 
                 plural_set = _formatPlural(t)
                 t, orig, sing = plural_set
             evaluator = (orig, sing)
