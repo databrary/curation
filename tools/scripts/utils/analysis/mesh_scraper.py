@@ -58,8 +58,8 @@ def getdID(treeNum):
         data = json.loads(res.text)
         dId = data['results']['bindings'][0]['d']['value']
     else:
-        print "whoops: %s" % res.status
-        dId = "could not get"
+        print "whoops: %s" % sc
+        dId = "could not get because %s" % (sc) 
     return dId
 
 
@@ -87,9 +87,9 @@ def get_category_links(d):
                 count += 1
                 print count, "adding: ", r
                 rows.append(r)
-                if count == 300:
+                if count == 350:
                     count = 0    
-                    time.sleep(40) #this is probably excessive, the limit is 500 requests a minute
+                    time.sleep(60) #this is probably excessive, the limit is 500 requests a minute, though it seems like it's less
     save_all(rows)            
 
 if __name__ == '__main__':
