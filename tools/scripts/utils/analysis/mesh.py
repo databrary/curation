@@ -28,14 +28,15 @@ def getMesh(term):
         "PREFIX meshv: <http://id.nlm.nih.gov/mesh/vocab#> "
         "PREFIX mesh: <http://id.nlm.nih.gov/mesh/> "
         "PREFIX mesh2015: <http://id.nlm.nih.gov/mesh/2015/> "
-        "SELECT ?d ?cid ?concept ?note "
+        "SELECT ?d ?cid ?concept ?note ?tnum "
         "FROM <http://id.nlm.nih.gov/mesh> "
         "WHERE {{ "
         "?d a meshv:Descriptor . "
         "?d meshv:concept ?cid . "
         "?d rdfs:label ?dName . "
         "?cid rdfs:label ?concept . "
-        "?cid meshv:scopeNote ?note "
+        "?cid meshv:scopeNote ?note . "
+        "?d meshv:treeNumber ?tnum . "
         "FILTER(REGEX(?dName,'{0}','i') || REGEX(?concept,'{0}','i')) " 
         "}} ORDER BY ?d"   
     ).format(term)
@@ -59,7 +60,7 @@ def getTerms(cf):
 def saveData(data):
     with open('./data/mesh.csv', 'wt') as f:
         out = csv.writer(f)
-        head = ["termid", "term", "type", "cid", "did", "concept", "note"]
+        head = ["termid", "term", "type", "cid", "did", "concept", "note", "tnumber"]
         out.writerow(head)
         for i in data:
             out.writerow(i)
@@ -71,10 +72,11 @@ def autoMatch(termid, term, evaluator, res):
         did = r['d']['value']
         concept = r['concept']['value']
         note = r['note']['value']
+        tnum = r['tnum']['value']
         if concept.lower() == orig.lower():
-            return [termid, term, "auto", cid, did, concept, note]
+            return [termid, term, "auto", cid, did, concept, note, tnum]
         elif sing is not None and concept.lower() == sing.lower():
-            return [termid, term, "auto", cid, did, concept, note]
+            return [termid, term, "auto", cid, did, concept, note, tnum]
         elif res.index(r) < (len(res) - 1):
             continue
         else:
@@ -104,7 +106,7 @@ def evaluateChoices(termid, term, res):
         selection = 'NaN'    
     
     if selection == 99:
-        return [termid, term, "manual", "NA", "NA", "NA", "NA"]
+        return [termid, term, "manual", "NA", "NA", "NA", "NA", "NA"]
     elif selection == 'NaN':
         print("Please enter a number")
         evaluateChoices(res)
@@ -119,7 +121,8 @@ def evaluateChoices(termid, term, res):
         did = record['d']['value']
         concept = record['concept']['value']
         note = record['note']['value']
-        return [termid, term, "manual", cid, did, concept, note]
+        tnum = record['tnum']['value']
+        return [termid, term, "manual", cid, did, concept, note, tnum]
     print(res)
         
 
@@ -128,7 +131,7 @@ def prepResults(termid, term, evaluator, res):
     match = autoMatch(termid, term, evaluator, res)
     if len(res) is 0:
         print("No Results - %s" % (evaluator[0]))
-        return [termid, term, "auto", "", "", "", ""]
+        return [termid, term, "auto", "", "", "", "", ""]
     elif match is not None:
         print("success - setting automatch on - %s" % (evaluator[0]))
         return match
