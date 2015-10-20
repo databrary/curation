@@ -52,7 +52,9 @@ def getdID(treeNum):
               "format": _format,
               "inference": _inference}
     res = requests.get(url=_base, params=params)
-    if res.status_code == 200:
+    sc = res.status_code
+    print sc
+    if sc == 200:
         data = json.loads(res.text)
         dId = data['results']['bindings'][0]['d']['value']
     else:
@@ -68,7 +70,8 @@ def get_category_links(d):
     for k,v in d.items():
         _xpath_base = '//div[@id="body"]/ol/li[%s]/' % (v[1])
         _xpath_li = _xpath_base + 'ul/li/text()'
-        topics = [x for x in tree.xpath(_xpath_li) if x != ' ']  
+        topics = [x for x in tree.xpath(_xpath_li) if x != ' '] 
+        count = 0 
         for i in topics:
             topic, tree_head = i.split(' [')
             tree_head = tree_head.strip()[:-1]
@@ -81,8 +84,12 @@ def get_category_links(d):
                 treeNum = treeNum[:-1]
                 dID = getdID(treeNum)
                 r = [k, topic, tree_head, term, treeNum, dID]
+                count += 1
+                print count, "adding: ", r
                 rows.append(r)
-                time.sleep(1) #this is probably excessive, the limit is 500 requests a minute
+                if count == 300:
+                    count = 0    
+                    time.sleep(40) #this is probably excessive, the limit is 500 requests a minute
     save_all(rows)            
 
 if __name__ == '__main__':
