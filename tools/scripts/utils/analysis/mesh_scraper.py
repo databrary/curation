@@ -65,7 +65,7 @@ def getdID(treeNum):
 
 def get_category_links(d):
     rows = []
-    rows.append(["category", "topic", "tree_header", "term", "tree_number"])
+    rows.append(["category", "topic", "tree_header", "term", "tree_number", "descriptor_id"])
     tree = get_page_tree(HOME)
     for k,v in d.items():
         _xpath_base = '//div[@id="body"]/ol/li[%s]/' % (v[1])
@@ -87,7 +87,7 @@ def get_category_links(d):
                 count += 1
                 print count, "adding: ", r
                 rows.append(r)
-                if count == 350:
+                if count == 200:
                     count = 0    
                     time.sleep(60) #this is probably excessive, the limit is 500 requests a minute, though it seems like it's less
     save_all(rows)            
