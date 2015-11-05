@@ -3,6 +3,13 @@ from urllib import urlencode
 import sys, os
 import csv, json
 
+'''
+This script takes a list of terms from a csv file and searches for a match for that term 
+in NLM MeSH (using the MeSH SPARQL endpoint @ http://id.nlm.nih.gov/mesh/sparql. 
+Currently matching is rather immature and could definitely be enhanced.
+
+'''
+
 _INPUT_FILE = sys.argv[1]
 
 def _checkPlural(term):

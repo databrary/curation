@@ -2,6 +2,13 @@ import urllib.request
 import urllib.parse
 from xml.dom import minidom
 
+'''
+This script searches the PubMed api based on a list of publications with DOIs. 
+It returns the keywords and MeSH terms attached to that publication and adds 
+those to the CSV file originally input.
+
+'''
+
 BASE_URL = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/'
 SEARCH_PATH = 'esearch.fcgi?'
 FETCH_PATH = 'efetch.fcgi?'
@@ -75,14 +82,16 @@ if __name__ == '__main__':
 
     with open(f, 'rt') as c:
         reader = csv.reader(c)
-        writer = csv.writer(open('./vols_with_keywords.csv', 'wt'))
+        writer = csv.writer(open('./keyword_output.csv', 'wt'))
         header = next(reader)
+        hindex = {header[i]: i for i in range(len(header))}
         header.extend(['mesh', 'keywords'])
         writer.writerow(header)
+        doirow = hindex['doi']
 
         for row in reader:
-            if row[2] != '':
-                doi = row[2].strip().replace('doi:', '')
+            if row[doirow] != '':
+                doi = row[doirow].strip().replace('doi:', '')
                 results = getFullRecord(BASE_URL, FETCH_PATH, getSearchResults(BASE_URL, SEARCH_PATH, doi))
                 if results != 0:
                     mesh = ";".join(results[0])
