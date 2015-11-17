@@ -6,9 +6,10 @@ import argparse
 import psycopg2
 from config import conn as c 
 import requests
+from pprint import pprint
 
 _QUERIES = {
-    "db_volumes":"select v.id as target, volume_creation(v.id), v.name as title, owners from volume v left join volume_owners o ON v.id = o.volume where v.id > 0 order by target;",
+    "db_volumes":"select v.id, volume_creation(v.id), v.name, owners, v.body from volume v left join volume_owners o ON v.id = o.volume where v.id > 3 order by v.id;",
     "op_parties":"select wp.id, wp.subject, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and wp.type_id = 6 and wp.project_id = 12 and cv.custom_field_id = 29 order by wp.id asc;",
     "op_workpackages": "select wp.id, wp.type_id, wp.project_id, wp.parent_id, wp.category_id, wp.created_at, wp.start_date, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and project_id = 14 and cv.custom_field_id = 29 order by wp.id asc;"
 }
@@ -37,8 +38,53 @@ def wp_vols(data):
     return sorted([d[11] for d in data if d[11] != None and d[11] != ''], key=lambda x: float(x))
 
 def compare(op_vols, db_vols):
-    return [z for z in db_vols if z[0] not in op_vols]
+    return [z for z in db_vols if str(z[0]) not in op_vols]
 
+def getData(vol_data, party_data):
+    nl = []
+    for v in vol_data:
+        d = {}
+        owner_id = v[3][0].split(':')[0] if v[3] is not None else None
+        if owner_id is not None:
+            parent_id = [p[0] for p in party_data if p[6]==owner_id]
+        else:
+            parent_id = None
+        
+        d["owner_id"] = owner_id
+        d["parent_id"] = parent_id
+        d["volume_id"] = v[0]
+        d["start_date"] = v[1]
+        d["title"] = v[2]
+
+        nl.append(d)
+    return nl
+
+def prepareData(data):
+    fresh_data = []
+    for i in data:
+        record = {
+        "customField37": True,
+        "_links": {
+            "type": {"href":"project/api/v3/types/16"},
+            "status":{"href":"project/api/v3/statuses/1"},
+            "priority":{"href":"project/api/v3/priorities/3"}
+            }
+        }
+        if type(i['parent_id']) == list:
+            if i['parent_id'] != []:
+                pid = int(i['parent_id'][0])
+            else:
+                pid = None
+        else:
+            pid = None
+        
+        record['subject'] = i['title']
+        record['start_date'] = i['start_date'].strftime('%Y-%m-%d')
+        record['parentId'] = pid
+        record['customField29'] = int(i['volume_id'])
+        fresh_data.append(record)
+
+    return fresh_data
 
 if __name__ == '__main__':
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
@@ -58,13 +104,17 @@ if __name__ == '__main__':
     #
     # 3 compare data and determine all of the volumes in dbrary that need to be added
     #
-    vols_to_add = compare(volumes_in_op, db_volumes)  
-
+    vols_to_add = compare(volumes_in_op, db_volumes)
+    
     #
     # 4 prepare data for adding to wp
     #   - get user information same way as get volume info from wp as #2
     op_parties = op_DB.query(_QUERIES['op_parties'])
+    #print op_parties 
+    raw_data = getData(vols_to_add, op_parties)
+    ready_data = prepareData(raw_data)
     # 
+    pprint(ready_data)
     #   - volume title -> subject; parentId -> parentId; vid -> databrary id; creation date -> start date
     
 
