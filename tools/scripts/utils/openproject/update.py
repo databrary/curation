@@ -2,17 +2,16 @@
 
 import sys, os
 import json
-import argparse
 import psycopg2
 from config import conn as c 
 import requests
-from pprint import pprint
 
 _QUERIES = {
-    "db_volumes":"select v.id, volume_creation(v.id), v.name, owners, v.body from volume v left join volume_owners o ON v.id = o.volume where v.id > 3 order by v.id;",
+    "db_volumes":"select v.id, volume_creation(v.id), v.name, owners from volume v left join volume_owners o ON v.id = o.volume where v.id > 3 order by v.id;",
     "op_parties":"select wp.id, wp.subject, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and wp.type_id = 6 and wp.project_id = 12 and cv.custom_field_id = 29 order by wp.id asc;",
     "op_workpackages": "select wp.id, wp.type_id, wp.project_id, wp.parent_id, wp.category_id, wp.created_at, wp.start_date, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and project_id = 14 and cv.custom_field_id = 29 order by wp.id asc;"
 }
+
 
 class DB(object):
     _conn = None
@@ -64,6 +63,10 @@ def prepareData(data):
     for i in data:
         record = {
         "customField37": True,
+        "description": {
+            "format": "textile",
+            "raw": "" 
+        },
         "_links": {
             "type": {"href":"project/api/v3/types/16"},
             "status":{"href":"project/api/v3/statuses/1"},
@@ -77,14 +80,20 @@ def prepareData(data):
                 pid = None
         else:
             pid = None
+
+        desc = "Opened: %s" % (i['start_date'].strftime('%Y-%m-%d'))
         
         record['subject'] = i['title']
-        record['start_date'] = i['start_date'].strftime('%Y-%m-%d')
+        record['description']['raw'] = desc
         record['parentId'] = pid
         record['customField29'] = int(i['volume_id'])
         fresh_data.append(record)
 
     return fresh_data
+
+def insert_vols(data):
+    data = json.dumps(data)
+    return requests.post(c.API_POST_TARGET, auth=("apikey", c.API_KEY), data=data, headers={"Content-Type": "application/json"})
 
 if __name__ == '__main__':
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
@@ -105,22 +114,23 @@ if __name__ == '__main__':
     # 3 compare data and determine all of the volumes in dbrary that need to be added
     #
     vols_to_add = compare(volumes_in_op, db_volumes)
+    print "adding %s new volumes" % str(len(vols_to_add))
     
     #
     # 4 prepare data for adding to wp
     #   - get user information same way as get volume info from wp as #2
     op_parties = op_DB.query(_QUERIES['op_parties'])
-    #print op_parties 
     raw_data = getData(vols_to_add, op_parties)
     ready_data = prepareData(raw_data)
     # 
-    pprint(ready_data)
     #   - volume title -> subject; parentId -> parentId; vid -> databrary id; creation date -> start date
-    
+    #pprint(json.dumps(ready_data[0]))    
 
     #   
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
-    # 
+    #
+    for r in ready_data:
+        insert_vols(r)
     
     # 
     # 6 what about edits? (later)
@@ -129,5 +139,5 @@ if __name__ == '__main__':
     # 
     # 7 close up data base, die 
     #      
-    #      
-    #      https://databrary.org/project/api/experimental/projects/tracking/work_packages.json?per_page=1000&filters=[{ "type_id": { "operator": 6, "values": null }" }]
+    del db_DB
+    del op_DB
