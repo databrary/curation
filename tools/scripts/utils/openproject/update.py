@@ -3,7 +3,7 @@
 import sys, os
 import json
 import psycopg2
-from config import conn as c 
+from config import conn as c
 import requests
 
 _QUERIES = {
@@ -24,10 +24,10 @@ class DB(object):
         self._password = password
         self._port = port
         self._conn = psycopg2.connect(host=self._host, database=self._database, user=self._user, password=self._password, port=self._port)
-        self._cur = self._conn.cursor()
+       self._cur = self._conn.cursor()
 
     def __del__(self):
-        return self._conn.close()        
+        return self._conn.close()
 
     def query(self, query, params=None):
         self._cur.execute(query, params)
@@ -36,8 +36,11 @@ class DB(object):
 def wp_vols(data):
     return sorted([d[11] for d in data if d[11] != None and d[11] != ''], key=lambda x: float(x))
 
-def compare(op_vols, db_vols):
+def getnew(op_vols, db_vols):
     return [z for z in db_vols if str(z[0]) not in op_vols]
+
+def getdel(op_vols, db_vols):
+    return [z for z in op_vols if int(z[0]) not in db_vols]
 
 def getData(vol_data, party_data):
     nl = []
@@ -48,7 +51,7 @@ def getData(vol_data, party_data):
             parent_id = [p[0] for p in party_data if p[6]==owner_id]
         else:
             parent_id = None
-        
+
         d["owner_id"] = owner_id
         d["parent_id"] = parent_id
         d["volume_id"] = v[0]
@@ -65,7 +68,7 @@ def prepareData(data):
         "customField37": True,
         "description": {
             "format": "textile",
-            "raw": "" 
+            "raw": ""
         },
         "_links": {
             "type": {"href":"project/api/v3/types/16"},
@@ -82,7 +85,7 @@ def prepareData(data):
             pid = None
 
         desc = "Opened: %s" % (i['start_date'].strftime('%Y-%m-%d'))
-        
+
         record['subject'] = i['title']
         record['description']['raw'] = desc
         record['parentId'] = pid
@@ -91,6 +94,10 @@ def prepareData(data):
 
     return fresh_data
 
+def prepareDel(del_vols, workpackages):
+
+    # loop, see if in, return, whats in
+
 def insert_vols(data):
     data = json.dumps(data)
     return requests.post(c.API_POST_TARGET, auth=("apikey", c.API_KEY), data=data, headers={"Content-Type": "application/json"})
@@ -98,46 +105,57 @@ def insert_vols(data):
 if __name__ == '__main__':
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
     op_DB = DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
-    
+
     #
     # 1 go to dbrary and get all volumes (id, owner id)
     #
     db_volumes = db_DB.query(_QUERIES['db_volumes'])
     #
     # 2 get all wp from op for the volumes project with volume id
-    #   
+    #
     op_workpackages = op_DB.query(_QUERIES['op_workpackages'])
     #   - index the volumes in already
     volumes_in_op = wp_vols(op_workpackages)
-    
+
     #
-    # 3 compare data and determine all of the volumes in dbrary that need to be added
+    # 3a compare data and determine all of the volumes in dbrary that need to be added
     #
-    vols_to_add = compare(volumes_in_op, db_volumes)
+    vols_to_add = getnew(volumes_in_op, db_volumes)
     print "adding %s new volumes" % str(len(vols_to_add))
-    
+
     #
-    # 4 prepare data for adding to wp
+    # 3b determine which volumes have been added to op, but no longer exist in db
+    #
+    vols_to_del = getdel(volumes_in_op, db_volumes)
+    print "editing %s volumes that have been deleted" % str(len(vols_to_del))
+
+    #
+    # 4a prepare data for adding to wp
     #   - get user information same way as get volume info from wp as #2
     op_parties = op_DB.query(_QUERIES['op_parties'])
     raw_data = getData(vols_to_add, op_parties)
     ready_data = prepareData(raw_data)
-    # 
+    #
     #   - volume title -> subject; parentId -> parentId; vid -> databrary id; creation date -> start date
-    #pprint(json.dumps(ready_data[0]))    
+    #pprint(json.dumps(ready_data[0]))
 
-    #   
+    #
+    # 4b prepare which volumes we need to edit, got back to op_workpackages and get wp ids by vol in vols_to_del
+    #
+    del_data = prepareDel(vols_to_del, op_workpackages)
+
+    #
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
     #
     for r in ready_data:
         insert_vols(r)
-    
-    # 
+
+    #
     # 6 what about edits? (later)
-    # 
-    
-    # 
-    # 7 close up data base, die 
-    #      
+    #     - edit volumes that have been deleted (use a deleted status?)
+
+    #
+    # 7 close up data base, die
+    #
     del db_DB
     del op_DB
