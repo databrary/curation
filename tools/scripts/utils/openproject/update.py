@@ -24,7 +24,7 @@ class DB(object):
         self._password = password
         self._port = port
         self._conn = psycopg2.connect(host=self._host, database=self._database, user=self._user, password=self._password, port=self._port)
-       self._cur = self._conn.cursor()
+        self._cur = self._conn.cursor()
 
     def __del__(self):
         return self._conn.close()
@@ -40,7 +40,12 @@ def getnew(op_vols, db_vols):
     return [z for z in db_vols if str(z[0]) not in op_vols]
 
 def getdel(op_vols, db_vols):
-    return [z for z in op_vols if int(z[0]) not in db_vols]
+    
+    vols_only = []
+    for d in db_vols:
+        vols_only.append(d[0])
+    
+    return [z for z in op_vols if int(z) not in vols_only]
 
 def getData(vol_data, party_data):
     nl = []
@@ -95,7 +100,8 @@ def prepareData(data):
     return fresh_data
 
 def prepareDel(del_vols, workpackages):
-    return [str(w[0]) for w in workpackages if w[11] in del_vols]
+
+    return [w[0] for w in workpackages if w[11] in del_vols]
 
 def insert_vols(data):
     data = json.dumps(data)
@@ -126,7 +132,7 @@ if __name__ == '__main__':
     # 3b determine which volumes have been added to op, but no longer exist in db
     #
     vols_to_del = getdel(volumes_in_op, db_volumes)
-    print "removing %s volumes that have been deleted" % str(len(vols_to_del))
+    print "%s volumes have been deleted" % str(len(vols_to_del))
 
     #
     # 4a prepare data for adding to wp
@@ -149,8 +155,8 @@ if __name__ == '__main__':
     #
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
     #
-   ##for r in ready_data:
-   ##    insert_vols(r)
+    for r in ready_data:
+       insert_vols(r)
 
     #
     # 6 remove the deleted volumes
