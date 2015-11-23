@@ -95,12 +95,16 @@ def prepareData(data):
     return fresh_data
 
 def prepareDel(del_vols, workpackages):
-
-    # loop, see if in, return, whats in
+    return [str(w[0]) for w in workpackages if w[11] in del_vols]
 
 def insert_vols(data):
     data = json.dumps(data)
     return requests.post(c.API_POST_TARGET, auth=("apikey", c.API_KEY), data=data, headers={"Content-Type": "application/json"})
+
+def delete_wp(wp):
+    base = c.API_DEL_TARGET
+    url = base + wp
+    return requests.delete(url, auth=("apikey", c.API_KEY), headers={"Content-Type": "application/json"})
 
 if __name__ == '__main__':
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
@@ -127,7 +131,7 @@ if __name__ == '__main__':
     # 3b determine which volumes have been added to op, but no longer exist in db
     #
     vols_to_del = getdel(volumes_in_op, db_volumes)
-    print "editing %s volumes that have been deleted" % str(len(vols_to_del))
+    print "removing %s volumes that have been deleted" % str(len(vols_to_del))
 
     #
     # 4a prepare data for adding to wp
@@ -144,15 +148,20 @@ if __name__ == '__main__':
     #
     del_data = prepareDel(vols_to_del, op_workpackages)
 
+    print ready_data
+    print del_data
+
     #
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
     #
-    for r in ready_data:
-        insert_vols(r)
+   ##for r in ready_data:
+   ##    insert_vols(r)
 
     #
-    # 6 what about edits? (later)
-    #     - edit volumes that have been deleted (use a deleted status?)
+    # 6 remove the deleted volumes
+    #  
+   ##for d in del_data:
+   ##    delete_wp(d)
 
     #
     # 7 close up data base, die
