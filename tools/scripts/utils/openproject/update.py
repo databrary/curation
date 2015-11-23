@@ -101,11 +101,6 @@ def insert_vols(data):
     data = json.dumps(data)
     return requests.post(c.API_POST_TARGET, auth=("apikey", c.API_KEY), data=data, headers={"Content-Type": "application/json"})
 
-def delete_wp(wp):
-    base = c.API_DEL_TARGET
-    url = base + wp
-    return requests.delete(url, auth=("apikey", c.API_KEY), headers={"Content-Type": "application/json"})
-
 if __name__ == '__main__':
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
     op_DB = DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
@@ -149,7 +144,7 @@ if __name__ == '__main__':
     del_data = prepareDel(vols_to_del, op_workpackages)
 
     print ready_data
-    print del_data
+    print "the following workpackages should be delted: %s" % str(del_data)
 
     #
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
@@ -159,10 +154,8 @@ if __name__ == '__main__':
 
     #
     # 6 remove the deleted volumes
-    #  
-   ##for d in del_data:
-   ##    delete_wp(d)
-
+    # if op api actually allowed this to happen
+    
     #
     # 7 close up data base, die
     #
