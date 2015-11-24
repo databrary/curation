@@ -5,6 +5,8 @@ import json
 import psycopg2
 from config import conn as c
 import requests
+import getopt
+
 
 _QUERIES = {
     "db_volumes":"select v.id, volume_creation(v.id), v.name, owners from volume v left join volume_owners o ON v.id = o.volume where v.id > 3 order by v.id;",
@@ -108,6 +110,13 @@ def insert_vols(data):
     return requests.post(c.API_POST_TARGET, auth=("apikey", c.API_KEY), data=data, headers={"Content-Type": "application/json"})
 
 if __name__ == '__main__':
+
+    opts, args = getopt.getopt(sys.argv[1:], "r")
+    RUNNOW = False
+    for o, a in opts:
+        if o == "-r":
+            RUNNOW = True
+
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
     op_DB = DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
 
@@ -126,7 +135,7 @@ if __name__ == '__main__':
     # 3a compare data and determine all of the volumes in dbrary that need to be added
     #
     vols_to_add = getnew(volumes_in_op, db_volumes)
-    print "adding %s new volumes" % str(len(vols_to_add))
+    print "%s new volumes to be added" % str(len(vols_to_add))
 
     #
     # 3b determine which volumes have been added to op, but no longer exist in db
@@ -150,13 +159,17 @@ if __name__ == '__main__':
     del_data = prepareDel(vols_to_del, op_workpackages)
 
     print ready_data
-    print "the following workpackages should be delted: %s" % str(del_data)
+    print "the following workpackages should be deleted: %s" % str(del_data)
 
     #
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
     #
-    for r in ready_data:
-       insert_vols(r)
+    if RUNNOW:
+        print "sending volumes to tickets..."
+        for r in ready_data:
+            insert_vols(r)
+    else:
+        print "Run with `-r` to insert outstanding volumes into ticket flow"
 
     #
     # 6 remove the deleted volumes
