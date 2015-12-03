@@ -6,6 +6,7 @@ import psycopg2
 from config import conn as c
 import requests
 import getopt
+from pprint import pprint
 
 
 _QUERIES = {
@@ -149,6 +150,8 @@ if __name__ == '__main__':
     op_parties = op_DB.query(_QUERIES['op_parties'])
     raw_data = getData(vols_to_add, op_parties)
     ready_data = prepareData(raw_data)
+    print "To be added:"
+    pprint(ready_data)
     #
     #   - volume title -> subject; parentId -> parentId; vid -> databrary id; creation date -> start date
     #pprint(json.dumps(ready_data[0]))
@@ -158,7 +161,6 @@ if __name__ == '__main__':
     #
     del_data = prepareDel(vols_to_del, op_workpackages)
 
-    print ready_data
     print "the following workpackages should be deleted: %s" % str(del_data)
 
     #
