@@ -7,22 +7,19 @@ import collections
 from pprint import pprint
 from utils import csv_helpers as ch
 from datetime import datetime
+import argparse
 
 ################### COMMAND LINE ARGUMENT HANDLING #####################################
-try:
-    _session_csv = sys.argv[1]     #session metadata (csv format)
-    _participant_csv = sys.argv[2] #participant metadata (csv format)
-    _filepath_prefix = sys.argv[3] #filename on server where assets are kept
-except:
-    print('''To run this, please add paths to two csv files and a name
-             for the file where the video data is kept as arguments:
-             e.g. `python csv2json.py session.csv participants.csv study1_files`
 
-             Run as python csv2json.py session.csv None study1_files
-             if no need for participants
-             ''')
-    sys.exit()
+parser = argparse.ArgumentParser(description='Command line tool used internally to prepare CSVs full of metadata into JSON Databrary ingest packages')
+parser.add_argument('-s', '--sessionfile', help='Path to session metadata file. Is required', required=True)
+parser.add_argument('-p', '--participantfile', help='Path to participant metadata file. Is optional', required=False)
+parser.add_argument('-f', '--fileprefix', help='Prefix to be used in naming the output file', required=True)
+args = vars(parser.parse_args())
 
+_session_csv = args['sessionfile']     #session metadata (csv format)
+_participant_csv = args['participantfile'] #participant metadata (csv format)
+_filepath_prefix = args['fileprefix'] #prefix to add to the output file, preferable something reflecting the dataset
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
