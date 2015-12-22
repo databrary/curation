@@ -5,16 +5,17 @@ import json
 import psycopg2
 from config import conn as c
 import requests
-import getopt
+import argparse
 from pprint import pprint
 
+'''quick and dirty command line tool that automatically updates new volumes 
+   to openproject via the openproject api'''
 
 _QUERIES = {
     "db_volumes":"select v.id, volume_creation(v.id), v.name, owners from volume v left join volume_owners o ON v.id = o.volume where v.id > 3 order by v.id;",
     "op_parties":"select wp.id, wp.subject, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and wp.type_id = 6 and wp.project_id = 12 and cv.custom_field_id = 29 order by wp.id asc;",
     "op_workpackages": "select wp.id, wp.type_id, wp.project_id, wp.parent_id, wp.category_id, wp.created_at, wp.start_date, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and project_id = 14 and cv.custom_field_id = 29 order by wp.id asc;"
 }
-
 
 class DB(object):
     _conn = None
@@ -112,12 +113,16 @@ def insert_vols(data):
 
 if __name__ == '__main__':
 
-    opts, args = getopt.getopt(sys.argv[1:], "r")
-    RUNNOW = False
-    for o, a in opts:
-        if o == "-r":
-            RUNNOW = True
+    ######################### /command line argument handling ################################
 
+    parser = argparse.ArgumentParser(description='quick and dirty command line tool that automatically updates new volumes to openproject via the openproject api')
+    parser.add_argument('-r', '--runnow', help='Arg to make update run now', required=False, action='store_true')
+    args = vars(parser.parse_args())
+    
+    RUNNOW = True if args['runnow'] == True else False
+    
+    ######################### /command line argument handling ################################
+    
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
     op_DB = DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
 
