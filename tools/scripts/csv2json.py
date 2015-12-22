@@ -26,17 +26,36 @@ except:
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
-class ParticipantStrings(object):
+_participantStrings = {
+    ''' dict for all participant metadata. 
+        key is string literal for the property, 
+        value is whether it needs to be title cased or not (so it validates).
+    '''
+    "language": False,
+    "ethnicity": False,
+    "birthdate": False,
+    "gender": True,
+    "race": False,
+    "disability": True,
+    "description": False,
+    "info": False
+}
 
-    language = "language"
-    ethnicity = "ethnicity"
-    birthdate = "birthdate"
-    gender = "gender"
-    race = "race"
-    disability = "disability"
-    description = "description"
-    info = "info"
+def assignParticipantMd(t, p, k, v):
+    '''
+    t = the current list of all participant record being updated
+    p = the current participant being update
+    k = the string literal for the particpant metadata field
+    v = the boolean value of whether it should be title cased or not 
+    '''
 
+    if k in p and p[k] != '':
+        if k == "birthdate":
+            t[k] = ensureDateFormat(p[k].strip())
+        elif v == True:
+            t[k] = p[k].title().strip()
+        else:
+            t[k] = p[k].strip()
 
 
 def getParticipantMap(p_csvFile):
@@ -172,9 +191,8 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
     '''Here determine how to handle the creation of assets:
         pos_start, pos_end, neg_start, neg_end'''
 
-    pos = args[0] #one or more clips or None
-    neg = args[1] # '' ''  ''    ''  ''  ''
-
+    pos, neg = args #one or more clips or None
+    
     entries = []
     
     if pos == None and neg == None:
@@ -367,27 +385,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             p_target = p_map[target['ID']]
 
-
-                            '''this is not very DRY, but there are enough exceptions that it will just be shifting things around'''
-                            if p_map[target['ID']][ParticipantStrings.birthdate] != '':
-                                target[ParticipantStrings.birthdate] = ensureDateFormat(p_target[ParticipantStrings.birthdate].strip())
-                            if ParticipantStrings.ethnicity in p_target and p_target[ParticipantStrings.ethnicity] != '':
-                                target[ParticipantStrings.ethnicity] = p_target[ParticipantStrings.ethnicity].strip()
-                            if ParticipantStrings.race in p_target and p_target[ParticipantStrings.race] != '':
-                                target[ParticipantStrings.race] = p_target[ParticipantStrings.race].strip()
-                            if ParticipantStrings.language in p_target and p_target[ParticipantStrings.language] != '':
-                                target[ParticipantStrings.language] = p_target[ParticipantStrings.language].strip()
-                            if ParticipantStrings.disability in p_target and p_target[ParticipantStrings.disability] != '':
-                                target[ParticipantStrings.disability] = p_target[ParticipantStrings.disability].strip()
-                            if ParticipantStrings.description in p_target and p_target[ParticipantStrings.description] != '':
-                                target[ParticipantStrings.description] = p_target[ParticipantStrings.description].strip()
-                            if ParticipantStrings.info in p_target and p_target[ParticipantStrings.info] != '':
-                                target[ParticipantStrings.info] = p_target[ParticipantStrings.info].strip()
-                            if ParticipantStrings.gender in p_target and p_target[ParticipantStrings.gender] != '':
-                                target[ParticipantStrings.gender] = p_target[ParticipantStrings.gender].title().strip()
-
-
-
+                            for _k, _v in _participantStrings.items():
+                                assignParticipantMd(target, p_target, _k, _v)
 
                 elif 'file_' in header and row[i] != '':
                     path = path if path.endswith("/") else path + "/"
