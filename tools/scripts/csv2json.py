@@ -35,7 +35,8 @@ _participantStrings = {
     "race": False,
     "disability": True,
     "description": False,
-    "info": False
+    "info": False, 
+    "gestational age (weeks)": False
 }
 
 def assignParticipantMd(t, p, k, v):

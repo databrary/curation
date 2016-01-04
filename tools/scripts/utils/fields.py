@@ -6,7 +6,7 @@ class General(object):
                            "birthdate",
                            "date",
                            "age_days",
-                           "gestational_age",
+                           "gestational age (weeks)",
                            "gender",
                            "race",
                            "ethnicity",
