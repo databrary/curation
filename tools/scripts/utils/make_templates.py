@@ -2,8 +2,12 @@ import csv
 import json
 import fields
 import os, glob
-from xlsxwriter.workbook import Workbook
-
+import sys
+try:
+    from xlsxwriter.workbook import Workbook
+except:
+    print("Couldn't load xlsxwriter because you're not in acceptable virtual environment. Switch to venv2 or run `pip install xlsxwriter`")
+    sys.exit()
 
 _PATH_TO_TEMPLATES = '../../../spec/templates/'
 _SESSIONS_TEMPLATE = 'sessions_template.csv'
