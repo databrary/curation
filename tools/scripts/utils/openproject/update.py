@@ -1,6 +1,12 @@
 #!/usr/bin/env python2.7
 
 import sys, os
+
+'''smoother more informative version check'''
+if sys.version_info > (2, 7, 12):
+    print("You need to run this with python 2.7, exiting now so you can get your stuff together")
+    sys.exit()
+
 import json
 import psycopg2
 from config import conn as c
@@ -8,7 +14,7 @@ import requests
 import argparse
 from pprint import pprint
 
-'''quick and dirty command line tool that automatically updates new volumes 
+'''quick and dirty command line tool that automatically updates new volumes
    to openproject via the openproject api'''
 
 _QUERIES = {
@@ -44,11 +50,11 @@ def getnew(op_vols, db_vols):
     return [z for z in db_vols if str(z[0]) not in op_vols]
 
 def getdel(op_vols, db_vols):
-    
+
     vols_only = []
     for d in db_vols:
         vols_only.append(d[0])
-    
+
     return [z for z in op_vols if int(z) not in vols_only]
 
 def getData(vol_data, party_data):
@@ -118,11 +124,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='quick and dirty command line tool that automatically updates new volumes to openproject via the openproject api')
     parser.add_argument('-r', '--runnow', help='Arg to make update run now', required=False, action='store_true')
     args = vars(parser.parse_args())
-    
+
     RUNNOW = True if args['runnow'] == True else False
-    
+
     ######################### /command line argument handling ################################
-    
+
     db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
     op_DB = DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
 
@@ -141,13 +147,13 @@ if __name__ == '__main__':
     # 3a compare data and determine all of the volumes in dbrary that need to be added
     #
     vols_to_add = getnew(volumes_in_op, db_volumes)
-    print "%s new volumes to be added" % str(len(vols_to_add))
+    print("%s new volumes to be added" % str(len(vols_to_add)))
 
     #
     # 3b determine which volumes have been added to op, but no longer exist in db
     #
     vols_to_del = getdel(volumes_in_op, db_volumes)
-    print "%s volumes have been deleted" % str(len(vols_to_del))
+    print("%s volumes have been deleted" % str(len(vols_to_del)))
 
     #
     # 4a prepare data for adding to wp
@@ -155,7 +161,7 @@ if __name__ == '__main__':
     op_parties = op_DB.query(_QUERIES['op_parties'])
     raw_data = getData(vols_to_add, op_parties)
     ready_data = prepareData(raw_data)
-    print "To be added:"
+    print("To be added:")
     pprint(ready_data)
     #
     #   - volume title -> subject; parentId -> parentId; vid -> databrary id; creation date -> start date
@@ -166,22 +172,22 @@ if __name__ == '__main__':
     #
     del_data = prepareDel(vols_to_del, op_workpackages)
 
-    print "the following workpackages should be deleted: %s" % str(del_data)
+    print("the following workpackages should be deleted: %s" % str(del_data))
 
     #
     # 5 insert these records via the api (POST - /project/api/v3/projects/volumes/work_packages)
     #
     if RUNNOW:
-        print "sending volumes to tickets..."
+        print("sending volumes to tickets...")
         for r in ready_data:
             insert_vols(r)
     else:
-        print "Run with `-r` to insert outstanding volumes into ticket flow"
+        print("Run with `-r` to insert outstanding volumes into ticket flow")
 
     #
     # 6 remove the deleted volumes
     # if op api actually allowed this to happen
-    
+
     #
     # 7 close up data base, die
     #
