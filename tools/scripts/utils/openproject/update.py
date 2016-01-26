@@ -164,8 +164,6 @@ if __name__ == '__main__':
     print("To be added:")
     pprint(ready_data)
     #
-    #   - volume title -> subject; parentId -> parentId; vid -> databrary id; creation date -> start date
-    #pprint(json.dumps(ready_data[0]))
 
     #
     # 4b prepare which volumes we need to edit, got back to op_workpackages and get wp ids by vol in vols_to_del
