@@ -6,13 +6,14 @@ class General(object):
                            "birthdate",
                            "date",
                            "age_days",
-                           "gestational age (weeks)",
+                           "gestational_age_(weeks)",
                            "gender",
                            "race",
                            "ethnicity",
                            "language",
                            "disability",
-                           "consent"]
+                           "consent",
+                           "pregnancy_term"]
 
     session_headers = ["name",
                        "key",

@@ -1,1 +1,1 @@
-participantID,birthdate,date,age_days,gestational age (weeks),gender,race,ethnicity,language,disability,consent
+participantID,birthdate,date,age_days,gestational_age_(weeks),gender,race,ethnicity,language,disability,consent,pregnancy_term

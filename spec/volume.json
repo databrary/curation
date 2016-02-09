@@ -82,7 +82,7 @@
     "offset": {
       "description": "Point in time in milliseconds or MM:SS.sss, used as endpoint for segment.  Null represents indeterminate value, usually representing +-Infinity as an endpoint.",
       "type": ["number", "string", "null"],
-      "pattern": "^[+-]?([0-9]+:){0,2}[0-9]+(\\.[0-9]*)?$"
+      "pattern": "^[-+]?([0-9]+:){0,2}[0-9]+(\\.[0-9]*)?$"
     },
     "segment": {
       "description": "Explicit range of time (within a container): an empty segment, a singleton point in time, or a start and end point.",
@@ -103,7 +103,7 @@
         "key": {"type": "string"},
         "category": {
           "description": "Types of records that are relevant for data organization.",
-          "enum": [null, "pilot", "exclusion", "participant", "condition", "task", "group", "context"]
+          "enum": ["participant", "pilot", "exclusion", "condition", "group", "task", "context"]
         },
         "position": {"$ref": "#/definitions/segment"},
         "ID": {"type": "string"},
@@ -117,7 +117,7 @@
           "enum": ["Female","Male"]
         },
         "race": {"type": "string",
-          "enum": ["American Indian or Alaska Native","Asian","Native Hawaiian or Other Pacific Islander","Black or African American","White","Multiple"]
+          "enum": ["American Indian or Alaska Native","Asian","Native Hawaiian or Other Pacific Islander","Black or African American","White","More than one","Unknown or not reported"]
         },
         "ethnicity": {"type": "string",
           "enum": ["Not Hispanic or Latino","Hispanic or Latino"]
@@ -134,7 +134,10 @@
             "WV","WI","WY"]
         },
         "info": {"type": "string"},
-        "gestational age (weeks)": {"type": "number"}
+        "gestational age": {"type": "number"},
+        "pregnancy term": {"type": "string",
+          "enum": ["Full term","Preterm"]
+        }
       },
       "required": ["key", "category"],
       "additionalProperties": false
@@ -165,6 +168,9 @@
         "options": {"type": "array",
           "items": {"type": "string"},
           "description": "Additional transcode options to pass to ffmpeg."
+        },
+        "replace": {"type": ["string", "integer"],
+          "description": "Original file staging path or asset id to replace."
         }
       },
       "required": ["release", "file"],

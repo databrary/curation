@@ -23,20 +23,21 @@ _filepath_prefix = args['fileprefix'] #prefix to add to the output file, prefera
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
-_participantStrings = {
+_participantMetrics = {
     ''' dict for all participant metadata. 
         key is string literal for the property, 
-        value is whether it needs to be title cased or not (so it validates).
+        value is whether it needs to be capitalized or not (so it validates).
     '''
     "language": False,
     "ethnicity": False,
     "birthdate": False,
     "gender": True,
     "race": False,
-    "disability": True,
+    "disability": False,
     "description": False,
     "info": False, 
-    "gestational age (weeks)": False
+    "gestational age": False,
+    "pregnancy term": True
 }
 
 def assignParticipantMd(t, p, k, v):
@@ -51,7 +52,7 @@ def assignParticipantMd(t, p, k, v):
         if k == "birthdate":
             t[k] = ensureDateFormat(p[k].strip())
         elif v == True:
-            t[k] = p[k].title().strip()
+            t[k] = p[k].capitalize().strip()
         else:
             t[k] = p[k].strip()
 
@@ -383,7 +384,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                             p_target = p_map[target['ID']]
 
-                            for _k, _v in _participantStrings.items():
+                            for _k, _v in _participantMetrics.items():
                                 assignParticipantMd(target, p_target, _k, _v)
 
                 elif 'file_' in header and row[i] != '':
