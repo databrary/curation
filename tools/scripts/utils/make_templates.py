@@ -55,22 +55,30 @@ def xlsxWriter(path):
                     wsheet.write(r, c, col)
 
         if curr_sheet == 'sessions':
-            wsheet.data_validation(1, headerIdx['exclusion'], 1000, headerIdx['exclusion'], {'validate': 'list', 'source': record_field_values['reason']['enum']})
-            wsheet.data_validation(1, headerIdx['fclassification_1'], 1000, headerIdx['fclassification_1'], {'validate': 'list', 'source': volume_field_values['release']['enum']})
-            wsheet.data_validation(1, headerIdx['fclassification_2'], 1000, headerIdx['fclassification_2'], {'validate': 'list', 'source': volume_field_values['release']['enum']})
-            wsheet.data_validation(1, headerIdx['setting'], 1000, headerIdx['setting'], {'validate': 'list', 'source': record_field_values['setting']['enum']})
-            wsheet.data_validation(1, headerIdx['state'], 1000, headerIdx['state'], {'validate': 'list', 'source': record_field_values['state']['enum']})
-            wsheet.data_validation(1, headerIdx['consent'], 1000, headerIdx['consent'], {'validate': 'list', 'source': volume_field_values['release']['enum']})
+            s_dropdowns = {
+                'exclusion':record_field_values['reason']['enum'],
+                'fclassification_1':volume_field_values['release']['enum'],
+                'fclassification_2':volume_field_values['release']['enum'],
+                'setting':record_field_values['setting']['enum'],
+                'state':record_field_values['state']['enum'],
+                'consent':volume_field_values['release']['enum']
+            }
 
+            for k,v in s_dropdowns.items():
+                wsheet.data_validation(1, headerIdx[k], 1000, headerIdx[k], {'validate': 'list', 'source':v})
+            
         if curr_sheet =='participants':
-            wsheet.data_validation(1, headerIdx['race'], 1000, headerIdx['race'], {'validate': 'list', 'source': record_field_values['race']['enum']})
-            wsheet.data_validation(1, headerIdx['gender'], 1000, headerIdx['gender'], {'validate': 'list', 'source': record_field_values['gender']['enum']})
-            wsheet.data_validation(1, headerIdx['ethnicity'], 1000, headerIdx['ethnicity'], {'validate': 'list', 'source': record_field_values['ethnicity']['enum']})
-
-
+            p_dropdowns = {
+                'race':record_field_values['race']['enum'],
+                'gender':record_field_values['gender']['enum'],
+                'ethnicity':record_field_values['ethnicity']['enum'],
+                'pregnancy term':record_field_values['pregnancy term']['enum']
+            }
+            
+            for k,v in p_dropdowns.items():
+                wsheet.data_validation(1, headerIdx[k], 1000, headerIdx[k], {'validate': 'list', 'source':v})
 
     wbook.close()
-
 
 
 '''first make csv'''
