@@ -36,9 +36,29 @@ def makeNewFile(path, filename_addition="_output"):
     PATH = ('/').join(PATH_PARTS)
     return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'
 
-def convertMStoMMHH(milliseconds):
-    clip_time = int(milliseconds) * 0.001 
+def convertHHMMtoS(hms):
+    '''take a time in the form of HH:MM:SS.mm and return a rounded int for seconds'''
+    l = hms.split(':')
+    h, m, s = l
+    if "." in s:
+       s = s.split('.')[0]
+    return int(h) * 3600 + int(m) * 60 + int(s)
+
+def convertMStoHHMM(ms):
+    clip_time = int(ms) * 0.001 
     return time.strftime('%H:%M:%S', time.gmtime(clip_time))
+
+def convertStoHHMM(seconds):
+    '''returns string of HH:MM:SS from a seconds integer)'''
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%02d:%02d:%02d" % (h, m, s)
+
+def findHalfTime(t):
+    '''for now takes a time sting in the form of HH:MM:SS.mm and gives you back the halfway point in same format'''
+    s = convertHHMMtoS(t)
+    half = s / 2
+    return convertStoHHMM(half)
 
 def leftJoinCSV(file1, file2, *args):
     '''Really should only be used to left join two csv files. Left file is first arg, right file is second arg.

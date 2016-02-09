@@ -11,7 +11,7 @@ DBRY_OUTPUT = PATH+'/'+DVYU_OUTPUT.split('/')[-1].split('.')[0]+'_dbrary.csv'
 RECORD_CATEGORY = sys.argv[2] + '_' #record we are compiling here (e.g. task, exclusion, etc.)
 fformat = DVYU_OUTPUT.split('.')[-1]
 
-def convertMStoMMHH(milliseconds):
+def convertMStoHHMM(milliseconds):
     clip_time = int(milliseconds) * 0.001 
     return time.strftime('%H:%M:%S', time.gmtime(clip_time))
 
@@ -41,7 +41,7 @@ def convert(f):
                 record_no = header.split('_')[1]
                 on = 'onset_'+record_no
                 off = 'offset_'+record_no
-                clip = convertMStoMMHH(row[hIdx[on]])+'-'+convertMStoMMHH(row[hIdx[off]])
+                clip = convertMStoHHMM(row[hIdx[on]])+'-'+convertMStoHHMM(row[hIdx[off]])
 
                 records.append(row[i])
                 clips.append(clip)

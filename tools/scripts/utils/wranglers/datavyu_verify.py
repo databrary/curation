@@ -18,7 +18,7 @@ for row in csv_data:
             curr_off = "offset_" + curr_no
             curr_onset = row[hIdx[curr_on]]
             curr_offset = row[hIdx[curr_off]]
-            print("now we are on %s_%s: %s - %s" % (row[hIdx['id']], curr_no, ch.convertMStoMMHH(curr_onset), ch.convertMStoMMHH(curr_offset)))
+            print("now we are on %s_%s: %s - %s" % (row[hIdx['id']], curr_no, ch.convertMStoHHMM(curr_onset), ch.convertMStoHHMM(curr_offset)))
             if int(curr_onset) > int(curr_offset):
                 print(row[hIdx['id']], "has a problem", curr_on, ":", row[hIdx[curr_on]] , "is greater than", curr_off, ":", row[hIdx[curr_off]])
 
