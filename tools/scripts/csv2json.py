@@ -15,12 +15,13 @@ parser = argparse.ArgumentParser(description='Command line tool used internally 
 parser.add_argument('-s', '--sessionfile', help='Path to session metadata file. Is required', required=True)
 parser.add_argument('-p', '--participantfile', help='Path to participant metadata file. Is optional', required=False)
 parser.add_argument('-f', '--fileprefix', help='Prefix to be used in naming the output file', required=True)
+parser.add_argument('-n', '--volumename', help='Provide the full name for the volume, ingest requires this for validation', required=True)
 args = vars(parser.parse_args())
 
 _session_csv = args['sessionfile']     #session metadata (csv format)
 _participant_csv = args['participantfile'] #participant metadata (csv format)
 _filepath_prefix = args['fileprefix'] #prefix to add to the output file, preferable something reflecting the dataset
-
+_volume_name = args['volumename']
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
 _participantMetrics = {
@@ -134,13 +135,13 @@ def makeRecordsFromList(category, list_things, positions):
                 task_txt = task.split("|")[0]
                 task_id = int(task.split("|")[1])
                 taskObj = {'category':category, 
-                           'ID':task_txt, 
+                           'name':task_txt, 
                            'key':task_txt,
                            'id': task_id}
 
             else:    
                 taskObj = {'category':category, 
-                           'ID':task, 
+                           'name':task, 
                            'key':task}
 
             if position_formatted != []:
@@ -164,7 +165,7 @@ def makeRecordsFromList(category, list_things, positions):
 
             cond = list_things[i].strip()
             condObj = {'category':category, 
-                       'ID':cond, 
+                       'name':cond, 
                        'key':cond}
             recObjs.append(condObj)
 
@@ -180,7 +181,7 @@ def recordAppend(obj, val, cat):
 
     else: 
         obj['records'].append({'category': cat,
-                               'ID': val,
+                               'name': val,
                                'key': val
                                })
 
@@ -463,7 +464,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         data = {
 
-            'name': _filepath_prefix,
+            'name': _volume_name,
             'containers': sorted(list(s_map.values()), key=key_checker)
         }
 
