@@ -406,10 +406,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     asset_entry = checkClipsStatus(fpath, fname, fposition, fclassification, *clip_options) #sends either 1 or more sets of clips or none
 
                     for z in asset_entry:
-                        if fclassification is not None:
-                            z['release'] = fclassification.upper()
-                        else:
-                            z['release'] = None
+                        z['release'] = fclassification.upper() if fclassification is not None else None
+
                         if t_options != '':
                             z['options'] = t_options
                         else:
@@ -446,16 +444,15 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 if date is not None:
                     s_curr['date'] = ensureDateFormat(date)
-                
-                if consent is not None:
-                    s_curr['release'] = consent.upper()
 
                 if dbrary_session_id is not None:
                     s_curr['id'] = dbrary_session_id
 
+                #container level properties
                 s_curr['top'] = top
                 s_curr['name'] = name 
                 s_curr['key'] = key
+                s_curr['release'] = consent.upper() if consent is not None else None
                 
 
                 if s_curr['name'] is None:
