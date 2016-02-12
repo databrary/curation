@@ -192,7 +192,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
         pos_start, pos_end, neg_start, neg_end'''
 
     pos, neg = args #one or more clips or None
-    
+    zero_start_pattern = '(00?)?:?(00?):(00)' #want to match 0:00, 00:00, 00:00:00
     entries = []
     
     if pos == None and neg == None:
@@ -226,12 +226,12 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
                 time_in = times[0].strip()
                 time_out = times[1].strip()
 
-                if time_in == '0:00':
+                if bool(re.search(zero_start_pattern, time_in)): #is start 0:00, 00:00, 00:00:00? 
                     clipArr.append((time_out, None))
-                elif time_out == "$":
-                    clipArr.append(("0:00", time_in))
+                elif time_out == '$':
+                    clipArr.append(('00:00:00', time_in))
                 else:
-                    clipArr.append(("0:00", time_in))
+                    clipArr.append(('00:00:00', time_in))
                     clipArr.append((time_out, None))
 
             if num_of_clip_outs > 1:
@@ -245,13 +245,13 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
                 last_in = last_times[0].strip()
                 last_out = last_times[1].strip()
 
-                if first_in != '0:00':
-                    clipArr.append(("0:00", first_in))
+                if not bool(re.search(zero_start_pattern, first_in)):
+                    clipArr.append(('00:00:00', first_in))
 
 
                 if len(mid_times) == 0:
 
-                    if first_in == '0:00':
+                    if bool(re.search(zero_start_pattern, first_in)):
                         clipArr.append((first_out, last_in))
                 
                 if len(mid_times) > 0:
