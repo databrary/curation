@@ -188,8 +188,12 @@ def recordAppend(obj, val, cat):
 def checkClipsStatus(file_path, file_name, file_position, file_classification, *args):
 
 
-    '''Here determine how to handle the creation of assets:
-        pos_start, pos_end, neg_start, neg_end'''
+    '''
+       Here determine how to handle the creation of assets:
+       pos_start, pos_end, neg_start, neg_end
+
+       clip times must be in format hh:mm:ss
+    '''
 
     pos, neg = args #one or more clips or None
     entries = []
@@ -206,7 +210,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
             num_of_clip_ins = len(clip_ins)
 
             for i in clip_ins:
-                times = i.split('-')
+                times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in i.split('-')] # ensuring 00:00:00 format
                 clipArr.append((times[0].strip(), times[1].strip()))
 
 
@@ -221,7 +225,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
             num_of_clip_outs = len(clip_outs)
 
             if num_of_clip_outs == 1:
-                times = clip_outs[0].split('-')
+                times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in clip_outs[0].split('-')] # ensuring 00:00:00 format
                 time_in = times[0].strip()
                 time_out = times[1].strip()
 
@@ -235,8 +239,8 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
 
             if num_of_clip_outs > 1:
 
-                first_times = clip_outs[0].split('-')
-                last_times = clip_outs[-1].split('-')
+                first_times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in clip_outs[0].split('-')] # ensuring 00:00:00 format
+                last_times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in clip_outs[-1].split('-')] # ensuring 00:00:00 format
                 mid_times = clip_outs[1:-1]
 
                 first_in = first_times[0].strip()
@@ -255,7 +259,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
                 if len(mid_times) > 0:
                     recent = first_out
                     for z in mid_times:
-                        curr_clip = z.split('-')
+                        curr_clip = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in z.split('-')] # ensuring 00:00:00 format
                         curr_in = curr_clip[0].strip()
                         curr_out = curr_clip[1].strip()
                         clipArr.append((recent, curr_in))

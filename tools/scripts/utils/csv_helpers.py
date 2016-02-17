@@ -37,9 +37,13 @@ def makeNewFile(path, filename_addition="_output"):
     return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'
 
 def convertHHMMtoS(hms):
-    '''take a time in the form of HH:MM:SS.mm and return a rounded int for seconds'''
+    '''take a time in the form of HH:MM:SS or MM:SS and return a rounded int for seconds'''
     l = hms.split(':')
-    h, m, s = l
+    if len(l) == 3:
+        h, m, s = l
+    elif len(l) == 2:
+        h = 0
+        m, s = l
     if "." in s:
        s = s.split('.')[0]
     return int(h) * 3600 + int(m) * 60 + int(s)
