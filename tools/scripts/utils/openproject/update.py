@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--runnow', help='Arg to make update run now', required=False, action='store_true')
     args = vars(parser.parse_args())
 
-    RUNNOW = True if args['runnow'] == True else False
+    RUNNOW = args['runnow']
 
     ######################### /command line argument handling ################################
 

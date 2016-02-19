@@ -16,12 +16,14 @@ parser.add_argument('-s', '--sessionfile', help='Path to session metadata file. 
 parser.add_argument('-p', '--participantfile', help='Path to participant metadata file. Is optional', required=False)
 parser.add_argument('-f', '--fileprefix', help='Prefix to be used in naming the output file', required=True)
 parser.add_argument('-n', '--volumename', help='Provide the full name for the volume, ingest requires this for validation', required=True)
+parser.add_argument('-a', '--assisted', help='This will tell the script that you are preparing data for assisted curation, so pointing at a file by asset id, and not file path in stage', required=False, action="store_true")
 args = vars(parser.parse_args())
 
 _session_csv = args['sessionfile']     #session metadata (csv format)
 _participant_csv = args['participantfile'] #participant metadata (csv format)
 _filepath_prefix = args['fileprefix'] #prefix to add to the output file, preferable something reflecting the dataset
 _volume_name = args['volumename']
+_assisted_curation = args['assisted']
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
 _participantMetrics = {
@@ -323,6 +325,18 @@ def key_checker(item):
             sys.exit()
     else:
         return ikey
+
+def format_files_for_ac(data):
+    '''if the _assisted_curation arg is passed, that means we will need
+       a property of "id" whose value is an integer for assets instead of "file". 
+       This will add the "id" property, copy the value of "file" as int and delete "file"'''
+    
+    for r in data.items():
+        for i in r[1]['assets']:
+            i['id'] = int(i['file'])
+            del i['file']
+    return data
+    
 ############################### MAIN ####################################
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
@@ -391,8 +405,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                                 assignParticipantMd(target, p_target, _k, _v)
 
                 elif 'file_' in header and row[i] != '':
-                    path = path if path.endswith("/") else path + "/"
-                    fpath = path+row[i]
+                    if path != None:
+                        path = path if path.endswith("/") else path + "/"
+                        fpath = path+row[i]
+                    else:
+                        fpath = row[i]
                     ##### CLIP STUFF #####
                     asset_no = header.split("_")[1]
                     pos_clip = "clip_in_" 
@@ -460,12 +477,17 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 if s_curr['name'] is None:
                     del s_curr['name']
 
+        #if --assisted flag is raised, format the file property to be id and an int
+        if _assisted_curation:
+            format_files_for_ac(s_map)
 
         data = {
 
             'name': _volume_name,
             'containers': sorted(list(s_map.values()), key=key_checker)
         }
+
+
 
 
     res = json.dumps(data, indent=4)
