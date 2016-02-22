@@ -17,5 +17,12 @@ class DB(object):
         return self._conn.close()
 
     def query(self, query, params=None):
+        '''returns results whole'''
         self._cur.execute(query, params)
         return self._cur.fetchall()
+
+    def querytocsv(self, query, outputfile, params=None):
+        '''returns results to a specified csv file'''
+        output = "COPY ({0}) TO STDOUT WITH CSV HEADER".format(query)
+        with open(outputfile, 'w') as f:
+            self._cur.copy_expert(output, f)
