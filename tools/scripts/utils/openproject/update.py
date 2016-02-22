@@ -8,7 +8,7 @@ if sys.version_info > (2, 7, 12):
     sys.exit()
 
 import json
-import psycopg2
+from .. import dbclient
 from config import conn as c
 import requests
 import argparse
@@ -22,26 +22,6 @@ _QUERIES = {
     "op_parties":"select wp.id, wp.subject, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and wp.type_id = 6 and wp.project_id = 12 and cv.custom_field_id = 29 order by wp.id asc;",
     "op_workpackages": "select wp.id, wp.type_id, wp.project_id, wp.parent_id, wp.category_id, wp.created_at, wp.start_date, cv.* from work_packages wp left join custom_values cv on cv.customized_id = wp.id where cv.customized_type = 'WorkPackage' and project_id = 14 and cv.custom_field_id = 29 order by wp.id asc;"
 }
-
-class DB(object):
-    _conn = None
-    _cur = None
-
-    def __init__(self, host, database, user, password, port):
-        self._host = host
-        self._database = database
-        self._user = user
-        self._password = password
-        self._port = port
-        self._conn = psycopg2.connect(host=self._host, database=self._database, user=self._user, password=self._password, port=self._port)
-        self._cur = self._conn.cursor()
-
-    def __del__(self):
-        return self._conn.close()
-
-    def query(self, query, params=None):
-        self._cur.execute(query, params)
-        return self._cur.fetchall()
 
 def wp_vols(data):
     return sorted([d[11] for d in data if d[11] != None and d[11] != ''], key=lambda x: float(x))
@@ -129,8 +109,8 @@ if __name__ == '__main__':
 
     ######################### /command line argument handling ################################
 
-    db_DB = DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
-    op_DB = DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
+    db_DB = dbclient.DB(c.db['HOST'], c.db['DATABASE'], c.db['USER'], c.db['PASSWORD'], c.db['PORT'])
+    op_DB = dbclient.DB(c.op['HOST'], c.op['DATABASE'], c.op['USER'], c.op['PASSWORD'], c.op['PORT'])
 
     #
     # 1 go to dbrary and get all volumes (id, owner id)

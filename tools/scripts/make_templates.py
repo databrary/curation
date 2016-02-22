@@ -1,6 +1,6 @@
 import csv
 import json
-import fields
+from utils import fields
 import os, glob
 import sys
 try:
@@ -9,11 +9,11 @@ except:
     print("Couldn't load xlsxwriter because you're not in acceptable virtual environment. Switch to venv2 or run `pip install xlsxwriter`")
     sys.exit()
 
-_PATH_TO_TEMPLATES = '../../../spec/templates/'
+_PATH_TO_TEMPLATES = '../../spec/templates/'
 _SESSIONS_TEMPLATE = 'sessions_template.csv'
 _PARTICIPANTS_TEMPLATE = 'participants_template.csv'
 
-volume_schema = json.loads(open('../../../spec/volume.json', 'rt').read())
+volume_schema = json.loads(open('../../spec/volume.json', 'rt').read())
 volume_field_values = volume_schema['definitions']
 container_field_values = volume_schema['definitions']['container']
 record_field_values = volume_schema['definitions']['record']['properties']
@@ -35,7 +35,7 @@ def csvWriter(path, headers):
 
 
 def xlsxWriter(path):
-    project = '../../../spec/templates/ingest_template'
+    project = '../../spec/templates/ingest_template'
     wbook = Workbook(project + '.xlsx')
 
     for csvfile in glob.glob(os.path.join(_PATH_TO_TEMPLATES, '*.csv')):
