@@ -423,7 +423,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     fposition = ch.assignWithEmpty(file_position, headerIndex, row, 'auto')
                     fclassification = ch.assignWithEmpty(file_classification, headerIndex, row, None)
                     prefixes = (pos_clip, neg_clip)
-                    clip_options = tuple(ch.assignWithEmpty(j+asset_no, headerIndex, row, None) for j in prefixes)
+                    clip_options = tuple(ch.assignIfThere(j+asset_no, headerIndex, row, None) for j in prefixes)
+                    #TODO --- THIS NEEDS TO BE REFACTORED...WHAT GOES IN AND WHAT COMES OUT IS UNCLEAR
                     asset_entry = checkClipsStatus(fpath, fname, fposition, fclassification, *clip_options) #sends either 1 or more sets of clips or none
 
                     for z in asset_entry:

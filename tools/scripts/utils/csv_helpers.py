@@ -39,7 +39,9 @@ def makeNewFile(path, filename_addition="_output"):
 def convertHHMMtoS(hms):
     '''take a time in the form of HH:MM:SS or MM:SS and return a rounded int for seconds'''
     l = hms.split(':')
-    if len(l) == 3:
+    if hms == "$":
+        return hms
+    elif len(l) == 3:
         h, m, s = l
     elif len(l) == 2:
         h = 0
@@ -54,6 +56,9 @@ def convertMStoHHMM(ms):
 
 def convertStoHHMM(seconds):
     '''returns string of HH:MM:SS from a seconds integer)'''
+    if seconds == "$":
+        return seconds
+
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%02d:%02d:%02d" % (h, m, s)
