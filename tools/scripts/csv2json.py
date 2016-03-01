@@ -26,11 +26,12 @@ _volume_name = args['volumename']
 _assisted_curation = args['assisted']
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
+    #dict for all participant metadata. 
+    #key is string literal for the property, 
+    #value is whether it needs to be capitalized or not (so it validates).
+
 _participantMetrics = {
-    ''' dict for all participant metadata. 
-        key is string literal for the property, 
-        value is whether it needs to be capitalized or not (so it validates).
-    '''
+   
     "language": False,
     "ethnicity": False,
     "birthdate": False,
@@ -396,6 +397,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 if header == 'participantID':
                     for i in range(len(s_curr['records'])):
                         target = list(s_curr['records'])[i]
+
                         '''missing: date and age, in days.'''
                         if 'category' in target and target['category'] == 'participant' and target['ID'] != '':
 
