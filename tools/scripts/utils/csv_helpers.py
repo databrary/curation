@@ -36,8 +36,7 @@ def makeNewFile(path, filename_addition="_output"):
     PATH = ('/').join(PATH_PARTS)
     return PATH+'/'+path.split('/')[-1].split('.')[0]+filename_addition+'.csv'
 
-def convertHHMMtoS(hms):
-    '''take a time in the form of HH:MM:SS or MM:SS and return a rounded int for seconds'''
+def parseHHMMSS(hms):
     l = hms.split(':')
     if hms == "$":
         return hms
@@ -48,7 +47,18 @@ def convertHHMMtoS(hms):
         m, s = l
     if "." in s:
        s = s.split('.')[0]
+    return (h, m, s)
+
+def convertHHMMtoS(hms):
+    '''take a time in the form of HH:MM:SS or MM:SS and return a rounded int for seconds'''
+    h, m, s = parseHHMMSS(hms)
     return int(h) * 3600 + int(m) * 60 + int(s)
+
+def convertHHMMSStoMS(hms):
+    '''take a time in the form of HH:MM:SS or MM:SS and return a rounded int for milliseconds'''
+    h, m, s = parseHHMMSS(hms)
+    return int(h) * 3600000 + int(m) * 60000 + int(s) * 1000
+
 
 def convertMStoHHMM(ms):
     clip_time = int(ms) * 0.001 
