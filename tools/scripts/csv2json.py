@@ -148,7 +148,7 @@ def makeRecordsFromList(category, list_things, positions):
                            'key':task}
 
             if position_formatted != []:
-                    taskObj['position'] = position_formatted[i]
+                    taskObj['positions'] = [position_formatted[i]]
 
             if not any(taskObj == d for d in recObjs):
                 recObjs.append(taskObj)
@@ -161,7 +161,7 @@ def makeRecordsFromList(category, list_things, positions):
                            'reason':excl, 
                            'key':excl}
                 if positions is not None:
-                    exclObj['position'] = position_formatted[i]
+                    exclObj['positions'] = position_formatted[i]
                 recObjs.append(exclObj)
 
         if category == 'condition':
@@ -337,6 +337,39 @@ def format_files_for_ac(data):
             i['id'] = int(i['file'])
             del i['file']
     return data
+
+def mergeRecordPositions(data):
+    '''this function merges records with the same key
+       that also have positions so that all the positions 
+       are segments in an array on one record object
+    '''
+
+    def dedupe(records):
+        delist = []
+        for r in records:
+            if r['key'] not in delist:
+                delist.append(r['key'])
+            else:
+                records.remove(r)
+        return records
+
+
+    for r in data.items():
+        
+        records = r[1]['records']
+        l = []
+        for d in records:
+            for g in records:
+                if d['key'] == g['key']:
+                    if 'positions' in d and 'positions' in g:
+                        if g['positions'][0] not in d['positions']:
+                            d['positions'].append(g['positions'][0])
+            
+            l.append(d)
+                
+        r[1]['records'] = dedupe(l)
+
+    return data
     
 ############################### MAIN ####################################
 
@@ -482,7 +515,9 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         #if --assisted flag is raised, format the file property to be id and an int
         if _assisted_curation:
-            format_files_for_ac(s_map)
+           s_map = format_files_for_ac(s_map)
+
+        s_map = mergeRecordPositions(s_map) #make sure multiple record objects are merged into one re: positions
 
         data = {
 

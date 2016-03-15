@@ -7,6 +7,8 @@ if sys.version_info > (2, 7, 12):
     print("You need to run this with python 2.7, exiting now so you can get your stuff together")
     sys.exit()
 
+'''Run from ../scripts/ with `python -m utils.openproject.update`'''
+
 import json
 from .. import dbclient
 from config import conn as c
