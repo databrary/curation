@@ -7,8 +7,7 @@ __pycache__/
 
 #scratch and notes
 .concept/
-tools/i
-tools/o
+tools/output
 
 #data
 data/

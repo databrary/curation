@@ -530,7 +530,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
     res = json.dumps(data, indent=4)
 
-    output_dest = '../o/' + _filepath_prefix + '_output.json'
+    output_dest = '../output/' + _filepath_prefix + '_output.json'
     j = open(output_dest, 'wt')
     j.write(res)
 
