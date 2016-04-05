@@ -190,13 +190,72 @@ def recordAppend(obj, val, cat):
     
 def checkClipsStatus(file_path, file_name, file_position, file_classification, *args):
 
-
     '''
        Here determine how to handle the creation of assets:
        pos_start, pos_end, neg_start, neg_end
-
-       clip times must be in format hh:mm:ss
     '''
+
+    def handleClipIns(pos):
+        '''Handle all clip ins''' 
+        clipArr = []   
+        clip_ins = pos.split(';')
+        num_of_clip_ins = len(clip_ins)
+
+        for i in clip_ins:
+            times = [str(ch.convertHHMMSStoMS(j)) for j in i.split('-')]
+            clipArr.append(tuple(times))
+
+        return clipArr
+
+    def handleClipOuts(neg):
+        '''Handle all clip outs'''
+        clipArr = []
+        clip_outs = neg.split(';')
+        num_of_clip_outs = len(clip_outs)
+
+        if num_of_clip_outs == 1:
+            times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
+            time_in, time_out = times
+
+            if time_in == '0': 
+                clipArr.append((time_out, None))
+            elif time_out == '$':
+                clipArr.append(('0', time_in))
+            else:
+                clipArr.append(('0', time_in))
+                clipArr.append((time_out, None))
+
+        if num_of_clip_outs > 1:
+
+            first_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
+            last_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[-1].split('-')]
+            mid_times = clip_outs[1:-1]
+
+            first_in, first_out = first_times
+            last_in, last_out = last_times
+
+            if first_in != 0:
+                clipArr.append(('0', first_in))
+
+            if len(mid_times) == 0:
+
+                if first_in == 0:
+                    clipArr.append((first_out, last_in))
+            
+            if len(mid_times) > 0:
+                recent = first_out
+                for z in mid_times:
+                    curr_clip = [str(ch.convertHHMMSStoMS(j)) for j in z.split('-')]
+                    curr_in, curr_out = curr_clip
+                    clipArr.append((recent, curr_in))
+                    recent = curr_out
+                clipArr.append((curr_out, last_in))
+
+            if last_out != '$':
+                    clipArr.append((last_out, None))
+
+        return clipArr
+
 
     pos, neg = args #one or more clips or None
     file_position = None if file_position == 'null' else file_position
@@ -204,97 +263,36 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
     
     if pos == None and neg == None:
         clipArr = None
-    else:
-        clipArr = []
 
-    if pos != None:
 
-        if pos != "":
-            clip_ins = pos.split(';')
-            num_of_clip_ins = len(clip_ins)
+    if pos != None and pos != "":
+        clipArr = handleClipIns(pos)
+    else: 
+        clipArr = None
 
-            for i in clip_ins:
-                times = [str(ch.convertHHMMSStoMS(j)) for j in i.split('-')]
-                clipArr.append(tuple(times))
-
-        else: 
-            clipArr = None
     
+    if neg != None and neg != "":
+        clipArr = handleClipOuts(neg)
+    else:
+        clipArr = None
 
-    if neg != None:
-
-        if neg != "":
-            clip_outs = neg.split(';')
-            num_of_clip_outs = len(clip_outs)
-
-            if num_of_clip_outs == 1:
-                times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
-                time_in, time_out = times
-
-                if time_in == '0': 
-                    clipArr.append((time_out, None))
-                elif time_out == '$':
-                    clipArr.append(('0', time_in))
-                else:
-                    clipArr.append(('0', time_in))
-                    clipArr.append((time_out, None))
-
-            if num_of_clip_outs > 1:
-
-                first_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
-                last_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[-1].split('-')]
-                mid_times = clip_outs[1:-1]
-
-                first_in, first_out = first_times
-                last_in, last_out = last_times
-
-                if first_in != 0:
-                    clipArr.append(('0', first_in))
-
-                if len(mid_times) == 0:
-
-                    if first_in == 0:
-                        clipArr.append((first_out, last_in))
-                
-                if len(mid_times) > 0:
-                    recent = first_out
-                    for z in mid_times:
-                        curr_clip = [str(ch.convertHHMMSStoMS(j)) for j in z.split('-')]
-                        curr_in, curr_out = curr_clip
-                        clipArr.append((recent, curr_in))
-                        recent = curr_out
-                    clipArr.append((curr_out, last_in))
-
-                if last_out != '$':
-                        clipArr.append((last_out, None))
-
-
-        else:
-            clipArr = None
-
+    
     if clipArr is not None:
+        '''After handling in clip ins and/or clip outs, format them for returning to the map'''
         for i in clipArr:
             entries.append({'file': file_path,
                             'name': file_name, 
                             'position': i[0] if file_position is 'auto' or file_position == "" else file_position, 
-                            'clip': [i[0], i[1]], 
+                            'clip': list(i), 
                             'release': file_classification, 
                             'options': ""})
 
     else:
-        if file_position is not None: 
-            entries.append({'file': file_path,
-                            'name': file_name, 
-                            'position': file_position, 
-                            'release': file_classification, 
-                            'options': ""})
-        else:
-            entries.append({'file': file_path,
-                            'name': file_name, 
-                            'position': "", 
-                            'release': file_classification, 
-                            'options': ""})
-
+        entries.append({'file': file_path,
+                        'name': file_name, 
+                        'position': file_position, 
+                        'release': file_classification, 
+                        'options': ""})
     return entries
 
 
@@ -452,8 +450,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     fclassification = ch.assignWithEmpty(file_classification, headerIndex, row, None)
                     prefixes = (pos_clip, neg_clip)
                     clip_options = tuple(ch.assignIfThere(j+asset_no, headerIndex, row, None) for j in prefixes)
-                    #TODO --- THIS NEEDS TO BE REFACTORED...WHAT GOES IN AND WHAT COMES OUT IS UNCLEAR
-                    asset_entry = checkClipsStatus(fpath, fname, fposition, fclassification, *clip_options) #sends either 1 or more sets of clips or none
+            
+                    asset_entry = checkClipsStatus(fpath, fname, fposition, fclassification, *clip_options) #sends either 1 or more sets of clips or none to get formatted
 
                     for z in asset_entry:
                         z['release'] = fclassification.upper() if fclassification is not None else None
