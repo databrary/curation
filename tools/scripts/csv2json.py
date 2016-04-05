@@ -203,7 +203,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
     entries = []
     
     if pos == None and neg == None:
-        clipArr = ""
+        clipArr = None
     else:
         clipArr = []
 
@@ -218,7 +218,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
                 clipArr.append(tuple(times))
 
         else: 
-            clipArr = ""
+            clipArr = None
     
 
     if neg != None:
@@ -270,9 +270,9 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
 
 
         else:
-            clipArr = ""
+            clipArr = None
 
-    if clipArr is not "":
+    if clipArr is not None:
         for i in clipArr:
             entries.append({'file': file_path,
                             'name': file_name, 
