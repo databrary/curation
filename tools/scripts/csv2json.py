@@ -199,6 +199,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
     '''
 
     pos, neg = args #one or more clips or None
+    file_position = None if file_position == 'null' else file_position
     entries = []
     
     if pos == None and neg == None:
@@ -213,9 +214,8 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
             num_of_clip_ins = len(clip_ins)
 
             for i in clip_ins:
-                times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in i.split('-')] # ensuring 00:00:00 format
-                clipArr.append((times[0].strip(), times[1].strip()))
-
+                times = [str(ch.convertHHMMSStoMS(j)) for j in i.split('-')]
+                clipArr.append(tuple(times))
 
         else: 
             clipArr = ""
@@ -228,43 +228,39 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
             num_of_clip_outs = len(clip_outs)
 
             if num_of_clip_outs == 1:
-                times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in clip_outs[0].split('-')] # ensuring 00:00:00 format
-                time_in = times[0].strip()
-                time_out = times[1].strip()
+                times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
+                time_in, time_out = times
 
-                if time_in == "00:00:00": 
+                if time_in == '0': 
                     clipArr.append((time_out, None))
                 elif time_out == '$':
-                    clipArr.append(('00:00:00', time_in))
+                    clipArr.append(('0', time_in))
                 else:
-                    clipArr.append(('00:00:00', time_in))
+                    clipArr.append(('0', time_in))
                     clipArr.append((time_out, None))
 
             if num_of_clip_outs > 1:
 
-                first_times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in clip_outs[0].split('-')] # ensuring 00:00:00 format
-                last_times = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in clip_outs[-1].split('-')] # ensuring 00:00:00 format
+                first_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
+                last_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[-1].split('-')]
                 mid_times = clip_outs[1:-1]
 
-                first_in = first_times[0].strip()
-                first_out = first_times[1].strip()
-                last_in = last_times[0].strip()
-                last_out = last_times[1].strip()
+                first_in, first_out = first_times
+                last_in, last_out = last_times
 
-                if first_in != "00:00:00":
-                    clipArr.append(('00:00:00', first_in))
+                if first_in != 0:
+                    clipArr.append(('0', first_in))
 
                 if len(mid_times) == 0:
 
-                    if first_in == "00:00:00":
+                    if first_in == 0:
                         clipArr.append((first_out, last_in))
                 
                 if len(mid_times) > 0:
                     recent = first_out
                     for z in mid_times:
-                        curr_clip = [ch.convertStoHHMM(ch.convertHHMMtoS(j)) for j in z.split('-')] # ensuring 00:00:00 format
-                        curr_in = curr_clip[0].strip()
-                        curr_out = curr_clip[1].strip()
+                        curr_clip = [str(ch.convertHHMMSStoMS(j)) for j in z.split('-')]
+                        curr_in, curr_out = curr_clip
                         clipArr.append((recent, curr_in))
                         recent = curr_out
                     clipArr.append((curr_out, last_in))
@@ -287,7 +283,6 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
 
     else:
         if file_position is not None: 
-            file_position = None if file_position == 'null' else file_position
             entries.append({'file': file_path,
                             'name': file_name, 
                             'position': file_position, 
