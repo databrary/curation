@@ -339,12 +339,12 @@ def mergeRecordPositions(data):
 
     def dedupe(records):
         delist = []
+        new = []
         for r in records:
             if r['key'] not in delist:
                 delist.append(r['key'])
-            else:
-                records.remove(r)
-        return records
+                new.append(r)
+        return new
 
 
     for r in data.items():
