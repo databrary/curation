@@ -24,6 +24,7 @@ _participant_csv = args['participantfile'] #participant metadata (csv format)
 _filepath_prefix = args['fileprefix'] #prefix to add to the output file, preferable something reflecting the dataset
 _volume_name = args['volumename']
 _assisted_curation = args['assisted']
+
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
     #dict for all participant metadata. 
@@ -106,27 +107,41 @@ def getSessionMap(s_csvFile):
 
 def makeOuterMostElements(csvReader):
     '''make an empty dictionary with the session id for keys'''
-    emptydict = {}
+    newdict = {}
 
     for n in csvReader:
-        emptydict[n[0]] = {'assets':[], 'records':[]}
+        newdict[n[0]] = {'assets':[], 'records':[]}
 
 
-    return emptydict
+    return newdict
 
 def makeRecordsFromList(category, list_things, positions):
+    ''' this function is to 1) make records for multiple records (e.g., tasks, exclusions) 
+        2) help for positioning of records that might only apply to parts of a session 
+        the category is just which type of record it is
+        the list_things is the list of things (names of the record) ordered in a list 
+        the positions are the cliptimes, to be orderd in the same sequence as the list_things and also ordered in a list
+        NOTE: THIS IS PRETTY FRAGILE IT BEING BASED ON THE ASSUMPTION THAT BOTH LISTS ARE THE SAME LENGTH, WE CAN PUT IN A CHECK,
+        BUT MAYBE THERE'S A BETTER WAY TO DO THIS.
+    '''
+
     recObjs = []
     
     position_formatted = []
 
     if positions is not None:
+        #first check if there are the same amount of positions as there are records
+        if len(list_things) != len(positions):
+            print("You are trying to position records, but there are not enough positions per task or vice versa. check your data")
+            sys.exit()
+        
         for i in positions:
             clip = i.split('-')
             if clip[0] != '#':
                 if clip[1] == '$':
-                    position_formatted.append([clip[0], None])
+                    position_formatted.append([str(ch.convertHHMMSStoMS(clip[0])), None])
                 else:
-                    position_formatted.append([clip[0], clip[1]])
+                    position_formatted.append([str(ch.convertHHMMSStoMS(clip[0])), str(ch.convertHHMMSStoMS(clip[1]))])
 
 
     for i in range(len(list_things)):
@@ -176,7 +191,9 @@ def makeRecordsFromList(category, list_things, positions):
     return recObjs
 
 def recordAppend(obj, val, cat):
-
+    ''' helper function for conditionally appending records as pilots (and perhaps others) dont have a 
+        property (e.g., name) the others have.
+    '''
     if cat == 'pilot':
         obj['records'].append({'category': cat,
                                'key': val
@@ -191,7 +208,7 @@ def recordAppend(obj, val, cat):
 def checkClipsStatus(file_path, file_name, file_position, file_classification, *args):
 
     '''
-       Here determine how to handle the creation of assets:
+       Here determine how to handle the positioning of assets:
        pos_start, pos_end, neg_start, neg_end
     '''
 
@@ -297,6 +314,9 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
 
 
 def ensureDateFormat(date):
+    '''function to convert all mm/dd/yyyy dates into yyyy-mm-dd, 
+       although quite honestly this should be done before utilizing this script
+    '''
     if '/' in date:
         date = datetime.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
     return date
@@ -338,6 +358,8 @@ def mergeRecordPositions(data):
     '''
 
     def dedupe(records):
+        '''deduplicates records after being merged
+        '''
         delist = []
         new = []
         for r in records:
@@ -364,20 +386,28 @@ def mergeRecordPositions(data):
 
     return data
     
-############################### MAIN ####################################
+############################### MAIN PART OF SCRIPT THAT PARSES CSV TO JSON ####################################
 
 def parseCSV2JSON(s_csvFile, p_csvFile):
 
     with open(s_csvFile, 'rt') as s_input:
+
+        # some basic CSV preliminaries
         s_reader = csv.reader(s_input)
         s_headers = next(s_reader)
 
+        # generate an index of the headers so we can access cells more easily.
         headerIndex = ch.getHeaderIndex(s_headers)
 
+        # if there is a participant file, get it, otherwise, just work with sessions
         if p_csvFile != "None":
             p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
 
+
+        ### 
+        # THIS IS WHERE IT LOOPS THROUGH THE CSV AND GATHERS UP AND PROCESSES EACH ROW
+        ###
         for row in s_reader:
 
             name = row[headerIndex['name']] if 'name' in headerIndex else None
@@ -505,13 +535,21 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 if s_curr['name'] is None:
                     del s_curr['name']
+        ### 
+        # // THIS IS WHERE IT STOPS LOOPING THROUGH THE CSV, GATHERING UP AND PROCESSING EACH ROW
+        ###
+
 
         #if --assisted flag is raised, format the file property to be id and an int
         if _assisted_curation:
            s_map = format_files_for_ac(s_map)
 
-        s_map = mergeRecordPositions(s_map) #make sure multiple record objects are merged into one re: positions
 
+        #make sure multiple record objects are merged into one re: positions   
+        s_map = mergeRecordPositions(s_map) 
+
+
+        #create the final datascructure by wrapping it all in a dictionary, giving it a name property, and sort the containers (sessions) by key
         data = {
 
             'name': _volume_name,
@@ -520,12 +558,16 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
 
 
-
+    #convert final data to JSON
     res = json.dumps(data, indent=4)
 
+    #create the output file and save JSON output there.
     output_dest = '../output/' + _filepath_prefix + '_output.json'
     j = open(output_dest, 'wt')
     j.write(res)
+
+
+
 
 if __name__ == '__main__':
     parseCSV2JSON(_session_csv, _participant_csv)
