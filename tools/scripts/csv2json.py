@@ -132,7 +132,7 @@ def makeRecordsFromList(category, list_things, positions):
     if positions is not None:
         #first check if there are the same amount of positions as there are records
         if len(list_things) != len(positions):
-            print("You are trying to position records, but there are not enough positions per task or vice versa. check your data")
+            print("You are trying to position records, but there are not enough positions per record or vice versa. check your data")
             sys.exit()
         
         for i in positions:
