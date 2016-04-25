@@ -45,6 +45,8 @@ _participantMetrics = {
     "pregnancy term": True
 }
 
+_contextMetrics = ["setting", "state", "country", "language"]
+
 def assignParticipantMd(t, p, k, v):
     '''
     t = the current list of all participant record being updated
@@ -400,7 +402,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         headerIndex = ch.getHeaderIndex(s_headers)
 
         # if there is a participant file, get it, otherwise, just work with sessions
-        if p_csvFile != "None":
+        if p_csvFile != None:
             p_map = getParticipantMap(p_csvFile)
         s_map = getSessionMap(s_csvFile)
 
@@ -441,9 +443,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             if setting != None:
                 context['setting'] = setting.title()
             if state != None:
-                context['state'] = state
+                context['state'] = state.title()
             if country != None:
                 context['country'] = country
+            if language != None:
+                context['language'] = language.title()
 
 
             for i in range(len(s_headers)):
@@ -496,7 +500,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                         if z not in s_curr['assets']:
                             s_curr['assets'].append(z)
 
-                    ##### CLIP STUFF #####
+                    ##### END CLIP STUFF #####
 
                 elif header == 'pilot' and pilot != None:
                     recordAppend(s_curr, pilot, 'pilot')
@@ -512,7 +516,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 elif header == 'group' and group != None:
                     recordAppend(s_curr, group, 'group')
 
-                elif header == 'setting' and len(context) > 2 and not any(context == d for d in s_curr['records']):
+                elif header in _contextMetrics and len(context) > 2 and not any(context == d for d in s_curr['records']):
                     s_curr['records'].append(context)
 
                 elif header == 'tasks' and tasks != '':
