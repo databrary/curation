@@ -32,7 +32,7 @@ _assisted_curation = args['assisted']
     #value is whether it needs to be capitalized or not (so it validates).
 
 _participantMetrics = {
-   
+    
     "language": False,
     "ethnicity": False,
     "birthdate": False,
