@@ -42,7 +42,8 @@ _participantMetrics = {
     "description": False,
     "info": False, 
     "gestational age": False,
-    "pregnancy term": True
+    "pregnancy term": True, 
+    "birth weight": False
 }
 
 _contextMetrics = ["setting", "state", "country", "language"]
