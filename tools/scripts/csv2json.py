@@ -27,10 +27,14 @@ _assisted_curation = args['assisted']
 
 ################## DATA STRUCTURE PREP AND MANIPULATION #########################
 
+    #array for context metadata, largely just to avoid repeition when assigning these fields in code below
+
+_contextMetrics = ["setting", "state", "country", "language"]
+
     #dict for all participant metadata. 
     #key is string literal for the property, 
     #value is whether it needs to be capitalized or not (so it validates).
-
+    
 _participantMetrics = {
     
     "language": False,
@@ -46,10 +50,10 @@ _participantMetrics = {
     "birth weight": False
 }
 
-_contextMetrics = ["setting", "state", "country", "language"]
 
 def assignParticipantMd(t, p, k, v):
     '''
+    Set of routines to transform participant metadata, or pass it as is.
     t = the current list of all participant record being updated
     p = the current participant being update
     k = the string literal for the particpant metadata field
