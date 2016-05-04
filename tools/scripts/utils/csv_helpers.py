@@ -72,6 +72,37 @@ def findHalfTime(t): #timehelper
     half = ms / 2
     return convertMStoHHMMSS(half)
 
+def lbsOzToGrams(weight):
+    '''right now assumes a string in the format ## lb. ## oz.'''
+    weight.lower()
+    if weight.strip() != '':
+        if 'lb.' in weight and 'oz.' in weight: 
+            arr = weight.strip().split(' ')
+            arr = [i for i in arr if i != 'lb.' and i != 'oz.']
+            pounds, ounces = arr
+            lbs = float(pounds)
+            ozs = float(ounces)
+            gsinlbs = 453.592
+            gsinozs = 28.3495
+            lbs2gs = lbs * gsinlbs
+            ozs2gs = ozs * gsinozs
+
+            return round((lbs2gs + ozs2gs), 2)
+        else: 
+            print("Think there's an issue with weights in the data")
+            sys.exit()
+    else:
+        return None
+
+def ensureDateFormat(date):
+    '''function to convert all mm/dd/yyyy dates into yyyy-mm-dd, 
+       although quite honestly this should be done before utilizing this script
+    '''
+    if '/' in date:
+        date = datetime.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
+    return date
+
+
   
 
 

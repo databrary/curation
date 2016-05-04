@@ -58,7 +58,9 @@ def assignParticipantMd(t, p, k, v):
 
     if k in p and p[k] != '':
         if k == "birthdate":
-            t[k] = ensureDateFormat(p[k].strip())
+            t[k] = ch.ensureDateFormat(p[k].strip())
+        elif k == "birth weight":
+            t[k] = ch.lbsOzToGrams(p[k].strip())
         elif v == True:
             t[k] = p[k].capitalize().strip()
         else:
@@ -315,15 +317,6 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
                         'options': ""})
     return entries
 
-
-def ensureDateFormat(date):
-    '''function to convert all mm/dd/yyyy dates into yyyy-mm-dd, 
-       although quite honestly this should be done before utilizing this script
-    '''
-    if '/' in date:
-        date = datetime.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
-    return date
-
 def key_checker(item):
     '''function for checking if a string contains both alpha and numeric characters
     like V199'''
@@ -444,7 +437,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             if setting != None:
                 context['setting'] = setting.title()
             if state != None:
-                context['state'] = state.title()
+                context['state'] = state.upper()
             if country != None:
                 context['country'] = country
             if language != None:
