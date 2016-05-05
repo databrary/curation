@@ -523,7 +523,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             s_curr['records'].append(task)
 
                 if date is not None:
-                    s_curr['date'] = ensureDateFormat(date)
+                    s_curr['date'] = ch.ensureDateFormat(date)
 
                 if dbrary_session_id is not None:
                     s_curr['id'] = dbrary_session_id

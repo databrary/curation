@@ -87,7 +87,7 @@ def lbsOzToGrams(weight):
             lbs2gs = lbs * gsinlbs
             ozs2gs = ozs * gsinozs
 
-            return round((lbs2gs + ozs2gs), 2)
+            return str(round((lbs2gs + ozs2gs), 2))
         else: 
             print("Think there's an issue with weights in the data")
             sys.exit()
