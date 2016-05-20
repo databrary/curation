@@ -4,16 +4,14 @@ class General(object):
     '''a general set of headers for all possible datasets'''
     participant_headers = ["participantID",
                            "birthdate",
-                           "date",
-                           "age_days",
-                           "gestational age",
                            "gender",
                            "race",
                            "ethnicity",
                            "language",
                            "disability",
-                           "consent",
-                           "pregnancy term"]
+                           "gestational age",
+                           "pregnancy term",
+                           "birth weight"]
 
     session_headers = ["name",
                        "key",
