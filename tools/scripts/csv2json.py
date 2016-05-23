@@ -430,7 +430,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             setting = ch.assignIfThere('setting', headerIndex, row, None)
             state = ch.assignIfThere('state', headerIndex, row, None)
             country = ch.assignIfThere('country', headerIndex, row, None)
-            consent = ch.assignIfThere('consent', headerIndex, row, None)
+            release = ch.assignIfThere('release', headerIndex, row, None)
             language = ch.assignIfThere('language', headerIndex, row, None)
             t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
             tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';'), task_positions) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
@@ -532,11 +532,13 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 s_curr['top'] = top
                 s_curr['name'] = name 
                 s_curr['key'] = key
-                s_curr['release'] = consent.upper() if consent is not None else None
+                s_curr['release'] = release.upper() if release is not None else None
                 
+                if 'release' not in s_headers:
+                    del s_curr['release'] # delete release if there was no release colume in ingest session spreadsheet
 
                 if s_curr['name'] is None:
-                    del s_curr['name']
+                    del s_curr['name'] #delete container file name if added and None
         ### 
         # // THIS IS WHERE IT STOPS LOOPING THROUGH THE CSV, GATHERING UP AND PROCESSING EACH ROW
         ###

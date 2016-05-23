@@ -61,7 +61,7 @@ def xlsxWriter(path):
                 'fclassification_2':volume_field_values['release']['enum'],
                 'setting':record_field_values['setting']['enum'],
                 'state':record_field_values['state']['enum'],
-                'consent':volume_field_values['release']['enum']
+                'release':volume_field_values['release']['enum']
             }
 
             for k,v in s_dropdowns.items():

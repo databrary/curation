@@ -24,7 +24,7 @@ class General(object):
                        "country",
                        "state",
                        "language",
-                       "consent",
+                       "release",
                        "condition",
                        "group",
                        "tasks",
