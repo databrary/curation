@@ -414,7 +414,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             key = row[headerIndex['key']] if 'key' in headerIndex else name
             dbrary_session_id = int(row[headerIndex['slot_id']]) if 'slot_id' in headerIndex else None 
             s_curr = s_map[key]
-
+            
             date = ch.assignIfThere('date', headerIndex, row, None)
 
             path = ch.assignIfThere('filepath', headerIndex, row, None)
@@ -531,7 +531,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                 #container level properties
                 s_curr['top'] = top
                 s_curr['name'] = name 
-                s_curr['key'] = key
+                if key is not None:
+                    s_curr['key'] = key
                 s_curr['release'] = release.upper() if release is not None else None
                 
                 if 'release' not in s_headers:
