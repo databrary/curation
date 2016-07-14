@@ -3,7 +3,7 @@
 import sys, os
 
 '''smoother more informative version check'''
-if sys.version_info > (2, 7, 12):
+if sys.version_info >= (3, 0, 0):
     print("You need to run this with python 2.7, exiting now so you can get your stuff together")
     sys.exit()
 
