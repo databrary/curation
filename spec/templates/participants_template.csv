@@ -1,1 +1,1 @@
-participantID,birthdate,gender,race,ethnicity,language,disability,gestational age,pregnancy term,birth weight
+participantID,birthdate,gender,race,ethnicity,language,disability,gestational age (weeks),pregnancy term,birth weight (grams)

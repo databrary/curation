@@ -9,9 +9,9 @@ class General(object):
                            "ethnicity",
                            "language",
                            "disability",
-                           "gestational age",
+                           "gestational age (weeks)",
                            "pregnancy term",
-                           "birth weight"]
+                           "birth weight (grams)"]
 
     session_headers = ["name",
                        "key",
