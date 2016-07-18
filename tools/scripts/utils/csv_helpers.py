@@ -8,18 +8,14 @@ import time
 
 def giveMeTSV(file): #iohelper
     t = open(file, 'rt')
-    return csv.reader(t, delimiter='\t')
+    return csv.DictReader(t, delimiter='\t')
 
 def giveMeCSV(csvfile): #iohelper
     f = open(csvfile, 'rt') 
-    return csv.reader(f)
+    return csv.DictReader(f)
 
 def cleanVal(i):
     return i.strip()
-
-def getHeaderIndex(headerlist): #iohelper
-    return {headerlist[i]: i for i in range(len(headerlist))}
-
 
 def makeNewFile(path, filename_addition="_output"): #iohelper
     '''given a filepath as an argument, we will use that to create the new file where
@@ -32,16 +28,16 @@ def makeNewFile(path, filename_addition="_output"): #iohelper
 
 ### STRINGS
 
-def assignIfThere(k, index, row, assignthis): #stringhelper
-    '''all purpose check for key in header index so we know to assign a value for the row or not
+def assignIfThere(k, row, assignthis): #stringhelper
+    '''all purpose check for key in csv.DictReader instance (row) so we know to assign a value for the row or not
         so we do not need empty columns in the spreadsheet'''
 
-    return row[index[k]] if k in index and row[index[k]] != '' else assignthis
+    return row[k] if k in row.keys() and row[k] != '' else assignthis
 
-def assignWithEmpty(k, index, row, assignthis): #stringhelper
+def assignWithEmpty(k, row, assignthis): #stringhelper
     '''assign none if does not exist, or assign with empty string if the column does exist'''
 
-    return row[index[k]] if k in index else assignthis
+    return row[k] if k in row.keys() else assignthis
 
 
 

@@ -76,14 +76,13 @@ def getParticipantMap(p_csvFile):
         their records in the form of dictionaries as the values'''
     participantMap = {};
     p_reader = ch.giveMeCSV(p_csvFile)
-    p_headers = next(p_reader)
-    p_idx = ch.getHeaderIndex(p_headers)
-
+    p_headers = p_reader.fieldnames
+    
     for rec in p_reader:
         
-        vals = {p_headers[z]: rec[z] for z in range(len(p_headers))}
+        vals = {p_headers[z]: rec[p_headers[z]] for z in range(len(p_headers))}
 
-        participantMap[rec[p_idx['participantID']]] = vals
+        participantMap[rec['participantID']] = vals
 
     return participantMap
 
@@ -92,19 +91,17 @@ def getSessionMap(s_csvFile):
        values containing participant'''
 
     r = ch.giveMeCSV(s_csvFile)
-    rhead = next(r)
+    rhead = r.fieldnames
 
     sessionMap = makeOuterMostElements(r)
 
     vol = ch.giveMeCSV(s_csvFile)
-    vheaders = next(vol)
-    vHIdx = ch.getHeaderIndex(vheaders)
-
+    vheaders = vol.fieldnames
+    
     for i in vol:
-        if 'participantID' in vHIdx:
-
-            participantID = i[vHIdx['participantID']]
-            sessionMap[i[0]]['records'].append({'ID': participantID, 'key': participantID, 'category': 'participant'})
+        if 'participantID' in vheaders:
+            participantID = i['participantID']
+            sessionMap[i['key']]['records'].append({'ID': participantID, 'key': participantID, 'category': 'participant'})
 
     '''the following then deduplicates participants in any given containers participant record'''
     for k, v in sessionMap.items():
@@ -114,13 +111,12 @@ def getSessionMap(s_csvFile):
 
     return sessionMap
 
-def makeOuterMostElements(csvReader):
+def makeOuterMostElements(csvDictReader):
     '''make an empty dictionary with the session id for keys'''
     newdict = {}
 
-    for n in csvReader:
-        newdict[n[0]] = {'assets':[], 'records':[]}
-
+    for n in csvDictReader:
+        newdict[n['key']] = {'assets':[], 'records':[]}
 
     return newdict
 
@@ -393,11 +389,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
     with open(s_csvFile, 'rt') as s_input:
 
         # some basic CSV preliminaries
-        s_reader = csv.reader(s_input)
-        s_headers = next(s_reader)
-
-        # generate an index of the headers so we can access cells more easily.
-        headerIndex = ch.getHeaderIndex(s_headers)
+        s_reader = csv.DictReader(s_input)
+        s_headers = s_reader.fieldnames
 
         # if there is a participant file, get it, otherwise, just work with sessions
         if p_csvFile != None:
@@ -410,30 +403,30 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         ###
         for row in s_reader:
 
-            name = row[headerIndex['name']] if 'name' in headerIndex else None
-            key = row[headerIndex['key']] if 'key' in headerIndex else name
-            dbrary_session_id = int(row[headerIndex['slot_id']]) if 'slot_id' in headerIndex else None 
+            name = row['name'] if 'name' in s_headers else None
+            key = row['key'] if 'key' in s_headers else name
+            dbrary_session_id = int(row['slot_id']) if 'slot_id' in s_headers else None 
             s_curr = s_map[key]
             
-            date = ch.assignIfThere('date', headerIndex, row, None)
+            date = ch.assignIfThere('date', row, None)
 
-            path = ch.assignIfThere('filepath', headerIndex, row, None)
-            t_positions = ch.assignIfThere('task_positions', headerIndex, row, None)
+            path = ch.assignIfThere('filepath', row, None)
+            t_positions = ch.assignIfThere('task_positions', row, None)
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
-            ex_positions = ch.assignIfThere('excl_positions', headerIndex, row, None)
+            ex_positions = ch.assignIfThere('excl_positions', row, None)
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
-            top = True if 'top' in headerIndex and row[headerIndex['top']] != '' else False
-            pilot = ch.assignIfThere('pilot', headerIndex, row, None)
-            exclusion = makeRecordsFromList('exclusion', row[headerIndex['exclusion']].split(';'), excl_positions) if 'exclusion' in headerIndex and row[headerIndex['exclusion']] != '' else ''
-            condition = makeRecordsFromList('condition', row[headerIndex['condition']].split(';'), None) if 'condition' in headerIndex and row[headerIndex['condition']] != '' else ''
-            group = ch.assignIfThere('group', headerIndex, row, None)
-            setting = ch.assignIfThere('setting', headerIndex, row, None)
-            state = ch.assignIfThere('state', headerIndex, row, None)
-            country = ch.assignIfThere('country', headerIndex, row, None)
-            release = ch.assignIfThere('release', headerIndex, row, None)
-            language = ch.assignIfThere('language', headerIndex, row, None)
-            t_options = row[headerIndex['transcode_options']].split(' ') if 'transcode_options' in headerIndex and row[headerIndex['transcode_options']] != '' else ''
-            tasks = makeRecordsFromList('task', row[headerIndex['tasks']].split(';'), task_positions) if 'tasks' in headerIndex and row[headerIndex['tasks']] != '' else ''
+            top = True if 'top' in s_headers and row['top'] != '' else False
+            pilot = ch.assignIfThere('pilot', row, None)
+            exclusion = makeRecordsFromList('exclusion', row['exclusion'].split(';'), excl_positions) if 'exclusion' in s_headers and row['exclusion'] != '' else ''
+            condition = makeRecordsFromList('condition', row['condition'].split(';'), None) if 'condition' in s_headers and row['condition'] != '' else ''
+            group = ch.assignIfThere('group', row, None)
+            setting = ch.assignIfThere('setting', row, None)
+            state = ch.assignIfThere('state', row, None)
+            country = ch.assignIfThere('country', row, None)
+            release = ch.assignIfThere('release', row, None)
+            language = ch.assignIfThere('language', row, None)
+            t_options = row['transcode_options'].split(' ') if 'transcode_options' in s_headers and row['transcode_options'] != '' else ''
+            tasks = makeRecordsFromList('task', row['tasks'].split(';'), task_positions) if 'tasks' in s_headers and row['tasks'] != '' else ''
 
             context = {}
             context['category'] = 'context'
@@ -451,6 +444,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             for i in range(len(s_headers)):
                 header = ch.cleanVal(s_headers[i])
 
+                #TODO: CLEAN UP EVERYTHING IN THIS LOOP.
 
                 if header == 'participantID':
                     for i in range(len(s_curr['records'])):
@@ -477,11 +471,11 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     file_name = "fname_" + asset_no
                     file_position = "fposition_" + asset_no
                     file_classification = "fclassification_" + asset_no
-                    fname = ch.assignIfThere(file_name, headerIndex, row, None)
-                    fposition = ch.assignWithEmpty(file_position, headerIndex, row, 'auto')
-                    fclassification = ch.assignWithEmpty(file_classification, headerIndex, row, None)
+                    fname = ch.assignIfThere(file_name, row, None)
+                    fposition = ch.assignWithEmpty(file_position, row, 'auto')
+                    fclassification = ch.assignWithEmpty(file_classification, row, None)
                     prefixes = (pos_clip, neg_clip)
-                    clip_options = tuple(ch.assignIfThere(j+asset_no, headerIndex, row, None) for j in prefixes)
+                    clip_options = tuple(ch.assignIfThere(j+asset_no, row, None) for j in prefixes)
             
                     asset_entry = checkClipsStatus(fpath, fname, fposition, fclassification, *clip_options) #sends either 1 or more sets of clips or none to get formatted
 
