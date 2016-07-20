@@ -445,7 +445,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             
 
             for i in range(len(s_headers)):
-                header = ch.cleanVal(s_headers[i])
+                header = s_headers[i].strip()
 
                 #TODO: CLEAN UP EVERYTHING IN THIS LOOP.
 
@@ -553,7 +553,6 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
         #create the final datascructure by wrapping it all in a dictionary, giving it a name property, and sort the containers (sessions) by key
         data = {
-
             'name': _volume_name,
             'containers': sorted(list(s_map.values()), key=key_checker)
         }

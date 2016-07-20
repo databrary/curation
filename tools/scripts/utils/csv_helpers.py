@@ -14,9 +14,6 @@ def giveMeCSV(csvfile): #iohelper
     f = open(csvfile, 'rt') 
     return csv.DictReader(f)
 
-def cleanVal(i):
-    return i.strip()
-
 def makeNewFile(path, filename_addition="_output"): #iohelper
     '''given a filepath as an argument, we will use that to create the new file where
        output will be stored'''
