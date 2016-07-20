@@ -403,22 +403,21 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
         ###
         for row in s_reader:
 
-            name = row['name'] if 'name' in s_headers else None
-            key = row['key'] if 'key' in s_headers else name
-            dbrary_session_id = int(row['slot_id']) if 'slot_id' in s_headers else None 
+            name = row.get('name', None)
+            key = row.get('key', name)
+            top = True if 'top' in s_headers and row['top'] != '' else False
+            dbrary_session_id = row.get('slot_id', None) #is this necessary anymore?
+            if dbrary_session_id is not None:
+                dbrary_session_id = int(dbrary_session_id) 
             s_curr = s_map[key]
             
             date = ch.assignIfThere('date', row, None)
-
             path = ch.assignIfThere('filepath', row, None)
             t_positions = ch.assignIfThere('task_positions', row, None)
             task_positions = t_positions.split(';') if t_positions is not None else t_positions
             ex_positions = ch.assignIfThere('excl_positions', row, None)
             excl_positions = ex_positions.split(';') if ex_positions is not None else ex_positions
-            top = True if 'top' in s_headers and row['top'] != '' else False
             pilot = ch.assignIfThere('pilot', row, None)
-            exclusion = makeRecordsFromList('exclusion', row['exclusion'].split(';'), excl_positions) if 'exclusion' in s_headers and row['exclusion'] != '' else ''
-            condition = makeRecordsFromList('condition', row['condition'].split(';'), None) if 'condition' in s_headers and row['condition'] != '' else ''
             group = ch.assignIfThere('group', row, None)
             setting = ch.assignIfThere('setting', row, None)
             state = ch.assignIfThere('state', row, None)
@@ -426,6 +425,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             release = ch.assignIfThere('release', row, None)
             language = ch.assignIfThere('language', row, None)
             t_options = row['transcode_options'].split(' ') if 'transcode_options' in s_headers and row['transcode_options'] != '' else ''
+            exclusion = makeRecordsFromList('exclusion', row['exclusion'].split(';'), excl_positions) if 'exclusion' in s_headers and row['exclusion'] != '' else ''
+            condition = makeRecordsFromList('condition', row['condition'].split(';'), None) if 'condition' in s_headers and row['condition'] != '' else ''
             tasks = makeRecordsFromList('task', row['tasks'].split(';'), task_positions) if 'tasks' in s_headers and row['tasks'] != '' else ''
 
             context = {}
@@ -440,6 +441,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             if language != None:
                 context['language'] = language.title()
 
+
+            
 
             for i in range(len(s_headers)):
                 header = ch.cleanVal(s_headers[i])
@@ -458,12 +461,12 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                             for _k, _v in _participantMetrics.items():
                                 assignParticipantMd(target, p_target, _k, _v)
 
-                elif 'file_' in header and row[i] != '':
+                elif 'file_' in header and row[header] != '':
                     if path != None:
                         path = path if path.endswith("/") else path + "/"
-                        fpath = path+row[i]
+                        fpath = path+row[header]
                     else:
-                        fpath = row[i]
+                        fpath = row[header]
                     ##### CLIP STUFF #####
                     asset_no = header.split("_")[1]
                     pos_clip = "clip_in_" 
@@ -472,8 +475,8 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     file_position = "fposition_" + asset_no
                     file_classification = "fclassification_" + asset_no
                     fname = ch.assignIfThere(file_name, row, None)
-                    fposition = ch.assignWithEmpty(file_position, row, 'auto')
-                    fclassification = ch.assignWithEmpty(file_classification, row, None)
+                    fposition = row.get(file_position, 'auto')
+                    fclassification = row.get(file_classification, None)
                     prefixes = (pos_clip, neg_clip)
                     clip_options = tuple(ch.assignIfThere(j+asset_no, row, None) for j in prefixes)
             
