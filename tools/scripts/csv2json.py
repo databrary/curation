@@ -130,6 +130,13 @@ def makeRecordsFromList(category, list_things, positions):
         BUT MAYBE THERE'S A BETTER WAY TO DO THIS.
     '''
 
+    def check_time_format(cliptime):
+        '''checks if a time is already milliseconds (isdigit()), if not it converts'''
+        if cliptime.isdigit():
+            return cliptime
+        else:
+            return ch.convertHHMMSStoMS(cliptime)
+
     recObjs = []
     
     position_formatted = []
@@ -144,9 +151,9 @@ def makeRecordsFromList(category, list_things, positions):
             clip = i.split('-')
             if clip[0] != '#':
                 if clip[1] == '$':
-                    position_formatted.append([str(ch.convertHHMMSStoMS(clip[0])), None])
+                    position_formatted.append([str(check_time_format(clip[0])), None])
                 else:
-                    position_formatted.append([str(ch.convertHHMMSStoMS(clip[0])), str(ch.convertHHMMSStoMS(clip[1]))])
+                    position_formatted.append([str(check_time_format(clip[0])), str(check_time_format(clip[1]))])
 
 
     for i in range(len(list_things)):
@@ -224,7 +231,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
         num_of_clip_ins = len(clip_ins)
 
         for i in clip_ins:
-            times = [str(ch.convertHHMMSStoMS(j)) for j in i.split('-')]
+            times = [str(check_time_format(j)) for j in i.split('-')]
             clipArr.append(tuple(times))
 
         return clipArr
@@ -236,7 +243,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
         num_of_clip_outs = len(clip_outs)
 
         if num_of_clip_outs == 1:
-            times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
+            times = [str(check_time_format(j)) for j in clip_outs[0].split('-')]
             time_in, time_out = times
 
             if time_in == '0': 
@@ -249,8 +256,8 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
 
         if num_of_clip_outs > 1:
 
-            first_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[0].split('-')]
-            last_times = [str(ch.convertHHMMSStoMS(j)) for j in clip_outs[-1].split('-')]
+            first_times = [str(check_time_format(j)) for j in clip_outs[0].split('-')]
+            last_times = [str(check_time_format(j)) for j in clip_outs[-1].split('-')]
             mid_times = clip_outs[1:-1]
 
             first_in, first_out = first_times
@@ -267,7 +274,7 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
             if len(mid_times) > 0:
                 recent = first_out
                 for z in mid_times:
-                    curr_clip = [str(ch.convertHHMMSStoMS(j)) for j in z.split('-')]
+                    curr_clip = [str(check_time_format(j)) for j in z.split('-')]
                     curr_in, curr_out = curr_clip
                     clipArr.append((recent, curr_in))
                     recent = curr_out
