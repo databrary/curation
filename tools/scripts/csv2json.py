@@ -481,7 +481,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
                     file_name = "fname_" + asset_no
                     file_position = "fposition_" + asset_no
                     file_classification = "fclassification_" + asset_no
-                    fname = ch.assignIfThere(file_name, row, None)
+                    fname = ch.assignEmptyVals(file_name, row, None)
                     fposition = row.get(file_position, 'auto')
                     fclassification = row.get(file_classification, None)
                     prefixes = (pos_clip, neg_clip)

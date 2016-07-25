@@ -31,6 +31,11 @@ def assignIfThere(k, row, assignthis): #stringhelper
 
     return row[k] if k in row.keys() and row[k] != '' else assignthis
 
+def assignEmptyVals(k, row, assignthis): #stringhelper
+    '''sometimes we do want to assign an empty value if the column is there but empty'''
+
+    return row[k] if k in row.keys() else assignthis
+
 ### TIME
 
 def parseHHMMSS(hms): #timehelper
