@@ -470,8 +470,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
 
                 elif 'file_' in header and row[header] != '':
                     if path != None:
-                        path = path if path.endswith("/") else path + "/"
-                        fpath = path+row[header]
+                        fpath = os.path.join(path, row[header])
                     else:
                         fpath = row[header]
                     ##### CLIP STUFF #####
