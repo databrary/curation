@@ -1,4 +1,66 @@
-curation
-========
+Databrary Curation
+==================
 
-Curation and ingest tools, scripts, source (no data!)
+Curation and ingest tools, scripts, source
+
+** NO Data goes in this repository **
+
+
+
+### spec
+
+#### api_docs
+
+*Not complete*: This folder contains a work in progress for describing the Databrary API using [Swagger IO](http://swagger.io/). 
+
+#### templates
+
+Contains all current templates for Databrary ingest. All files can be generated automatically with the fields from [fields.py](https://raw.githubusercontent.com/databrary/curation/master/tools/scripts/utils/fields.py) and required entries from [volume.json]()
+
+**ingest_template.xlsx**: Excel spreadsheet for distributing to contributors with two worksheets, `sessions` and `participants`. Contributors will input session (including filename and location for the video files they wish to ingest) and participant metadata in a format for ingesting into Databrary.
+
+**participants_template.csv** & **sessions_template.csv**: csv formats for each worksheet in `ingest_template.xlsx`
+
+#### volume.json
+
+JSON Schema file which defines constraints, datatypes, accepted values and JSON strutucture for metadata to be ingested into Databrary. Each ingest is validated against this schema before being being written to the Databrary database. Official version is [here](https://raw.githubusercontent.com/databrary/databrary/master/volume.json).
+
+### tools/scripts
+
+**csv2json.py**: This is the main ingest script which takes the session and/or participant .CSV files for any given dataset and converts it into a .JSON file which can then be uploaded to `https://nyu.databrary.org/volume/{VOLUME_ID}/ingest` to start the ingest process.
+
+* Usage (traditional ingest - pre-assisted curation): 
+    
+    python -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
+
+* Usage (assisted curation)
+
+    python -a -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
+
+Note: the participant file is optional if you only want to add session metadata.
+
+**assisted.py**: Script that can be used to pull rows related to assisted curation uploads from an instance of the Databrary database. Currently does not connect to production.
+
+**make_templates.py**: run in order to generate templates in `$CURATION_HOME/spec/templates`
+
+#### utils 
+
+various scripts for supporting ingest and curation operations 
+
+**./openproject/update.py**: this script will pull all new volumes into our OpenProject tracker.
+
+* Usage: 
+    - enter python virtualenvironment: `source ~/curation/tools/scripts/venv2/bin/activate`
+    - ssh to www (which should be port forwarded)
+    - in `~curation/tools/scripts` run `python -m utils.openproject.update` to see which new volumes will be added and `python -m utils.openproject.update -r` to add those new volumes to OpenProject
+
+
+**csv_helpers.py**: some helpul functions for routine csv operations in preparing an ingest
+
+**dbclient.py**: db client module for connecting to an instance of a database
+
+**fields.py**: module for all spreadsheet headers for Databrary ingest spreadsheets. Used to generate template spreadsheets
+
+**./videos**: a few scripts for checking video integrity
+
+**./analysis**: mostly one off scripts for various projects integrating with databrary.
