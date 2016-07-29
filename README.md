@@ -3,7 +3,7 @@ Databrary Curation
 
 Curation and ingest tools, scripts, source
 
-** NO Data goes in this repository **
+**NO Data goes in this repository**
 
 
 
