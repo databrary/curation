@@ -9,9 +9,9 @@ class General(object):
                            "ethnicity",
                            "language",
                            "disability",
-                           "gestational age (weeks)",
+                           "gestational age",
                            "pregnancy term",
-                           "birth weight (grams)"]
+                           "birth weight"]
 
     session_headers = ["name",
                        "key",
@@ -28,6 +28,7 @@ class General(object):
                        "condition",
                        "group",
                        "tasks",
+                       "task_positions",
                        "transcode_options",
                        "filepath",
                        "file_1",
@@ -44,30 +45,3 @@ class General(object):
                        "clip_in_2"
                        ]
 
-
-class Childes(object):
-    '''childes specific data'''
-    '''TODO: add all abbreviated languages to this'''
-    language_map = {"eng": "English"}
-
-    session_headers = ["name",
-                       "date",
-                       "participantID",
-                       "top",
-                       "pilot",
-                       "exclusion" ,
-                       "classification",
-                       "setting",
-                       "country",
-                       "state",
-                       "language",
-                       "consent",
-                       "condition",
-                       "group",
-                       "tasks",
-                       "position",
-                       "transcode_options",
-                       "filepath",
-                       "file_transcript",
-                       "file_media"
-                       ]

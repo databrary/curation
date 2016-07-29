@@ -7,6 +7,10 @@
       "type": "string",
       "pattern": "^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$"
     },
+    "numeric": {
+      "type": "string",
+      "pattern": "^[0-9]*(\\.[0-9]*)?$"
+    },
     "citation": {
       "description": "Publications/products corresponding to study volumes.",
       "type": "object",
@@ -105,8 +109,11 @@
           "description": "Types of records that are relevant for data organization.",
           "enum": ["participant", "pilot", "exclusion", "condition", "group", "task", "context"]
         },
-        "position": {"$ref": "#/definitions/segment"},
+        "positions": {"type": "array",
+    "items": {"$ref": "#/definitions/segment"}
+  },
         "ID": {"type": "string"},
+        "name": {"type": "string"},
         "reason": {"type": "string",
           "enum": ["Did not meet inclusion criteria","Procedural/experimenter error","Withdrew/fussy/tired","Outlier"]
         },
@@ -134,10 +141,11 @@
             "WV","WI","WY"]
         },
         "info": {"type": "string"},
-        "gestational age": {"type": "number"},
+        "gestational age": {"$ref": "#/definitions/numeric"},
         "pregnancy term": {"type": "string",
           "enum": ["Full term","Preterm"]
-        }
+        },
+        "birth weight": {"$ref": "#/definitions/numeric"}
       },
       "required": ["key", "category"],
       "additionalProperties": false
@@ -147,6 +155,7 @@
       "description": "Assets reflecting files in primary storage.",
       "type": "object",
       "properties": {
+        "id": {"type": "integer"},
         "release": {"$ref": "#/definitions/release"},
         "name": {"type": "string"},
         "position": {"anyOf": [
@@ -173,7 +182,6 @@
           "description": "Original file staging path or asset id to replace."
         }
       },
-      "required": ["release", "file"],
       "additionalProperties": false
     }
   },
