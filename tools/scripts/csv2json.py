@@ -572,7 +572,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
     output_dest = '../output/' + _filepath_prefix + '_output.json'
     j = open(output_dest, 'wt')
     j.write(res)
-
+    print("Your results can be found at %s" % output_dest)
 
 
 
