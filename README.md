@@ -21,6 +21,7 @@ Contains all current templates for Databrary ingest. All files can be generated 
 
 **participants_template.csv** & **sessions_template.csv**: csv formats for each worksheet in `ingest_template.xlsx`
 
+Make sure dates are in MM/DD/YYYY format
 Open .csv files in Sublime and convert to line endings to Unix
 
 #### volume.json
@@ -39,7 +40,7 @@ JSON Schema file which defines constraints, datatypes, accepted values and JSON 
 
     python csv2json.py -a -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
 
-Note: the participant file is optional if you only want to add session metadata.
+Note: the participant file is optional if you only want to add session metadata. However, you cannot have ParticipantID in the session file if you are ommitting a participant file.
 
 **assisted.py**: Script that can be used to pull rows related to assisted curation uploads from an instance of the Databrary database. Currently does not connect to production.
 
