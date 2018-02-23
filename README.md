@@ -5,7 +5,8 @@ Curation and ingest tools, scripts, source
 
 **NO Data goes in this repository**
 
-
+Must have programs: Python 2.7
+Useful programs: iTerm2 (easier interface than Terminal), Sourcetree (local GitHub clone), Sublime Text (.csv and .json editor)
 
 ### spec
 
