@@ -21,6 +21,8 @@ Contains all current templates for Databrary ingest. All files can be generated 
 
 **participants_template.csv** & **sessions_template.csv**: csv formats for each worksheet in `ingest_template.xlsx`
 
+Open .csv files in Sublime and convert to line endings to Unix
+
 #### volume.json
 
 JSON Schema file which defines constraints, datatypes, accepted values and JSON strutucture for metadata to be ingested into Databrary. Each ingest is validated against this schema before being being written to the Databrary database. Official version is [here](https://raw.githubusercontent.com/databrary/databrary/master/volume.json).
@@ -31,11 +33,11 @@ JSON Schema file which defines constraints, datatypes, accepted values and JSON 
 
 * Usage (traditional ingest - pre-assisted curation): 
     
-    python -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
+    python csv2json.py -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
 
 * Usage (assisted curation)
 
-    python -a -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
+    python csv2json.py -a -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
 
 Note: the participant file is optional if you only want to add session metadata.
 
