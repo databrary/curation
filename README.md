@@ -28,6 +28,7 @@ Contains all current templates for Databrary ingest. All files can be generated 
 **participants_template.csv** & **sessions_template.csv**: csv formats for each worksheet in `ingest_template.xlsx`
 
 Make sure dates are in MM/DD/YYYY format
+
 Open .csv files in Sublime and convert to line endings to Unix
 
 #### volume.json
