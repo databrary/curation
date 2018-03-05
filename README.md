@@ -5,7 +5,7 @@ Curation and ingest tools, scripts, source
 
 **NO Data goes in this repository**
 
-** SETUP
+### SETUP
 
 Must have programs: Python 2.7
 
