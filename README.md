@@ -13,6 +13,10 @@ Useful programs: iTerm2 (easier interface than Terminal), Sourcetree (local GitH
 
 Need an /output directory in /tools (with /scripts)
 
+Open iTerm window in folder /Users/[username]/Documents/GitHub/curation/tools
+
+Create folder for completed .csv files (e.g., /HD/temp)
+
 ### spec
 
 #### api_docs
@@ -27,9 +31,11 @@ Contains all current templates for Databrary ingest. All files can be generated 
 
 **participants_template.csv** & **sessions_template.csv**: csv formats for each worksheet in `ingest_template.xlsx`
 
-Make sure dates are in MM/DD/YYYY format
-
-Open .csv files in Sublime and convert to line endings to Unix
+* Make sure dates are in MM/DD/YYYY format
+* Open .csv files in Sublime and convert line endings to Unix
+* Make sure text IDs have leading/padding zeros
+* Do not include file_position_1 if not using clips
+* Release must be in BOTH session and participant .csv
 
 #### volume.json
 
@@ -37,11 +43,13 @@ JSON Schema file which defines constraints, datatypes, accepted values and JSON 
 
 ### tools/scripts
 
-**csv2json.py**: This is the main ingest script which takes the session and/or participant .CSV files for any given dataset and converts it into a .JSON file which can then be uploaded to `https://nyu.databrary.org/volume/{VOLUME_ID}/ingest` to start the ingest process.
+**csv2json.py**: This is the main ingest script which takes the session and/or participant .CSV files for any given dataset and converts it into a .JSON file (located in the /output folder) which can then be uploaded to `https://nyu.databrary.org/volume/{VOLUME_ID}/ingest` to start the ingest process. Select Run to run the ingest, leave both check boxes blank to check the JSON, Select Overwrite to overwrite existing session data.
 
 * Usage (traditional ingest - pre-assisted curation): 
     
     python csv2json.py -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
+    
+    Example: Users-MacBook-Pro:scripts user$ python csv2json.py -s /temp/sessions_template_test.csv -p /temp/participants_template_test.csv -f bergtest -n "ACLEW Project"
 
 * Usage (assisted curation)
 
