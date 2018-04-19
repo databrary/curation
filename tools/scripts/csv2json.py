@@ -40,6 +40,7 @@ _participantMetrics = {
     "language": False,
     "ethnicity": False,
     "birthdate": False,
+    "state": False,
     "gender": True,
     "race": False,
     "disability": False,
@@ -428,6 +429,7 @@ def parseCSV2JSON(s_csvFile, p_csvFile):
             group = ch.assignIfThere('group', row, None)
             setting = ch.assignIfThere('setting', row, None)
             state = ch.assignIfThere('state', row, None)
+            description = ch.assignIfThere('description', row, None)
             country = ch.assignIfThere('country', row, None)
             release = ch.assignIfThere('release', row, None)
             language = ch.assignIfThere('language', row, None)
