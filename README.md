@@ -36,6 +36,7 @@ Contains all current templates for Databrary ingest. All files can be generated 
 * Make sure text IDs have leading/padding zeros
 * Do not include file_position_1 if not using clips
 * Release must be in BOTH session and participant .csv
+* Make sure filepath does NOT start with "/"
 
 #### volume.json
 
