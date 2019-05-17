@@ -8,6 +8,7 @@ __pycache__/
 #scratch and notes
 .concept/
 tools/output
+tools/input
 
 #data
 data/
@@ -23,3 +24,6 @@ third_party/
 
 #logs
 logs/
+
+#Visual Code
+.vscode/*
