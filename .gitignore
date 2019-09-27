@@ -27,3 +27,6 @@ logs/
 
 #Visual Code
 .vscode/*
+
+#pycharm
+.idea/*
