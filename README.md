@@ -44,18 +44,32 @@ JSON Schema file which defines constraints, datatypes, accepted values and JSON 
 
 ### tools/scripts
 
+**prepareCSV.py**: Script that can be used to download Volume metadatas' in CSV format and build paths to the files located on the server.
+The script generates an SQL query that need to be run on the Databrary server prior to the ingest. generated files will be found in the
+`input` folder
+
+* Usage: Download and generate sessions and participants files
+    ```
+    python prepareCSV.py -u YOUR_USERNAME -p PASSWORD -s SOURCE_VOLUME -t TARGET_VOLUME
+    ```
+  if you have your own curated CSV file (Skip the download phase) and would like to use the script, add the `-f[--file]` argument:
+    ```
+    python prepareCSV.py -f FILE_PATH -u YOUR_USERNAME -p PASSWORD -s SOURCE_VOLUME -t TARGET_VOLUME
+    ```
+
 **csv2json.py**: This is the main ingest script which takes the session and/or participant .CSV files for any given dataset and converts it into a .JSON file (located in the /output folder) which can then be uploaded to `https://nyu.databrary.org/volume/{VOLUME_ID}/ingest` to start the ingest process. Select Run to run the ingest, leave both check boxes blank to check the JSON, Select Overwrite to overwrite existing session data.
 
 * Usage (traditional ingest - pre-assisted curation): 
-    
+    ```
     python csv2json.py -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
-    
+    ```    
     Example: Users-MacBook-Pro:scripts user$ python csv2json.py -s /temp/sessions_template_test.csv -p /temp/participants_template_test.csv -f bergtest -n "ACLEW Project"
 
 * Usage (assisted curation)
-
+    ```
     python csv2json.py -a -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
-
+    ```
+  
 Note: the participant file is optional if you only want to add session metadata. However, you cannot have ParticipantID in the session file if you are ommitting a participant file.
 
 **assisted.py**: Script that can be used to pull rows related to assisted curation uploads from an instance of the Databrary database. Currently does not connect to production.

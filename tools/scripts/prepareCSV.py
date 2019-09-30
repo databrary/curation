@@ -6,27 +6,19 @@ import csv
 from utils import dbapi
 from utils import csv_helpers as utils
 
-parser = argparse.ArgumentParser(
-    description='Command line tool used to downlod the CSV format of a volume and generate sesssion.csv and '
-                'participants.csv needed for the ingest process')
-parser.add_argument(
-    '-u', '--username', help='Databrary username', type=str, required=True)
-parser.add_argument('-p', '--password',
-                    help='Databrary password', type=str, required=True)
-parser.add_argument(
-    '-s', '--source', help='Volume ID source', type=int, required=True)
-parser.add_argument('-t', '--target',
-                    help='Volume ID target', type=int, required=True)
+logger = logging.getLogger('logs')
+logger.setLevel(logging.DEBUG)
 
-args = parser.parse_args()
+fh = logging.FileHandler('../../logs/all.log')
+ch = logging.StreamHandler()
 
-__source_volume_id = args.source
-__target_volume_id = args.target
-__username = args.username
-__password = args.password
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s.%(funcName)s - %(message)s')
 
-# ,top,,,,,condition,transcode_options,filepath,file_1,fname_1,fposition_1,fclassification_1,clip_out_1,clip_in_1,file_2,fname_2,fposition_2,fclassification_2,clip_out_2,clip_in_2
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
 
+logger.addHandler(ch)
+logger.addHandler(fh)
 
 __session_headers_format = {
     "key": re.compile("^session-id"),
@@ -91,6 +83,23 @@ __db_formats = {
 }
 
 
+parser = argparse.ArgumentParser(
+    description='Command line tool used to downlod the CSV format of a volume and generate sesssion.csv and '
+                'participants.csv needed for the ingest process')
+parser.add_argument(
+    '-f', '--file', help='CSV File', type=str, required=False)
+parser.add_argument(
+    '-u', '--username', help='Databrary username', type=str, dest='__username', required=True)
+parser.add_argument('-p', '--password',
+                    help='Databrary password', type=str, dest='__password', required=True)
+parser.add_argument(
+    '-s', '--source', help='Volume ID source', type=int, dest='__source_volume_id', required=True)
+parser.add_argument('-t', '--target',
+                    help='Volume ID target', type=int, dest='__target_volume_id', required=True)
+
+args = parser.parse_args()
+
+
 def autoPrepCSV(source, target):
     """
     Fetch a volume content in CSV format
@@ -101,8 +110,8 @@ def autoPrepCSV(source, target):
 def parseCSV(file_path, source, target):
     """
     Parse Volume data found in the CSV file and generate data needed for a new Volume ingest, the method will
-    generate a unique key for each session; composed of volume target id and session id, this key must match the
-    session folder on the server. The function will download a list of assets in a volume and generate a file path
+    generate a unique key for each session; composed of volume target id and session id. This key must match the
+    session folder on the server. The function will download a list of assets in the source volume and generate a file path
     (on the server) for each asset
     e.g. target id 222 and session id 8888 the path on the server should be like this
     /nyu/stage/reda/222/2228888/asset_name.mp4
@@ -135,7 +144,7 @@ def parseCSV(file_path, source, target):
                                 if asset_key not in sessions_headers:
                                     sessions_headers.append(asset_key)
                         except AttributeError as e:
-                            logging.error(e.message)
+                            logger.error(e.message)
 
                         session[key] = str(target) + session_id
                     elif key == 'tasks' and key in session and record[csv_headers[z]] != '' and record[csv_headers[z]] is not None:
@@ -153,25 +162,27 @@ def parseCSV(file_path, source, target):
 
         sessions.append(session)
         participants.append(participant)
-    writeCSV('sessions_'+str(target),sessions, sessions_headers)
-    writeCSV('participants_'+str(target),participants, participants_headers)
+    writeCSV('sessions_' + str(target), sessions, sessions_headers)
+    writeCSV('participants_' + str(target), participants, participants_headers)
+    generateQuery(source, target)
 
 
-def writeCSV(file_name,dict_data, headers):
+def writeCSV(file_name, dict_data, headers):
     try:
         with open(os.path.join(os.path.realpath('../input'), file_name + '.csv'), 'w') as csvfile:
+            logger.info('Saving file %s in %s'. file_name, os.path.realpath('../input'))
             writer = csv.DictWriter(csvfile, fieldnames=headers)
             writer.writeheader()
             for data in dict_data:
                 writer.writerow(data)
 
     except IOError as e:
-        logging.error('I/O error %s', e.message)
+        logger.error('I/O error %s', e.message)
     pass
 
 
 def getCSV(source):
-    api = dbapi.DatabraryApi(__username, __password)
+    api = dbapi.DatabraryApi(args.__username, args.__password)
     return api.get_csv(source, os.path.realpath('../input'))
 
 
@@ -182,7 +193,7 @@ def getFormat(format_id):
 def getSessionAssets(source, target, session):
     server_folder_path = '/nyu/stage/reda/' + str(target)
     try:
-        api = dbapi.DatabraryApi.getInstance(__username, __password)
+        api = dbapi.DatabraryApi.getInstance(args.__username, args.__password)
         assets = api.get_session_assets(source, session)
 
         new_assets = {}
@@ -194,21 +205,22 @@ def getSessionAssets(source, target, session):
             if getFormat(asset['format']) == 'mp4' \
                     or getFormat(asset['format']) == 'mp3' \
                     or getFormat(asset['format']) == 'mpeg' \
-                    or getFormat(asset['format']) == 'avi':
+                    or getFormat(asset['format']) == 'avi' \
+                    or getFormat(asset['format']) == 'mov':
                 new_assets.update({'clip_in_' + str(i + 1): ''})
 
         return new_assets
     except AttributeError as e:
-        logging.error(e.message)
+        logger.error(e.message)
 
 
 def getVolumeSessions(source):
     try:
-        api = dbapi.DatabraryApi.getInstance(__username, __password)
+        api = dbapi.DatabraryApi.getInstance(args.__username, args.__password)
         sessions = api.get_sessions(source)
         return sessions
     except AttributeError as e:
-        logging.error(e.message)
+        logger.error(e.message)
 
 
 def getVolumeAssets(source, target):
@@ -224,7 +236,7 @@ def getVolumeAssets(source, target):
         sessions = getVolumeSessions(source)
 
         for i, session in enumerate(sessions):
-            logging.debug('Fetching session %d assets', session['id'])
+            logger.debug('Fetching session %d assets', session['id'])
             session['assets'] = getSessionAssets(source, target, int(session['id']))
             session['id'] = str(target) + str(session['id'])
             session['key'] = session.pop('id')
@@ -232,17 +244,26 @@ def getVolumeAssets(source, target):
 
         return sessions
     except AttributeError as e:
-        logging.error(e.message)
+        logger.error(e.message)
 
 
 def generateQuery(source, target):
-    pass
+    """
+    Generate Databrary DB query that
+    :param source: Original Volume ID
+    :param target: Target Volume ID
+    :return:
+    """
+    logger.info("COPY (select 'mkdir -p /nyu/stage/reda/' || '"+str(target)+
+                 "' || '/' || '"+str(target)+
+                 "' || sa.container || ' && ' || 'cp /nyu/store/' || substr(cast(sha1 as varchar(80)), 3, 2) || '/' || right(cast(sha1 as varchar(80)), -4) || ' /nyu/stage/reda/' || '"
+                 +str(target)+"' || '/' || '"+str(target)+
+                 "' || container || '/' || CASE WHEN a.name LIKE '%.___' IS FALSE THEN a.name || '.' || f.extension[1] ELSE a.name END from slot_asset sa inner join asset a on sa.asset = a.id inner join format f on a.format = f.id where a.volume = "
+                 +str(source)+") TO '/tmp/volume_"+str(target)+".sh';")
+
 
 if __name__ == '__main__':
-    # logging.basicConfig(filename='../../logs/all.log',
-    #                     format='%(asctime)s - %(levelname)s - %(filename)s.%(funcName)s - %(message)s',
-    #                     level=logging.DEBUG)
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(filename)s.%(funcName)s - %(message)s',
-                        level=logging.DEBUG)
-    # parseCSV(__source_volume_id, __target_volume_id)
-    autoPrepCSV(__source_volume_id, __target_volume_id)
+    if args.file is None:
+        autoPrepCSV(args.__source_volume_id, args.__target_volume_id)
+    else:
+        parseCSV(args.file, args.source, args.target)

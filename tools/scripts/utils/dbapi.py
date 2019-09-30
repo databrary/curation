@@ -1,6 +1,5 @@
 import requests
 import logging
-import json
 
 try:
     from urlparse import urlparse, urljoin
@@ -9,6 +8,7 @@ except ImportError:
 import re
 import os
 
+logger = logging.getLogger('logs')
 
 class DatabraryApi:
     __base_api_url = 'https://nyu.databrary.org/api/'
@@ -31,7 +31,7 @@ class DatabraryApi:
             try:
                 self.__session = self.__login(username, password)
             except AttributeError as e:
-                logging.error(e)
+                logger.error(e)
                 raise
             DatabraryApi.__instance = self
 
@@ -44,7 +44,7 @@ class DatabraryApi:
         """
         session = requests.Session()
         url = urljoin(self.__base_api_url, 'user/login')
-        logging.debug('Login URL %s', url)
+        logger.debug('Login URL %s', url)
         credentials = {
             "email": username,
             "password": password
@@ -52,7 +52,7 @@ class DatabraryApi:
 
         response = session.post(url=url, json=credentials)
         if response.status_code == 200:
-            logging.info("User %s login successful.", username)
+            logger.info("User %s login successful.", username)
         else:
             raise AttributeError('Login failed, please check your username and password')
 
@@ -64,10 +64,10 @@ class DatabraryApi:
         :return:
         """
         url = urljoin(self.__base_api_url, 'user/logout')
-        logging.debug('Logout URL %s', url)
+        logger.debug('Logout URL %s', url)
         response = self.__session.post(url=url)
         if response.status_code == 200:
-            logging.info("User %s Disconnected.", self.__username)
+            logger.info("User %s Disconnected.", self.__username)
             DatabraryApi.__instance = None
             del self.__session
         else:
@@ -93,14 +93,14 @@ class DatabraryApi:
             return fname[0]
 
         url = urljoin(self.__base_url, 'volume/' + str(volume) + '/csv')
-        logging.debug('CSV url %s', url)
+        logger.debug('CSV url %s', url)
 
         response = self.__session.get(url, allow_redirects=True)
         if response.status_code == 200:
             file_name = get_filename_from_cd(response.headers.get('content-disposition'))
             file_path = os.path.join(target_dir, file_name)
             open(file_path, 'wb').write(response.content)
-            logging.info("CSV File %s downloaded from volume %d.", file_name, volume)
+            logger.info("CSV File %s downloaded from volume %d.", file_name, volume)
             return file_path
         else:
             raise AttributeError('Cannot download CSV file in volume %d', volume)
@@ -113,10 +113,10 @@ class DatabraryApi:
         """
         url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '?containers')
 
-        logging.debug('Getting session URL %s', url)
+        logger.debug('Getting session URL %s', url)
         response = self.__session.get(url=url)
         if response.status_code == 200:
-            logging.info("Found %d sessions.", len(response.json()['containers']))
+            logger.info("Found %d sessions.", len(response.json()['containers']))
             return response.json()['containers']
         else:
             raise AttributeError('Cannot retrieve sessions list from volume %d', volume)
@@ -131,10 +131,10 @@ class DatabraryApi:
         payload = {'assets': 1}
         url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '/slot/' + str(session))
 
-        logging.debug('Getting volume assets URL %s', url)
+        logger.debug('Getting volume assets URL %s', url)
         response = self.__session.get(url=url, params=payload)
         if response.status_code == 200:
-            logging.info("Found %d assets in session %s.", len(response.json()['assets']), session)
+            logger.info("Found %d assets in session %s.", len(response.json()['assets']), session)
             return response.json()['assets']
         else:
             raise AttributeError('Cannot retrieve asset list from session %d in volume %d', session, volume)
