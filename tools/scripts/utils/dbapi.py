@@ -18,25 +18,25 @@ class DatabraryApi:
     __instance = None
 
     @staticmethod
-    def getInstance(username=None, password=None):
+    def getInstance(username=None, password=None, superuser=False):
         if DatabraryApi.__instance is None:
-            DatabraryApi(username, password)
+            DatabraryApi(username, password, superuser)
         return DatabraryApi.__instance
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, superuser=False):
         if DatabraryApi.__instance is not None:
             raise Exception('This class is a singleton.')
         else:
             self.__username = username
             self.__password = password
             try:
-                self.__session = self.__login(username, password)
+                self.__session = self.__login(username, password, superuser)
             except AttributeError as e:
                 logger.error(e)
                 raise
             DatabraryApi.__instance = self
 
-    def __login(self, username, password):
+    def __login(self, username, password, superuser):
         """
         Login to Databrary
         :param username: a valid user name (email)
@@ -48,12 +48,18 @@ class DatabraryApi:
         logger.debug('Login URL %s', url)
         credentials = {
             "email": username,
-            "password": password
+            "password": password,
+            "superuser": superuser
         }
 
         response = session.post(url=url, json=credentials)
         if response.status_code == 200:
             logger.info("User %s login successful.", username)
+            response_json = response.json()
+            if 'csverf' in response_json:
+                session.headers.update({
+                    "x-csverf": response_json['csverf']
+                })
         else:
             raise AttributeError('Login failed, please check your username and password')
 
@@ -140,5 +146,82 @@ class DatabraryApi:
         else:
             raise AttributeError('Cannot retrieve asset list from session %d in volume %d', session, volume)
 
-    def upload_asset(self, volume, asset_path):
-        pass
+    def upload(self, volume_id, session_id, file_path):
+        """
+        Upload OPF files to a Databrary session
+        IMPORTANT: This method doesn't work with asset bigger than 1.04 MB
+        :param volume_id:
+        :param session_id:
+        :param file_path:
+        :return:
+        """
+        def create_asset(volume, session, filepath, token):
+            payload = {
+                'container': session,
+                'name': DatabraryApi.getFileName(filepath),
+                'upload': token
+            }
+            url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '/asset')
+
+            logger.debug('Creating asset URL %s', url)
+            response = self.__session.post(url=url, json=payload)
+            if response.status_code == 200:
+                logger.info("Assets Created %s.", response.json())
+                return response.json()
+            else:
+                raise AttributeError('Cannot create asset om session %d volume %d', session, volume)
+
+        def start_upload(volume, filepath):
+            payload = {
+                'filename': DatabraryApi.getFileName(filepath),
+                'size': DatabraryApi.getFileSize(filepath)
+            }
+            url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '/upload')
+
+            logger.debug('Starting upload URL %s', url)
+            response = self.__session.post(url=url, json=payload)
+            if response.status_code == 200:
+                logger.info("Upload Token %s.", response.content)
+                return response.content
+            else:
+                raise AttributeError('Cannot get upload token for volume %d', volume)
+
+        def upload_asset(volume, filepath, token):
+            __fileChunckSize = 1048576
+            __fileSize = DatabraryApi.getFileSize(filepath)
+            if __fileSize > __fileChunckSize:
+                raise AttributeError('File size must be < than %d', __fileChunckSize)
+
+            payload = {
+                'flowChunkNumber': 1,
+                'flowChunkSize': __fileChunckSize,
+                'flowCurrentChunkSize': __fileSize,
+                'flowTotalSize': __fileSize,
+                'flowIdentifier': token,
+                'flowFilename': DatabraryApi.getFileName(filepath),
+                'flowRelativePath': filepath,
+                'flowTotalChunks': 1
+            }
+            url = urljoin(self.__base_api_url, 'upload')
+
+            logger.debug('Uploading assets URL %s', url)
+            response = self.__session.get(url=url, params=payload)
+            if response.status_code >= 400:
+                raise AttributeError('Cannot upload file %s to volume %d', filepath, volume)
+
+        try:
+            upload_token = start_upload(volume_id, file_path)
+            upload_asset(volume_id, file_path, upload_token)
+            result = create_asset(volume_id, session_id, file_path, upload_token)
+            return result
+        except AttributeError as e:
+            logger.error(e.message)
+            raise
+
+    @staticmethod
+    def getFileName(filepath):
+        return os.path.basename(filepath)
+
+    @staticmethod
+    def getFileSize(filepath):
+        return os.path.getsize(filepath)

@@ -170,7 +170,7 @@ def parseCSV(file_path, source, target):
 def writeCSV(file_name, dict_data, headers):
     try:
         with open(os.path.join(os.path.realpath('../input'), file_name + '.csv'), 'w') as csvfile:
-            logger.info('Saving file %s in %s'. file_name, os.path.realpath('../input'))
+            logger.info('Saving file %s in %s', file_name, os.path.realpath('../input'))
             writer = csv.DictWriter(csvfile, fieldnames=headers)
             writer.writeheader()
             for data in dict_data:
