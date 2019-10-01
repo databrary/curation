@@ -43,6 +43,20 @@ Contains all current templates for Databrary ingest. All files can be generated 
 JSON Schema file which defines constraints, datatypes, accepted values and JSON strutucture for metadata to be ingested into Databrary. Each ingest is validated against this schema before being being written to the Databrary database. Official version is [here](https://raw.githubusercontent.com/databrary/databrary/master/volume.json).
 
 ### tools/scripts
+**trimOpf.py**: Script that can be used to trim opf files found in a 
+ingest JSON file, according to onset and offset of asset belonging 
+to the same container
+
+* Usage:
+    ```
+    python trimOpf.py PATH_TO_JSON_FILE
+    ```
+  You can also use the script to trim a single OPF file
+    ```
+    python trimOpf.py PATH_TO_OPF -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
+    ```
+  Note: if columns list is note specified, the script will consider all columns in the opf spreadsheet
+
 
 **prepareCSV.py**: Script that can be used to download Volume metadatas' in CSV format and build paths to the files located on the server.
 The script generates an SQL query that need to be run on the Databrary server prior to the ingest. generated files will be found in the

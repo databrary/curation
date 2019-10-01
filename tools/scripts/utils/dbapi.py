@@ -10,6 +10,7 @@ import os
 
 logger = logging.getLogger('logs')
 
+
 class DatabraryApi:
     __base_api_url = 'https://nyu.databrary.org/api/'
     __base_url = 'https://nyu.databrary.org/'
@@ -138,3 +139,6 @@ class DatabraryApi:
             return response.json()['assets']
         else:
             raise AttributeError('Cannot retrieve asset list from session %d in volume %d', session, volume)
+
+    def upload_asset(self, volume, asset_path):
+        pass
