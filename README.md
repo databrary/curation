@@ -44,8 +44,9 @@ JSON Schema file which defines constraints, datatypes, accepted values and JSON 
 
 ### tools/scripts
 **trimOpf.py**: Script that can be used to trim opf files found in a 
-ingest JSON file, according to onset and offset of asset belonging 
-to the same container
+ingest JSON file, according to onset and offset of assets belonging 
+to the same container, if volume, username and password for a Databrary
+volume are provided, the script will attempt to upload the OPF file.
 
 * Usage:
     ```
@@ -54,6 +55,10 @@ to the same container
   You can also use the script to trim a single OPF file
     ```
     python trimOpf.py PATH_TO_OPF -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
+    ```
+  Opf trim with upload:
+    ```
+    python trimOpf.py PATH_TO_OPF -v VOLUME_ID -u USERNAME -p PASSWORD -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
     ```
   Note: if columns list is note specified, the script will consider all columns in the opf spreadsheet
 

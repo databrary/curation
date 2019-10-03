@@ -7,6 +7,7 @@ except ImportError:
     from urllib.parse import urlparse, urljoin
 import re
 import os
+import math
 
 logger = logging.getLogger('logs')
 
@@ -118,15 +119,33 @@ class DatabraryApi:
         :param volume: Databrary volume id
         :return: a list of session ids in JSON format
         """
-        url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '?containers')
+        payload = {'containers': 1}
+        url = urljoin(self.__base_api_url, 'volume/' + str(volume))
 
         logger.debug('Getting session URL %s', url)
-        response = self.__session.get(url=url)
+        response = self.__session.get(url=url, params=payload)
         if response.status_code == 200:
             logger.info("Found %d sessions.", len(response.json()['containers']))
             return response.json()['containers']
         else:
             raise AttributeError('Cannot retrieve sessions list from volume %d', volume)
+
+    def get_session_records(self, volume, session):
+        payload = {'records': 1}
+        url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '/slot/' + str(session))
+
+        logger.debug('Getting session records URL %s', url)
+        response = self.__session.get(url=url, params=payload)
+        if response.status_code == 200:
+            logger.info("Found %d records in session %s.", len(response.json()['records']), session)
+            return response.json()['records']
+        else:
+            raise AttributeError('Cannot retrieve records list from session %d in volume %d', session, volume)
+
+    def get_session_participants(self, volume, session):
+        records = self.get_records(volume, session)
+        participants_list = [record for record in records if record.get("record", {}).get("category") == 1]
+        return participants_list
 
     def get_session_assets(self, volume, session):
         """
@@ -146,7 +165,15 @@ class DatabraryApi:
         else:
             raise AttributeError('Cannot retrieve asset list from session %d in volume %d', session, volume)
 
-    def upload(self, volume_id, session_id, file_path):
+    def get_volume_assets(self, volume):
+        sessions = []
+        for session in self.get_sessions(volume):
+            session.update({"assets": self.get_session_assets(volume, session['id'])})
+            sessions.append(session)
+        return sessions
+
+
+    def upload_asset(self, volume_id, session_id, file_path):
         """
         Upload OPF files to a Databrary session
         IMPORTANT: This method doesn't work with asset bigger than 1.04 MB
@@ -155,6 +182,7 @@ class DatabraryApi:
         :param file_path:
         :return:
         """
+
         def create_asset(volume, session, filepath, token):
             payload = {
                 'container': session,
@@ -225,3 +253,11 @@ class DatabraryApi:
     @staticmethod
     def getFileSize(filepath):
         return os.path.getsize(filepath)
+
+
+if __name__ == '__main__':
+    api = DatabraryApi("rn56@nyu.edu", "ChRySoStOmUs230.,", False)
+    # api.upload_asset(967,40269, '../../input/DatavyuSampleVideo.mp4')
+    sessions = api.get_volume_assets(967)
+    print(sessions)
+

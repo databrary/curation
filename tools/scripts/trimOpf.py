@@ -5,6 +5,9 @@ import json
 import logging
 import argparse
 import math
+from similarity.jarowinkler import JaroWinkler
+from utils import dbapi
+from shutil import copyfile
 
 try:
     import pyvyu as pv  # Python 3 package
@@ -28,9 +31,15 @@ logger.addHandler(fh)
 
 parser = argparse.ArgumentParser(
     description='Command line tool used internally to find OPF files in a directory and trim the latter according to '
-                'the video clips found in the JSON ingest file')
-parser.add_argument('input', help='Path to the Ingest JSON file. Is required')
-parser.add_argument('-f', '--format', help='File Format ', type=str,
+                'the video clips found in the JSON ingest file, if volume, username and password the script will attempt '
+                'an upload to Databrary')
+parser.add_argument('input', help='Path to the Ingest JSON file. Is required', required=True)
+parser.add_argument(
+    '-u', '--username', help='Databrary username', type=str, dest='__username', required=False)
+parser.add_argument('-p', '--password',
+                    help='Databrary password', type=str, dest='__password', required=False)
+parser.add_argument('-v', '--volume', help='Volume ID', type=int, dest='__volume',required=False)
+parser.add_argument('-f', '--format', help='File Format', type=str,
                     default='json', choices=['json', 'opf'], required=False)
 parser.add_argument(
     '-on', '--onset', help='ONSET in ms. Is required', type=int, required=False)
@@ -46,6 +55,11 @@ if args.format == 'opf' and (args.onset is None or args.offset is None):
 
 _input_file = args.input  # Input File
 _is_json = args.format == 'json'
+
+if args.__volume is not None and (args.__username is not None or args.__password is not None) :
+    logger.error('Username and password are required with Volume argument')
+    sys.exit()
+
 
 if args.onset is not None and args.offset is not None:
     _onset_input = args.onset  # onset in ms
@@ -137,7 +151,9 @@ def parseIngestFile(ingest_json_path):
 
         if opf_files_list is not None and has_media and valid_clips:
             for opf_file in opf_files_list:
-                parseAndTrimOpf(opf_file, _edit_columns,onset, offset)
+                opf_cut = parseAndTrimOpf(opf_file, _edit_columns, onset, offset)
+                if args.__username is not None & args.__password is not None & args.__volume is not None:
+                    uploadOpf(opf_cut, args.__volume)
 
 
 def parseAndTrimOpf(opf_path, columns_list, onset, offset):
@@ -145,8 +161,9 @@ def parseAndTrimOpf(opf_path, columns_list, onset, offset):
     Parse and cut OPF file according to an onset and offset passed via arguments or
     found in the ingest JSON file.
     """
-    opf_file = os.path.realpath(opf_path)
-
+    opf_file_orig = os.path.realpath(opf_path)
+    opf_path_cut = os.path.splitext(opf_file_orig)[0] + '_cut.opf'
+    opf_file = copyfile(opf_file_orig, opf_path_cut)
     sheet = pv.load_opf(opf_file)
     if sheet.get_column_list() < 1:
         logger.error('OPF file is empty')
@@ -162,7 +179,22 @@ def parseAndTrimOpf(opf_path, columns_list, onset, offset):
         for cell in col.cells:
             cell.onset = max(cell.onset - onset, 0)
             cell.offset = cell.offset - onset
-    pv.save_opf(sheet, opf_path, *sheet.columns.keys())
+    pv.save_opf(sheet, opf_path_cut, *sheet.columns.keys())
+    return opf_path_cut
+
+
+def uploadOpf(file_path, volume):
+    jaroWinkler = JaroWinkler()
+    api = dbapi.DatabraryApi(args.__username, args.__password, False)
+    volume_assets = api.get_volume_assets(volume)
+    for session in volume_assets:
+        session_assets = session["assets"]
+        for asset in session_assets:
+            asset_name = asset['name'] if "." not in asset['name'] else asset['name'][0:-4]
+            opf_name = dbapi.DatabraryApi.getFileName(file_path) if "." not in dbapi.DatabraryApi.getFileName(
+                file_path) else dbapi.DatabraryApi.getFileName(file_path)[0:-4]
+            if jaroWinkler.similarity(asset_name.lower(), opf_name.lower()) >= 0.8:
+                api.upload_asset(volume, session_assets['id'], file_path)
 
 
 def isOpf(asset_file_path):

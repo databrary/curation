@@ -84,10 +84,10 @@ __db_formats = {
 
 
 parser = argparse.ArgumentParser(
-    description='Command line tool used to downlod the CSV format of a volume and generate sesssion.csv and '
+    description='Command line tool used to download the CSV format of a volume and generate session.csv and '
                 'participants.csv needed for the ingest process')
 parser.add_argument(
-    '-f', '--file', help='CSV File', type=str, required=False)
+    '-f', '--file', help='Path to CSV File', type=str, required=False)
 parser.add_argument(
     '-u', '--username', help='Databrary username', type=str, dest='__username', required=True)
 parser.add_argument('-p', '--password',
