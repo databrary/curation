@@ -256,9 +256,9 @@ def generateQuery(source, target):
     """
     logger.info("COPY (select 'mkdir -p /nyu/stage/reda/' || '"+str(target)+
                  "' || '/' || '"+str(target)+
-                 "' || sa.container || ' && ' || 'cp /nyu/store/' || substr(cast(sha1 as varchar(80)), 3, 2) || '/' || right(cast(sha1 as varchar(80)), -4) || ' /nyu/stage/reda/' || '"
+                 "' || sa.container || ' && ' || E'cp \"/nyu/store/' || substr(cast(sha1 as varchar(80)), 3, 2) || '/' || right(cast(sha1 as varchar(80)), -4) || ' /nyu/stage/reda/' || '"
                  +str(target)+"' || '/' || '"+str(target)+
-                 "' || container || '/' || CASE WHEN a.name LIKE '%.___' IS FALSE THEN a.name || '.' || f.extension[1] ELSE a.name END from slot_asset sa inner join asset a on sa.asset = a.id inner join format f on a.format = f.id where a.volume = "
+                 "' || container || '/' || CASE WHEN a.name LIKE '%.___' IS FALSE THEN a.name || '.' || f.extension[1] || E'\"'  ELSE a.name END from slot_asset sa inner join asset a on sa.asset = a.id inner join format f on a.format = f.id where a.volume = "
                  +str(source)+") TO '/tmp/volume_"+str(target)+".sh';")
 
 
