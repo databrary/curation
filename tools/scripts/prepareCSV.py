@@ -174,7 +174,8 @@ def writeCSV(file_name, dict_data, headers):
             writer = csv.DictWriter(csvfile, fieldnames=headers)
             writer.writeheader()
             for data in dict_data:
-                writer.writerow(data)
+                if any(field.strip() for field in data):
+                    writer.writerow(data)
 
     except IOError as e:
         logger.error('I/O error %s', e.message)
