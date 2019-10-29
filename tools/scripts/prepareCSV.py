@@ -5,6 +5,8 @@ import re
 import csv
 from utils import dbapi
 from utils import csv_helpers as utils
+from datetime import datetime
+from dateutil.parser import parse
 
 logger = logging.getLogger('logs')
 logger.setLevel(logging.DEBUG)
@@ -147,6 +149,12 @@ def parseCSV(file_path, source, target):
                             logger.error(e.message)
 
                         session[key] = str(target) + session_id
+                    elif key == 'date':
+                        date = parse(record[csv_headers[z]])
+                        if isinstance(date, datetime):
+                            session[key] = date.strftime("%m/%d/%Y")
+                        else:
+                            session[key] = record[csv_headers[z]]
                     elif key == 'tasks' and key in session and record[csv_headers[z]] != '' and record[csv_headers[z]] is not None:
                         session.update(tasks=session[key] + ';' + record[csv_headers[z]])
                     else:
