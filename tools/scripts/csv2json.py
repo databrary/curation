@@ -305,11 +305,11 @@ def checkClipsStatus(file_path, file_name, file_position, file_classification, *
     else:
         clipArr = None
 
-    if neg != None and neg != "":
-        clipArr = handleClipOuts(neg)
-    else:
+    # if neg != None and neg != "":
+    #     clipArr = handleClipOuts(neg)
+    # else:
         # TODO(Reda) Fix clipArr = None; this will override pos (clip_in) value if neg is not available
-        clipArr = None
+        # clipArr = None
 
     if clipArr is not None:
         '''After handling in clip ins and/or clip outs, format them for returning to the map'''
