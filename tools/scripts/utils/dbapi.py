@@ -256,7 +256,6 @@ class DatabraryApi:
 
 
 if __name__ == '__main__':
-    api = DatabraryApi("rn56@nyu.edu", "ChRySoStOmUs230.,", False)
     # api.upload_asset(967,40269, '../../input/DatavyuSampleVideo.mp4')
     sessions = api.get_volume_assets(967)
     print(sessions)
