@@ -252,4 +252,3 @@ class DatabraryApi:
     @staticmethod
     def getFileSize(filepath):
         return os.path.getsize(filepath)
-
