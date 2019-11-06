@@ -4,10 +4,10 @@ import os
 import json
 import logging
 import argparse
-import math
-from similarity.jarowinkler import JaroWinkler
+import textdistance
 from utils import dbapi
 from shutil import copyfile
+from utils import csv_helpers as utils
 
 try:
     import pyvyu as pv  # Python 3 package
@@ -15,10 +15,16 @@ except ImportError:
     import py2vyu as pv  # Python 2 package
 from utils import csv_helpers as file_utils
 
+BASE_DIR = os.path.dirname(os.path.abspath('../'))
+CONFIG_DIR = os.path.join(BASE_DIR, 'config', )
+OPF_DIR = os.path.join(BASE_DIR, 'tools', 'opfs')
+INPUT_DIR = os.path.join(BASE_DIR, 'tools', 'input')
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+
 logger = logging.getLogger('logs')
 logger.setLevel(logging.DEBUG)
 
-fh = logging.FileHandler('../../logs/all.log')
+fh = logging.FileHandler(os.path.join(LOGS_DIR, 'all.log'))
 ch = logging.StreamHandler()
 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s.%(funcName)s - %(message)s')
@@ -33,12 +39,8 @@ parser = argparse.ArgumentParser(
     description='Command line tool used internally to find OPF files in a directory and trim the latter according to '
                 'the video clips found in the JSON ingest file, if volume, username and password the script will attempt '
                 'an upload to Databrary')
-parser.add_argument('input', help='Path to the Ingest JSON file. Is required', required=True)
-parser.add_argument(
-    '-u', '--username', help='Databrary username', type=str, dest='__username', required=False)
-parser.add_argument('-p', '--password',
-                    help='Databrary password', type=str, dest='__password', required=False)
-parser.add_argument('-v', '--volume', help='Volume ID', type=int, dest='__volume',required=False)
+parser.add_argument('input', help='Path to the Ingest JSON file. Is required')
+parser.add_argument('-v', '--volume', help='Volume ID', type=int, dest='__volume', required=False)
 parser.add_argument('-f', '--format', help='File Format', type=str,
                     default='json', choices=['json', 'opf'], required=False)
 parser.add_argument(
@@ -56,10 +58,20 @@ if args.format == 'opf' and (args.onset is None or args.offset is None):
 _input_file = args.input  # Input File
 _is_json = args.format == 'json'
 
-if args.__volume is not None and (args.__username is not None or args.__password is not None) :
-    logger.error('Username and password are required with Volume argument')
-    sys.exit()
-
+if args.__volume is not None:
+    with open(os.path.join(CONFIG_DIR, 'credentials.json')) as creds:
+        __credentials = json.load(creds)
+        __username = __credentials['username']
+        __password = __credentials['password']
+        if __credentials is None:
+            logger.error('Cannot find Databrary credentials')
+            sys.exit()
+        try:
+            api = dbapi.DatabraryApi(__username, __password)
+            volume_assets = api.get_volume_assets(args.__volume)
+        except AttributeError as e:
+            logger.error(e)
+            sys.exit()
 
 if args.onset is not None and args.offset is not None:
     _onset_input = args.onset  # onset in ms
@@ -68,17 +80,31 @@ if args.onset is not None and args.offset is not None:
 _video_extensions = [".webm", ".mpg", ".mp4",
                      ".mov", ".mts", ".avi", ".wmv", ".dv"]
 _audio_extensions = [".wav", ".aac", ".wma", ".mp3"]
+_opf_extensions = [".opf"]
 _edit_columns = args.columns
 _exception = ["id"]
-_columns_to_trim = [col for col in _edit_columns if col not in _exception]
-_opf_extensions = [".opf"]
-
 
 def parseInputFile(input_file, is_json):
     if is_json:
         parseIngestFile(input_file)
     elif not is_json and _onset_input and _offset_input:
         parseAndTrimOpf(_input_file, _edit_columns, _onset_input, _offset_input)
+
+
+def findOpf(asset_name):
+    max_similarity = 0
+    opf_similar = None
+    for root, dirs, files in os.walk(OPF_DIR):
+        for file in files:
+            if file.endswith(".opf"):
+                opf_name = dbapi.DatabraryApi.getFileName(file)[0:-4]
+                text_similarity = textdistance.jaro_winkler.similarity(asset_name.lower(), opf_name.lower())
+                if text_similarity > max_similarity:
+                    max_similarity = text_similarity
+                    opf_similar = file
+
+    logger.info('file %s and asset %s similarity is text_similarity %s', opf_similar, asset_name, str(max_similarity))
+    return os.path.join(root, opf_similar)
 
 
 def parseIngestFile(ingest_json_path):
@@ -107,53 +133,37 @@ def parseIngestFile(ingest_json_path):
 
     for i, container in enumerate(containers_list):
         assets = container['assets']
-        if len(assets) > 1:
+        if len(assets) >= 1:
             logger.info('Found %d assets in container #%d', len(assets), i)
-        elif len(assets) <= 1:
+        else:
             logger.warning(
                 'Not enough asset %d in container %d passing to the next one', len(assets), i)
             continue
 
-        onset = float('nan')
-        offset = float('nan')
-        has_media = False
-        valid_clips = False
-        opf_files_list = []
         for j, asset in enumerate(assets):
             # Find if the asset is a video file or opf
             asset_path = asset['file']
             if isMedia(asset_path):
                 logger.info("Asset %s is a media", asset_path)
-                has_media = True
                 if len(asset['clip']) > 0:
                     clip = asset['clip']
                     if len(clip) != 2:
                         logger.error(
                             'error in container #%d asset #%d; clips require two values [onset, offset]', i, j)
-                        valid_clips = False
                         break
-                    if math.isnan(onset) and math.isnan(offset):
-                        valid_clips = True
+                    else:
                         logger.info('container #%d asset #%d clip found %d-%d', i, i, int(clip[0]), int(clip[1]))
                         onset = int(clip[0])
                         offset = int(clip[1])
-                    elif clip[0] != onset or clip[1] != offset:
-                        logger.error(
-                            'error in container #%d asset #%d; All Media clips must have the same onset and offset', i,
-                            j)
-                        valid_clips = False
-                        break
-            elif isOpf(asset_path):
-                logger.info("Asset %s is an opf file", asset_path)
-                opf_files_list.append(asset_path)
+                        asset_name = dbapi.DatabraryApi.getFileName(
+                            asset_path) if "." not in dbapi.DatabraryApi.getFileName(
+                            asset_path) else dbapi.DatabraryApi.getFileName(asset_path)[0:-4]
+                        opf_path = findOpf(asset_name)
+                        opf_cut = parseAndTrimOpf(opf_path, _edit_columns, onset, offset)
+                        if args.__volume is not None and opf_path is not None:
+                            uploadOpf(opf_cut, asset_name, args.__volume)
             else:
                 logger.warning("Cannot find any Media or OPF file")
-
-        if opf_files_list is not None and has_media and valid_clips:
-            for opf_file in opf_files_list:
-                opf_cut = parseAndTrimOpf(opf_file, _edit_columns, onset, offset)
-                if args.__username is not None & args.__password is not None & args.__volume is not None:
-                    uploadOpf(opf_cut, args.__volume)
 
 
 def parseAndTrimOpf(opf_path, columns_list, onset, offset):
@@ -161,15 +171,18 @@ def parseAndTrimOpf(opf_path, columns_list, onset, offset):
     Parse and cut OPF file according to an onset and offset passed via arguments or
     found in the ingest JSON file.
     """
+    logger.info("Trim opf %s from %d to %d", opf_path, onset, offset)
     opf_file_orig = os.path.realpath(opf_path)
     opf_path_cut = os.path.splitext(opf_file_orig)[0] + '_cut.opf'
-    opf_file = copyfile(opf_file_orig, opf_path_cut)
-    sheet = pv.load_opf(opf_file)
+    copyfile(opf_file_orig, opf_path_cut)
+    sheet = pv.load_opf(opf_path_cut)
     if sheet.get_column_list() < 1:
         logger.error('OPF file is empty')
         return None
     if columns_list is not None:
         sheet.columns = {colname: col for (colname, col) in sheet.columns.items() if colname in columns_list}
+
+    _columns_to_trim = [col for col in sheet.columns if col not in _exception]
 
     for colname, col in sheet.columns.items():
         for col in [sheet.columns[c] for c in _columns_to_trim]:
@@ -183,18 +196,15 @@ def parseAndTrimOpf(opf_path, columns_list, onset, offset):
     return opf_path_cut
 
 
-def uploadOpf(file_path, volume):
-    jaroWinkler = JaroWinkler()
-    api = dbapi.DatabraryApi(args.__username, args.__password, False)
-    volume_assets = api.get_volume_assets(volume)
-    for session in volume_assets:
-        session_assets = session["assets"]
-        for asset in session_assets:
-            asset_name = asset['name'] if "." not in asset['name'] else asset['name'][0:-4]
-            opf_name = dbapi.DatabraryApi.getFileName(file_path) if "." not in dbapi.DatabraryApi.getFileName(
-                file_path) else dbapi.DatabraryApi.getFileName(file_path)[0:-4]
-            if jaroWinkler.similarity(asset_name.lower(), opf_name.lower()) >= 0.8:
-                api.upload_asset(volume, session_assets['id'], file_path)
+def uploadOpf(file_path, asset_name, volume):
+    if volume_assets:
+        for session in volume_assets:
+            session_assets = session["assets"]
+            for asset in session_assets:
+                asset_name_volume = asset['name'] if "." not in asset['name'] else asset['name'][0:-4]
+                if asset_name == asset_name_volume:
+                    logger.debug("Uploading file %s to session %s", file_path, str(session['id']))
+                    api.upload_asset(volume, session['id'], file_path)
 
 
 def isOpf(asset_file_path):

@@ -9,12 +9,13 @@ __pycache__/
 .concept/
 tools/output
 tools/input
+tools/opfs
 
 #data
 data/
 
 #configs
-config/
+config/credentials.json
 
 #third party utilities we dont need to push
 third_party/

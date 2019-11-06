@@ -1,15 +1,23 @@
+import sys
 import argparse
 import logging
 import os
 import re
 import csv
+import json
 from utils import dbapi
 from utils import csv_helpers as utils
+
+BASE_DIR = os.path.dirname(os.path.abspath('../'))
+CONFIG_DIR = os.path.join(BASE_DIR, 'config',)
+INPUT_DIR = os.path.join(BASE_DIR, 'tools', 'input')
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+
 
 logger = logging.getLogger('logs')
 logger.setLevel(logging.DEBUG)
 
-fh = logging.FileHandler('../../logs/all.log')
+fh = logging.FileHandler(os.path.join(LOGS_DIR, 'all.log'))
 ch = logging.StreamHandler()
 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s.%(funcName)s - %(message)s')
@@ -82,22 +90,30 @@ __db_formats = {
     "31": "etf"
 }
 
-
 parser = argparse.ArgumentParser(
     description='Command line tool used to download the CSV format of a volume and generate session.csv and '
                 'participants.csv needed for the ingest process')
 parser.add_argument(
     '-f', '--file', help='Path to CSV File', type=str, required=False)
 parser.add_argument(
-    '-u', '--username', help='Databrary username', type=str, dest='__username', required=True)
-parser.add_argument('-p', '--password',
-                    help='Databrary password', type=str, dest='__password', required=True)
-parser.add_argument(
     '-s', '--source', help='Volume ID source', type=int, dest='__source_volume_id', required=True)
 parser.add_argument('-t', '--target',
                     help='Volume ID target', type=int, dest='__target_volume_id', required=True)
 
 args = parser.parse_args()
+
+with open(os.path.join(CONFIG_DIR,'credentials.json')) as creds:
+    __credentials = json.load(creds)
+    __username = __credentials['username']
+    __password = __credentials['password']
+    if __credentials is None:
+        logger.error('Cannot find Databrary credentials')
+        sys.exit()
+    try:
+        api = dbapi.DatabraryApi(__username, __password)
+    except AttributeError as e:
+        logger.error(e)
+        sys.exit()
 
 
 def autoPrepCSV(source, target):
@@ -147,7 +163,8 @@ def parseCSV(file_path, source, target):
                             logger.error(e.message)
 
                         session[key] = str(target) + session_id
-                    elif key == 'tasks' and key in session and record[csv_headers[z]] != '' and record[csv_headers[z]] is not None:
+                    elif key == 'tasks' and key in session and record[csv_headers[z]] != '' and record[
+                        csv_headers[z]] is not None:
                         session.update(tasks=session[key] + ';' + record[csv_headers[z]])
                     else:
                         session[key] = record[csv_headers[z]]
@@ -169,8 +186,8 @@ def parseCSV(file_path, source, target):
 
 def writeCSV(file_name, dict_data, headers):
     try:
-        with open(os.path.join(os.path.realpath('../input'), file_name + '.csv'), 'w') as csvfile:
-            logger.info('Saving file %s in %s', file_name, os.path.realpath('../input'))
+        with open(os.path.join(INPUT_DIR, file_name + '.csv'), 'w') as csvfile:
+            logger.info('Saving file %s in %s', file_name, INPUT_DIR)
             writer = csv.DictWriter(csvfile, fieldnames=headers)
             writer.writeheader()
             for data in dict_data:
@@ -183,8 +200,7 @@ def writeCSV(file_name, dict_data, headers):
 
 
 def getCSV(source):
-    api = dbapi.DatabraryApi(args.__username, args.__password)
-    return api.get_csv(source, os.path.realpath('../input'))
+    return api.get_csv(source, INPUT_DIR)
 
 
 def getFormat(format_id):
@@ -194,7 +210,6 @@ def getFormat(format_id):
 def getSessionAssets(source, target, session):
     server_folder_path = '/nyu/stage/reda/' + str(target)
     try:
-        api = dbapi.DatabraryApi.getInstance(args.__username, args.__password)
         assets = api.get_session_assets(source, session)
 
         new_assets = {}
@@ -217,7 +232,6 @@ def getSessionAssets(source, target, session):
 
 def getVolumeSessions(source):
     try:
-        api = dbapi.DatabraryApi.getInstance(args.__username, args.__password)
         sessions = api.get_sessions(source)
         return sessions
     except AttributeError as e:
@@ -255,12 +269,12 @@ def generateQuery(source, target):
     :param target: Target Volume ID
     :return:
     """
-    logger.info("COPY (select 'mkdir -p /nyu/stage/reda/' || '"+str(target)+
-                 "' || '/' || '"+str(target)+
-                 "' || sa.container || ' && ' || E'cp \"/nyu/store/' || substr(cast(sha1 as varchar(80)), 3, 2) || '/' || right(cast(sha1 as varchar(80)), -4) || ' /nyu/stage/reda/' || '"
-                 +str(target)+"' || '/' || '"+str(target)+
-                 "' || container || '/' || CASE WHEN a.name LIKE '%.___' IS FALSE THEN a.name || '.' || f.extension[1] || E'\"'  ELSE a.name END from slot_asset sa inner join asset a on sa.asset = a.id inner join format f on a.format = f.id where a.volume = "
-                 +str(source)+") TO '/tmp/volume_"+str(target)+".sh';")
+    logger.info("COPY (select 'mkdir -p /nyu/stage/reda/' || '" + str(target) +
+                "' || '/' || '" + str(target) +
+                "' || sa.container || ' && ' || E'cp \"/nyu/store/' || substr(cast(sha1 as varchar(80)), 3, 2) || '/' || right(cast(sha1 as varchar(80)), -4) || ' /nyu/stage/reda/' || '"
+                + str(target) + "' || '/' || '" + str(target) +
+                "' || container || '/' || CASE WHEN a.name LIKE '%.___' IS FALSE THEN a.name || '.' || f.extension[1] || E'\"'  ELSE a.name END from slot_asset sa inner join asset a on sa.asset = a.id inner join format f on a.format = f.id where a.volume = "
+                + str(source) + ") TO '/tmp/volume_" + str(target) + ".sh';")
 
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ except ImportError:
     from urllib.parse import urlparse, urljoin
 import re
 import os
-import math
 
 logger = logging.getLogger('logs')
 
@@ -143,7 +142,7 @@ class DatabraryApi:
             raise AttributeError('Cannot retrieve records list from session %d in volume %d', session, volume)
 
     def get_session_participants(self, volume, session):
-        records = self.get_records(volume, session)
+        records = self.get_session_records(volume, session)
         participants_list = [record for record in records if record.get("record", {}).get("category") == 1]
         return participants_list
 
@@ -253,11 +252,4 @@ class DatabraryApi:
     @staticmethod
     def getFileSize(filepath):
         return os.path.getsize(filepath)
-
-
-if __name__ == '__main__':
-    api = DatabraryApi("rn56@nyu.edu", "ChRySoStOmUs230.,", False)
-    # api.upload_asset(967,40269, '../../input/DatavyuSampleVideo.mp4')
-    sessions = api.get_volume_assets(967)
-    print(sessions)
 

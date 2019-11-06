@@ -17,6 +17,42 @@ Open iTerm window in folder /Users/[username]/Documents/GitHub/curation/tools
 
 Create folder for completed .csv files (e.g., /HD/temp)
 
+### virtual env
+* Install [pip](https://pip.pypa.io/en/stable/installing/),  if you are using Python 2 < 2.7.9 or Python 3 < 3.4.
+* Install virtualenv package
+  ```
+    pip install virutalenv
+  ```
+* On your project root folder run, create a python 2 virtual environment
+  ```
+    virtualenv venv
+  ```
+* Activate your virtual env
+  ```
+    source venv/bin/activate
+  ```
+#### install dependencies
+Run the following command to install required dependencies:
+  ```
+    pip install -r requirements2.txt
+  ```
+
+### setup Databrary credentials
+duplicate ```config/default.json``` and rename it ```credentials.json```
+
+```
+  cp config/default.py config/config.py
+```
+
+open ```credentials.json``` and update your credentials
+
+```json
+{
+  "username":"YOUR_USERNAME",
+  "password":"YOUR_PASSWORD"
+}
+```
+
 ### spec
 
 #### api_docs
@@ -50,7 +86,7 @@ volume are provided, the script will attempt to upload the OPF file.
 
 * Usage:
     ```
-    python trimOpf.py PATH_TO_JSON_FILE
+    python trimOpf.py PATH_TO_JSON_FILE -c COLUMNS_TO_EDIT
     ```
   You can also use the script to trim a single OPF file
     ```
@@ -58,7 +94,7 @@ volume are provided, the script will attempt to upload the OPF file.
     ```
   Opf trim with upload:
     ```
-    python trimOpf.py PATH_TO_OPF -v VOLUME_ID -u USERNAME -p PASSWORD -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
+    python trimOpf.py PATH_TO_OPF -v VOLUME_ID -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
     ```
   Note: if columns list is note specified, the script will consider all columns in the opf spreadsheet
 
@@ -69,11 +105,11 @@ The script generates an SQL query that need to be run on the Databrary server pr
 
 * Usage: Download and generate sessions and participants files
     ```
-    python prepareCSV.py -u YOUR_USERNAME -p PASSWORD -s SOURCE_VOLUME -t TARGET_VOLUME
+    python prepareCSV.py -s SOURCE_VOLUME -t TARGET_VOLUME
     ```
   if you have your own curated CSV file (Skip the download phase) and would like to use the script, add the `-f[--file]` argument:
     ```
-    python prepareCSV.py -f FILE_PATH -u YOUR_USERNAME -p PASSWORD -s SOURCE_VOLUME -t TARGET_VOLUME
+    python prepareCSV.py -f FILE_PATH -s SOURCE_VOLUME -t TARGET_VOLUME
     ```
 
 **csv2json.py**: This is the main ingest script which takes the session and/or participant .CSV files for any given dataset and converts it into a .JSON file (located in the /output folder) which can then be uploaded to `https://nyu.databrary.org/volume/{VOLUME_ID}/ingest` to start the ingest process. Select Run to run the ingest, leave both check boxes blank to check the JSON, Select Overwrite to overwrite existing session data.
