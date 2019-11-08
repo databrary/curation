@@ -84,6 +84,7 @@ _opf_extensions = [".opf"]
 _edit_columns = args.columns
 _exception = ["id"]
 
+
 def parseInputFile(input_file, is_json):
     if is_json:
         parseIngestFile(input_file)
@@ -98,13 +99,16 @@ def findOpf(asset_name):
         for file in files:
             if file.endswith(".opf"):
                 opf_name = dbapi.DatabraryApi.getFileName(file)[0:-4]
-                text_similarity = textdistance.jaro_winkler.similarity(asset_name.lower(), opf_name.lower())
-                if text_similarity > max_similarity:
-                    max_similarity = text_similarity
-                    opf_similar = file
+                if opf_name.lower() in asset_name.lower():
+                    # logger.info('file %s and asset %s similarity is text_similarity %s', opf_similar, asset_name,
+                    #             str(max_similarity))
+                    return os.path.join(root,file)
+                # text_similarity = textdistance.jaro_winkler.similarity(asset_name.lower(), opf_name.lower())
+                # if text_similarity > max_similarity:
+                    # max_similarity = text_similarity
+                    # opf_similar = file
 
-    logger.info('file %s and asset %s similarity is text_similarity %s', opf_similar, asset_name, str(max_similarity))
-    return os.path.join(root, opf_similar)
+    return None
 
 
 def parseIngestFile(ingest_json_path):
@@ -159,9 +163,10 @@ def parseIngestFile(ingest_json_path):
                             asset_path) if "." not in dbapi.DatabraryApi.getFileName(
                             asset_path) else dbapi.DatabraryApi.getFileName(asset_path)[0:-4]
                         opf_path = findOpf(asset_name)
-                        opf_cut = parseAndTrimOpf(opf_path, _edit_columns, onset, offset)
-                        if args.__volume is not None and opf_path is not None:
-                            uploadOpf(opf_cut, asset_name, args.__volume)
+                        if (opf_path is not None):
+                            opf_cut = parseAndTrimOpf(opf_path, _edit_columns, onset, offset)
+                            if args.__volume is not None and opf_path is not None:
+                                uploadOpf(opf_cut, asset_name, args.__volume)
             else:
                 logger.warning("Cannot find any Media or OPF file")
 
@@ -184,14 +189,17 @@ def parseAndTrimOpf(opf_path, columns_list, onset, offset):
 
     _columns_to_trim = [col for col in sheet.columns if col not in _exception]
 
-    for colname, col in sheet.columns.items():
-        for col in [sheet.columns[c] for c in _columns_to_trim]:
-            col.cells = [cell for cell in col.cells if cell.onset >= onset and cell.offset <= offset]
+    for col in [sheet.columns[c] for c in _columns_to_trim]:
+        col.cells = [cell for cell in col.cells if (cell.onset >= onset and cell.offset <= offset) or (
+                    cell.onset < onset < cell.offset <= offset) or (onset < cell.onset < offset < cell.offset)]
 
     for colname, col in sheet.columns.items():
         for cell in col.cells:
-            cell.onset = max(cell.onset - onset, 0)
-            cell.offset = cell.offset - onset
+            cell.onset = max(max(cell.onset, onset) - onset, 0)
+            cell.offset = max(min(cell.offset, offset) - onset, 0)
+
+    sheet.columns = {colname: col for (colname, col) in sheet.columns.items() if len(col.cells) > 0}
+
     pv.save_opf(sheet, opf_path_cut, *sheet.columns.keys())
     return opf_path_cut
 
