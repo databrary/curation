@@ -80,10 +80,10 @@ class DatabraryApi:
         else:
             raise AttributeError('Login failed, please check your username and password')
 
-    def get_csv(self, volume, target_dir):
+    def get_csv(self, volume_id, target_dir):
         """
         Download a CSV file from a Databrary volume, read access to the volume is required.
-        :param volume: Databrary volume id
+        :param volume_id: Databrary volume id
         :param target_dir: CSV file directory target
         :return: Path to the CSV file
         """
@@ -99,7 +99,7 @@ class DatabraryApi:
                 return None
             return fname[0]
 
-        url = urljoin(self.__base_url, 'volume/' + str(volume) + '/csv')
+        url = urljoin(self.__base_url, 'volume/' + str(volume_id) + '/csv')
         logger.debug('CSV url %s', url)
 
         response = self.__session.get(url, allow_redirects=True)
@@ -107,19 +107,19 @@ class DatabraryApi:
             file_name = get_filename_from_cd(response.headers.get('content-disposition'))
             file_path = os.path.join(target_dir, file_name)
             open(file_path, 'wb').write(response.content)
-            logger.info("CSV File %s downloaded from volume %d.", file_name, volume)
+            logger.info("CSV File %s downloaded from volume %d.", file_name, volume_id)
             return file_path
         else:
-            raise AttributeError('Cannot download CSV file in volume %d', volume)
+            raise AttributeError('Cannot download CSV file in volume %d', volume_id)
 
-    def get_sessions(self, volume):
+    def get_sessions(self, volume_id):
         """
         Get a list of containers(session) from a Databrary volume
-        :param volume: Databrary volume id
+        :param volume_id: Databrary volume id
         :return: a list of session ids in JSON format
         """
         payload = {'containers': 1}
-        url = urljoin(self.__base_api_url, 'volume/' + str(volume))
+        url = urljoin(self.__base_api_url, 'volume/' + str(volume_id))
 
         logger.debug('Getting session URL %s', url)
         response = self.__session.get(url=url, params=payload)
@@ -127,50 +127,72 @@ class DatabraryApi:
             logger.info("Found %d sessions.", len(response.json()['containers']))
             return response.json()['containers']
         else:
-            raise AttributeError('Cannot retrieve sessions list from volume %d', volume)
+            raise AttributeError('Cannot retrieve sessions list from volume %d', volume_id)
 
-    def get_session_records(self, volume, session):
+    def get_session_records(self, volume_id, session_id):
         payload = {'records': 1}
-        url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '/slot/' + str(session))
+        url = urljoin(self.__base_api_url, 'volume/' + str(volume_id) + '/slot/' + str(session_id))
 
         logger.debug('Getting session records URL %s', url)
         response = self.__session.get(url=url, params=payload)
         if response.status_code == 200:
-            logger.info("Found %d records in session %s.", len(response.json()['records']), session)
+            logger.info("Found %d records in session %s.", len(response.json()['records']), session_id)
             return response.json()['records']
         else:
-            raise AttributeError('Cannot retrieve records list from session %d in volume %d', session, volume)
+            raise AttributeError('Cannot retrieve records list from session %d in volume %d', session_id, volume_id)
 
-    def get_session_participants(self, volume, session):
-        records = self.get_session_records(volume, session)
+    def get_session_participants(self, volume_id, session_id):
+        records = self.get_session_records(volume_id, session_id)
         participants_list = [record for record in records if record.get("record", {}).get("category") == 1]
         return participants_list
 
-    def get_session_assets(self, volume, session):
+    def get_session_assets(self, volume_id, session_id):
         """
         Get volume's asset list
-        :param volume: Databrary volume id
-        :param session: Databrary session id
+        :param volume_id: Databrary volume id
+        :param session_id: Databrary session id
         :return: a list of session ids in JSON format
         """
         payload = {'assets': 1}
-        url = urljoin(self.__base_api_url, 'volume/' + str(volume) + '/slot/' + str(session))
+        url = urljoin(self.__base_api_url, 'volume/' + str(volume_id) + '/slot/' + str(session_id))
 
         logger.debug('Getting volume assets URL %s', url)
         response = self.__session.get(url=url, params=payload)
         if response.status_code == 200:
-            logger.info("Found %d assets in session %s.", len(response.json()['assets']), session)
+            logger.info("Found %d assets in session %s.", len(response.json()['assets']), session_id)
             return response.json()['assets']
         else:
-            raise AttributeError('Cannot retrieve asset list from session %d in volume %d', session, volume)
+            raise AttributeError('Cannot retrieve asset list from session %d in volume %d', session_id, volume_id)
 
-    def get_volume_assets(self, volume):
+    def get_volume_assets(self, volume_id):
         sessions = []
-        for session in self.get_sessions(volume):
-            session.update({"assets": self.get_session_assets(volume, session['id'])})
+        for session in self.get_sessions(volume_id):
+            session.update({"assets": self.get_session_assets(volume_id, session['id'])})
             sessions.append(session)
         return sessions
 
+    def get_file_info(self, asset_id):
+        url = urljoin(self.__base_api_url, 'asset/' + str(asset_id))
+
+        logger.debug('Getting session URL %s', url)
+        response = self.__session.get(url=url)
+        if response.status_code == 200:
+            logger.info("Found asset %d info.", asset_id)
+            return response.json()
+        else:
+            raise AttributeError('Cannot retrieve asset %d info', asset_id)
+
+    def post_file_name(self, asset_id, asset_name):
+        payload = {'name': str(asset_name)}
+        url = urljoin(self.__base_api_url, 'asset/' + str(asset_id))
+
+        logger.debug('Getting session URL %s', url)
+        response = self.__session.post(url=url, json=payload)
+        if response.status_code == 200:
+            logger.info("Asset %d name changed to %s.", asset_id, str(asset_name))
+            return response.json()
+        else:
+            raise AttributeError('Cannot change asset nameto %s', str(asset_name))
 
     def upload_asset(self, volume_id, session_id, file_path):
         """
