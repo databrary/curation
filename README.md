@@ -17,6 +17,42 @@ Open iTerm window in folder /Users/[username]/Documents/GitHub/curation/tools
 
 Create folder for completed .csv files (e.g., /HD/temp)
 
+### virtual env
+* Install [pip](https://pip.pypa.io/en/stable/installing/),  if you are using Python 2 < 2.7.9 or Python 3 < 3.4.
+* Install virtualenv package
+  ```
+    pip install virutalenv
+  ```
+* On your project root folder run, create a python 2 virtual environment
+  ```
+    virtualenv venv
+  ```
+* Activate your virtual env
+  ```
+    source venv/bin/activate
+  ```
+#### install dependencies
+Run the following command to install required dependencies:
+  ```
+    pip install -r requirements2.txt
+  ```
+
+### setup Databrary credentials
+duplicate ```config/default.json``` and rename it ```credentials.json```
+
+```
+  cp config/default.py config/config.py
+```
+
+open ```credentials.json``` and update your credentials
+
+```json
+{
+  "username":"YOUR_USERNAME",
+  "password":"YOUR_PASSWORD"
+}
+```
+
 ### spec
 
 #### api_docs
@@ -43,19 +79,52 @@ Contains all current templates for Databrary ingest. All files can be generated 
 JSON Schema file which defines constraints, datatypes, accepted values and JSON strutucture for metadata to be ingested into Databrary. Each ingest is validated against this schema before being being written to the Databrary database. Official version is [here](https://raw.githubusercontent.com/databrary/databrary/master/volume.json).
 
 ### tools/scripts
+**trimOpf.py**: Script that can be used to trim opf files found in a 
+ingest JSON file, according to onset and offset of assets belonging 
+to the same container, if volume, username and password for a Databrary
+volume are provided, the script will attempt to upload the OPF file.
+
+* Usage:
+    ```
+    python trimOpf.py PATH_TO_JSON_FILE -c COLUMNS_TO_EDIT
+    ```
+  You can also use the script to trim a single OPF file
+    ```
+    python trimOpf.py PATH_TO_OPF -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
+    ```
+  Opf trim with upload:
+    ```
+    python trimOpf.py PATH_TO_OPF -v VOLUME_ID -f opf -on ONSET_IN_MS -off OFSET_IN_MS -c COLUMNS_TO_EDIT
+    ```
+  Note: if columns list is note specified, the script will consider all columns in the opf spreadsheet
+
+
+**prepareCSV.py**: Script that can be used to download Volume metadatas' in CSV format and build paths to the files located on the server.
+The script generates an SQL query that need to be run on the Databrary server prior to the ingest. generated files will be found in the
+`input` folder
+
+* Usage: Download and generate sessions and participants files
+    ```
+    python prepareCSV.py -s SOURCE_VOLUME -t TARGET_VOLUME
+    ```
+  if you have your own curated CSV file (Skip the download phase) and would like to use the script, add the `-f[--file]` argument:
+    ```
+    python prepareCSV.py -f FILE_PATH -s SOURCE_VOLUME -t TARGET_VOLUME
+    ```
 
 **csv2json.py**: This is the main ingest script which takes the session and/or participant .CSV files for any given dataset and converts it into a .JSON file (located in the /output folder) which can then be uploaded to `https://nyu.databrary.org/volume/{VOLUME_ID}/ingest` to start the ingest process. Select Run to run the ingest, leave both check boxes blank to check the JSON, Select Overwrite to overwrite existing session data.
 
 * Usage (traditional ingest - pre-assisted curation): 
-    
+    ```
     python csv2json.py -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
-    
+    ```    
     Example: Users-MacBook-Pro:scripts user$ python csv2json.py -s /temp/sessions_template_test.csv -p /temp/participants_template_test.csv -f bergtest -n "ACLEW Project"
 
 * Usage (assisted curation)
-
+    ```
     python csv2json.py -a -s {path to session csv file} -p {path to participant csv file} -f {output JSON name} -n {Full name of volume on Databrary (must match)}
-
+    ```
+  
 Note: the participant file is optional if you only want to add session metadata. However, you cannot have ParticipantID in the session file if you are ommitting a participant file.
 
 **assisted.py**: Script that can be used to pull rows related to assisted curation uploads from an instance of the Databrary database. Currently does not connect to production.

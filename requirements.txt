@@ -1,0 +1,16 @@
+attrs==19.1.0
+certifi==2019.9.11
+chardet==3.0.4
+functools32==3.2.3.post2
+future==0.17.1
+idna==2.8
+jsonschema==3.0.2
+numpy==1.16.5
+pandas==0.24.2
+py2vyu==0.1.0
+pyrsistent==0.15.4
+python-dateutil==2.8.0
+pytz==2019.2
+requests==2.22.0
+six==1.12.0
+urllib3==1.25.6
