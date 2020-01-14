@@ -108,11 +108,12 @@ with open(os.path.join(CONFIG_DIR,'credentials.json')) as creds:
     __credentials = json.load(creds)
     __username = __credentials['username']
     __password = __credentials['password']
+    __superuser= __credentials['superuser']
     if __credentials is None:
         logger.error('Cannot find Databrary credentials')
         sys.exit()
     try:
-        api = dbapi.DatabraryApi(__username, __password)
+        api = dbapi.DatabraryApi(__username, __password, __superuser)
     except AttributeError as e:
         logger.error(e)
         sys.exit()
@@ -166,11 +167,14 @@ def parseCSV(file_path, source, target):
 
                         session[key] = str(target) + session_id
                     elif key == 'date':
-                        date = parse(record[csv_headers[z]])
-                        if isinstance(date, datetime):
-                            session[key] = date.strftime("%m/%d/%Y")
-                        else:
-                            session[key] = record[csv_headers[z]]
+                        try:
+                            date = parse(record[csv_headers[z]])
+                            if isinstance(date, datetime):
+                                session[key] = date.strftime("%m/%d/%Y")
+                            else:
+                                session[key] = record[csv_headers[z]]
+                        except ValueError as e:
+                            logger.error(e.message)
                     elif key == 'tasks' and key in session and record[csv_headers[z]] != '' and record[csv_headers[z]] is not None:
                         session.update(tasks=session[key] + ';' + record[csv_headers[z]])
                     else:
