@@ -192,7 +192,20 @@ class DatabraryApi:
             logger.info("Asset %d name changed to %s.", asset_id, str(asset_name))
             return response.json()
         else:
-            raise AttributeError('Cannot change asset nameto %s', str(asset_name))
+            raise AttributeError('Cannot change asset name to %s', str(asset_name))
+
+    def post_file_permission(self, asset_id, permission):
+        payload = {
+            'name': self.get_file_info(asset_id)['name'],
+            'classification': permission
+        }
+        url = urljoin(self.__base_api_url, 'asset/' + str(asset_id))
+        response = self.__session.post(url=url, json=payload)
+        if response.status_code == 200:
+            logger.info("Asset %d permission changed to %s.", asset_id, str(response.json()['classification']))
+            return response.json()
+        else:
+            raise AttributeError('Cannot change asset permission to %s', str(permission))
 
     def upload_asset(self, volume_id, session_id, file_path):
         """

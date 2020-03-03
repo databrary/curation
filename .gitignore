@@ -16,6 +16,7 @@ data/
 
 #configs
 config/credentials.json
+config/admin.json
 
 #third party utilities we dont need to push
 third_party/

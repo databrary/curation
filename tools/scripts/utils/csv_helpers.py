@@ -4,6 +4,7 @@ import os
 import time
 import math
 from datetime import datetime
+from dateutil.parser import parse
 
 
 ################### QUICK OPERATIONS FOR REDUNDANT TASKS INVOLVING CSVs ###############################
@@ -131,5 +132,5 @@ def ensureDateFormat(date):
        although quite honestly this should be done before utilizing this script
     '''
     if '/' in date:
-        date = datetime.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
+        date = parse(date).strftime('%Y-%m-%d')
     return date
