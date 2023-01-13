@@ -3,7 +3,7 @@ Databrary Ingestion: A curation guide for staff
 
 This guide provides criteria and minimal requirements that a potential data contributor must meet in order to contribute data to Databrary. It also provides a base set of criteria for prioritizing datasets as a whole in the process of determining data relevance for Databrary.
 
-#Confirming Permissions & Sharing
+# Confirming Permissions & Sharing
 
 *These are most essential to avoiding setbacks and dissatisfaction with contributors after we've invested significant resources curating and ingesting data.*
 
@@ -20,7 +20,7 @@ This guide provides criteria and minimal requirements that a potential data cont
 - Can this dataset be downloaded by anyone who has permission to access this dataset?
 
 
-#Rubric for Determining Priorities of Data
+# Rubric for Determining Priorities of Data
 
 |  | 1 | 2 | 3 | 4 | Score |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|-------|
