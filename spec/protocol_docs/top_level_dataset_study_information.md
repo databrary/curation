@@ -8,7 +8,7 @@ In addition, feel free to attach any files that describe the entire dataset or s
 
 Keep in mind that most of this information, especially the sharing portion, is easy to change. Before we make your data visible to the Databrary community, we will go through your dataset(s) on Databrary with you to ensure you are satisfied with the way your research looks.
 
-##Titles and Summaries
+## Titles and Summaries
 
 Please provide a title for your dataset. We would like it to be a descriptive title. Think about what the most important aspect of your dataset is. Is it the task? Physical description? Display? Technique? You can think about it and come back to this question after filling out the rest of the worksheet.
 
@@ -24,7 +24,7 @@ What did the subjects do in a single session? Were there specific tasks that eac
 
 Do you have documentation that defines specifically what the participants did for each task or over a session? These could be instructions given to a participant or protocols. You can attach that documentation to this worksheet. If you do not have that documentation, could you please define what a participant did for each task and/or in a session?
 
-##Defining what kind of data this is
+## Defining what kind of data this is
 
 What kind of dataset or study is this? Is it longitudinal, where you kept track of the same participants over time? Did you keep the same subject IDs? 
 
@@ -45,13 +45,13 @@ Did you have randomly assigned conditions or treatments within or between subjec
 Did you do groupings by age/gender/experience etc? How would you define these groupings?
 
 
-##Funding and Citations
+## Funding and Citations
 
 Are there any publications about or derived from this data? 
 
 Enter your grant/funding information
 
-##Sharing
+## Sharing
 
 List any collaborators or other PIs for this dataset or study. These will be people you will share your data with. These may be people to whom you give access download and edit your dataset or study.
 
