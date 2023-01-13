@@ -1,10 +1,10 @@
-#Data Conversations
+# Data Conversations
 
 We think of this document as set of notes on the curation process and welcome comments and feedback about the ideas that follow.
 The intention is for this to lead to a document that explicitly details the curation process: what conversations will we have with contributors and what information we will solicit from them in what order.
 It will provide a guide for contributors as well as curators to prepare them for how the process will go.
 
-###Summary of information we will gather
+### Summary of information we will gather
 
 * The primary focus or "subjects" of a researcher's data: individual participants, families, classrooms, crowds, animals, etc.
 * Information the researcher is already collecting or plans to collect about these subjects, ideally including some representation of age (birthdate, rough age, grade level, etc.), demographics, etc.
