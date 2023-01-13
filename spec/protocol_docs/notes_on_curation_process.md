@@ -1,15 +1,15 @@
 # Notes on Curation Process
 
 ## What PIs need to know prior to contributing videos
-###* What is the PI responsible for, what must the PI warrant?
+### * What is the PI responsible for, what must the PI warrant?
 * Permission levels
 * OK with what's shared
 * Provide point of contact, whether that's a PI or someone else in the lab. Generally this is a lab manager or a lab coordinator.
 
-###* The difference between raw data and analysis materials, we can make the study/dataset distinction on the backend
+### * The difference between raw data and analysis materials, we can make the study/dataset distinction on the backend
 * PI will provide info about excluded/pilot raw data
 
-###* Assure PI that we will keep the PI in the loop for all representations of their data
+### * Assure PI that we will keep the PI in the loop for all representations of their data
 * We will check with the PI at every step that leads to viewing by others, regardless of whether the PI delegates to lab personnel
   * Data may only be viewed by others if the PI explicitly shares it: we will never share data ourselves
  * We will remind the PI how to access their files in the Databrary (registration and passwords to beta library)
@@ -22,7 +22,7 @@
  	* whatever else a PI wants to edit, we can build
 * We will sent the PI (and any delegates) reminders about what we need and when
 
-###* List of desirables for PI to deliver and ways we'll support the PI
+### * List of desirables for PI to deliver and ways we'll support the PI
 * PIs need list of terms
   * Session
   * Dataset (Necessary?)
@@ -58,7 +58,7 @@
 * Ways Databrary can currently help PI to manage data
 * Ways Databrary can minimize PI's workload: Remove need to enter data more than once
 
-###* Standardized tags?
+### * Standardized tags?
 * For datasets, studies, sessions, segments of videos
   * Should we try to extract these from coding spreadsheets? 
   * Context of session, participant demographics, study design, etc?
@@ -70,7 +70,7 @@
 	* Record Structure http://www.apa.org/pubs/databases/training/record-structure.pdf 	
 	* Controlled vocabulary http://psycnet.apa.org/index.cfm?fa=termfinder.displayTerms&id=B45C31BC-AAA6-7D6E-2F25-BE2894D50CAA
 
-###* Volumes
+### * Volumes
 * Dataset
   * Top Level
   	* Funding
@@ -87,11 +87,11 @@
   	  * Identified data
   	    * Videos
 * Study
-	 * Top Level
-	 	 * Funding
-	 	 * Investigators
-	 	 * Sharing
-	 	 * Identified data
+	* Top Level
+	 	* Funding
+	 	* Investigators
+	 	* Sharing
+	 	* Identified data
 	 	   * Photos
 	 	 * Publications
 	 	 * Materials
@@ -110,7 +110,7 @@
 	   * Analysis
 	     * Coding
 
-###* Possible record categories for each session in a dataset
+### * Possible record categories for each session in a dataset
   * Session will always have test data and consent level
   * Participant
     * Birthdate
@@ -167,16 +167,16 @@
 * Setting (home, lab, playground, classroom)
 * People on video (single S, dyad, family, peers, etc)
 
-###* Relations between datasets and studies: how to tag sessions within datasets as belonging to particular studies
+### * Relations between datasets and studies: how to tag sessions within datasets as belonging to particular studies
 * This is a major record for each session of high import to Databrary (transparency) and to PI (embarrassment)
 * Implicitly by adding files or records (e.g. inclusion, exclusion)
 * Explicitly by maintaining list of including sessions
 
-###* Time considerations
+### * Time considerations
 * Maintaining a timeline within sessions (sequence of clips?)
 * Or place tasks/conditions/etc at different sessions
 
-###* File formats
+### * File formats
 * Videos
   * MP4
     * Spec is h.264 in a MP4 wrapper with AAC/ Tested in different browsers, does not work on Firefox on Mac. Not going to do a workaround
@@ -196,6 +196,6 @@
   	* .jpg
   	* .csv
 
-###* Electronic release forms that link to videos
-###* Uploading blank forms used, for reference and improving methods
+### * Electronic release forms that link to videos
+### * Uploading blank forms used, for reference and improving methods
     	  
